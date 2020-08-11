@@ -1,9 +1,13 @@
-commands := git@github.com:kaito1002/commands.git
+commands := git@gitlab.com:config-kimuemon/commands.git
 target := ".zshrc" ".commandsrc" ".env_variables.secret" ".commands"
 
 setup:
 	git clone $(commands) .commands
 	make link
+
+pull:
+	git pull origin master
+	cd .commands && git pull origin master && cd ..
 
 link:
 	for item in $(target); do\
