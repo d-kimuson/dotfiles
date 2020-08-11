@@ -1,2 +1,5 @@
 .DS_Store
 .vscode
+
+.commands
+.env_variable.secret
