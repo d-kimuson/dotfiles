@@ -47,4 +47,6 @@ eval "$(pyenv init -)"
 export PIPENV_VENV_IN_PROJECT=1
 export PIPENV_IGNORE_VIRTUALENVS=1
 
-source .env_variable.secret
+if [ -f ~/.env_variable.secret ]; then
+    source .env_variable.secret
+fi
