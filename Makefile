@@ -10,6 +10,7 @@ pull:
 	cd .commands && git pull origin master && cd ..
 
 link:
+	make unlink
 	for item in $(target); do\
 		ln -sf ~/dotfiles/$${item} ~/$${item};\
 	done
