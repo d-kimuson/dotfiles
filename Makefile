@@ -1,8 +1,8 @@
-commands := git@gitlab.com:config-kimuemon/commands.git
+commands := git@github.com:d-kimuson/commands.git
 target := ".zshrc" ".commandsrc" ".env_variable.secret" ".commands"
 
 setup:
-	git clone $(commands) .commands
+	rm -rf .commands && git clone $(commands) .commands
 	make link
 
 pull:
