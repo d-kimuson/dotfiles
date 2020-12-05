@@ -75,7 +75,7 @@ reg
 ssh
 
 $ cls python  # 各ファイルに定義されている alias & functions
-/$HOEM/dotfiles/.commands/python.sh
+$HOEM/dotfiles/.commands/python.sh
 alias python2='/usr/bin/python'
 alias py='python'
 alias pyreq='touch requirements.txt && /bin/rm requirements.txt && pip freeze > requirements.txt'
