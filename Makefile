@@ -1,13 +1,10 @@
-commands := git@github.com:d-kimuson/commands.git
 target := ".zshrc" ".commandsrc" ".localrc" ".commands"
 
 setup:
-	rm -rf .commands && git clone $(commands) .commands
 	make link
 
 pull:
 	git pull origin master
-	cd .commands && git pull origin master
 
 link:
 	make unlink
