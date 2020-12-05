@@ -1,5 +1,5 @@
 commands := git@github.com:d-kimuson/commands.git
-target := ".zshrc" ".commandsrc" ".env_variable.secret" ".commands"
+target := ".zshrc" ".commandsrc" ".localrc" ".commands"
 
 setup:
 	rm -rf .commands && git clone $(commands) .commands

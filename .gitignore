@@ -2,4 +2,4 @@
 .vscode
 
 .commands
-.env_variable.secret
+.localrc
