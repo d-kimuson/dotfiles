@@ -7,7 +7,7 @@ setup:
 
 pull:
 	git pull origin master
-	cd .commands && git pull origin master && cd ..
+	cd .commands && git pull origin master
 
 link:
 	make unlink
