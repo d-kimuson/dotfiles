@@ -17,7 +17,7 @@ function cls() {
   # - cls <filename>: ファイルで指定されているエイリアス/関数の表示
   #    EXAMPLE: cls python
   if [ -z "$1" ]; then
-    ls ~/.commands | grep ".sh" | sed s/"\.sh"//g
+    ls ~/dotfiles/.commands | grep ".sh" | sed s/"\.sh"//g
   else
     \find ~/dotfiles/.commands -type f -name $1".sh"
     \find ~/dotfiles/.commands -type f -name $1".sh" | xargs cat | grep 'alias' | grep -v "cat"

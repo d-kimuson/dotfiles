@@ -62,9 +62,9 @@ function glicence() {
   # templates 下に置いてある LICENSE をコピってくる
   # [TODO] 置いておくのばからしいので、リポジトリから拾ってくるようにしたほうが良さそう
   echo "-- Select LICENCE --"
-  ls ~/.commands/templates/LICENCES
+  ls ~/dotfiles/.commands/templates/LICENCES
   printf ">> "; read LICENCE
-  cp ~/.commands/templates/LICENCES/${LICENCE} ./
+  cp ~/dotfiles/.commands/templates/LICENCES/${LICENCE} ./
   mv ./${LICENCE} LICENCE
 }
 

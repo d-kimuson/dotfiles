@@ -1,4 +1,4 @@
-target := ".zshrc" ".commandsrc" ".localrc" ".commands"
+target := ".zshrc" ".commandsrc" ".localrc"
 
 setup:
 	make link
