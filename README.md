@@ -4,11 +4,11 @@
 
 ## 構成
 
-| ファイル/ディレクトリ | 用途                                                         |
-| :------------------- | :----------------------------------------------------------- |
-|        .zshrc         | シェル周りの設定                                             |
-|       .commands       | [エイリアス & Fuctions](https://github.com/d-kimuson/commands) |
-|      .commandsrc      | `.commands` の読み込み                                       |
+| ファイル/ディレクトリ | 用途                   |
+| :-------------------- | :--------------------- |
+| .zshrc                | シェル周りの設定       |
+| .commands             | エイリアス & Fuctions  |
+| .commandsrc           | `.commands` の読み込み |
 
 ## 新しい端末にセットアップする
 
@@ -56,3 +56,36 @@ $ make pull
 ## リポジトリに載せない設定を書く
 
 認証情報や、端末固有のパスなどの情報は、`.localrc` に記述する
+
+## 自作コマンドの確認
+
+`.commands` 下には、ファイル分割した状態でエイリアスや関数が置いてある
+
+これらの参照に `cls` を使える
+
+``` sh
+$ cls  # ファイル一覧
+blog
+command
+docker
+git
+github
+network
+private
+python
+reg
+ssh
+
+$ cls python  # 各ファイルに定義されている alias & functions
+/$HOEM/dotfiles/.commands/python.sh
+alias python2='/usr/bin/python'
+alias py='python'
+alias pyreq='touch requirements.txt && /bin/rm requirements.txt && pip freeze > requirements.txt'
+alias ve-init='python -m venv .venv && source .venv/bin/activate && pip install --upgrade pip'
+alias dj='python manage.py'
+function mpy()
+function pyinstall()
+function pyuninstall()
+function ve()
+function ve-jupyter
+```
