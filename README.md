@@ -24,10 +24,9 @@ $ cd dotfiles & make setup
 $ make pull
 ```
 
-## リポジトリに載せたくない情報
+## リポジトリに載せたくない設定
 
-認証情報等を環境変数に置きたいときは,
-`.env_variable.secret` に記述した上で
+認証情報や、端末固有のパスなどの情報は、`.localrc` に記述した上で
 
 ``` sh
 $ make link
