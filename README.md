@@ -35,8 +35,6 @@ $ cd dotfiles & make setup
 $ make pull
 ```
 
-`.commands` の更新もこれで行う
-
 ## 新しい設定ファイルをリンクする
 
 1. 設定ファイルを `dotfiles` 下に置く
