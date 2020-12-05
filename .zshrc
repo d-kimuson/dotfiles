@@ -1,6 +1,6 @@
 # === Prezto ===
 if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-    source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
+  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
 fi
 
 autoload -Uz promptinit
@@ -9,15 +9,15 @@ prompt steeef
 
 # === Load Other Config Files ===
 if [ -f ~/.bashrc ]; then
-    source ~/.bashrc
+  source ~/.bashrc
 fi
 
 if [ -f ~/.bash_profile ]; then
-    source ~/.bash_profile
+  source ~/.bash_profile
 fi
 
 if [ -f ~/.commandsrc ]; then
-    source ~/.commandsrc
+  source ~/.commandsrc
 fi
 
 # === Env Variables ===
@@ -25,5 +25,5 @@ export PIPENV_VENV_IN_PROJECT=1
 export PIPENV_IGNORE_VIRTUALENVS=1
 
 if [ -f ~/.localrc ]; then
-    source ~/.localrc
+  source ~/.localrc
 fi
