@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for file in `\find -L ~/.commands -type f | grep '.sh'`; do
+for file in `find -L ~/.commands -type f | grep '.sh' | grep -v '.git'`; do
   chmod a+x ${file}
   source ${file}
 done
