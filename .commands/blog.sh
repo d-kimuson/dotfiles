@@ -2,6 +2,6 @@
 
 function blog() {
   # ブログ用に VSCode を起動する
-  code ~/Blogs/gatsby-tech-blog
+  code ~/Blogs/kimuson.dev
   echo "Start dev server with yarn dev and go to http://localhost:2828 !"
 }
