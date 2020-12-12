@@ -18,3 +18,9 @@ function kill-port() {
   printf "Input port number >> "; read PORT
   kill-process-from-portnum $PORT
 }
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  function vnc() {
+    open vnc://$1
+  }
+fi
