@@ -79,3 +79,8 @@ function gfix() {
   # 直前のコミットメッセージを修正する
   git commit --amend
 }
+
+function gtra() {
+  git fetch
+  git checkout --track origin/${$1}
+}
