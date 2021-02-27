@@ -82,5 +82,5 @@ function gfix() {
 
 function gtra() {
   git fetch
-  git checkout --track origin/${$1}
+  git checkout --track origin/$1
 }
