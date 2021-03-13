@@ -1,4 +1,4 @@
-target := ".zshrc" ".commandsrc" ".localrc"
+target := ".zshrc" ".commandsrc" ".localrc" ".gitconfig"
 
 setup:
 	make link
@@ -6,8 +6,11 @@ setup:
 pull:
 	git pull origin master
 
-link:
+relink:
 	make unlink
+	make link
+
+link:
 	for item in $(target); do\
 		ln -sf ~/dotfiles/$${item} ~/$${item};\
 	done
