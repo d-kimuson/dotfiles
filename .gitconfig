@@ -7,6 +7,7 @@
 [alias]
     a = "add"
     c = "commit"
+    cz = "!npx cz"
     st = "status"
     ps = "git push origin HEAD"
     pl = "!git fetch && git merge origin/`git branch | grep '*' | cut -f 2 -d ' '`"

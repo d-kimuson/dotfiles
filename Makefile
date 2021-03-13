@@ -1,4 +1,4 @@
-target := ".zshrc" ".commandsrc" ".localrc" ".gitconfig"
+target := ".zshrc" ".commandsrc" ".localrc" ".gitconfig" ".czrc"
 
 setup:
 	make link
