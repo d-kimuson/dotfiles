@@ -2,5 +2,13 @@
     InsteadOf = https://github.com/
     InsteadOf = git@github.com:
 [user]
-	name = d-kimsuon
-	email = d-kimuson@gmail.com
+    name = d-kimsuon
+    email = d-kimuson@gmail.com
+[alias]
+    a = "add"
+    c = "commit"
+    st = "status"
+    ps = "git push origin HEAD"
+    pl = "!git fetch && git merge origin/`git branch | grep '*' | cut -f 2 -d ' '`"
+[hub]
+  protocol = ssh
