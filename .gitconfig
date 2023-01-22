@@ -1,6 +1,8 @@
 [user]
     name = d-kimsuon
-    email = d-kimuson@gmail.com
+    email = dev.kimuson@gmail.com
+[includeIf "gitdir:~/mfac/"]
+    path = .gitconfig-mfac
 [alias]
     a = "add"
     c = "commit"
@@ -23,3 +25,7 @@
   excludesFile = ~/.gitignore_global
 [merge]
   ff = false
+# なんで書いていたのかよく覚えてない
+# [url "github:"]
+#     InsteadOf = https://github.com/
+#     InsteadOf = git@github.com:
