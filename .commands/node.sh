@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PATH="$(npm bin -g):$PATH"
+
 function nestg() {
   nest g module $1
   nest g service $1

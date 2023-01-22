@@ -48,6 +48,12 @@ fi
 # Functions
 # ====================
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  function del() {
+    mv $1 ~/.Trash
+  }
+fi
+
 function mcd() {
   mkdir $1 && cd $1
 }

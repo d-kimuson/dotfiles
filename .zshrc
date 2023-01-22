@@ -8,14 +8,6 @@ promptinit
 prompt steeef
 
 # === Load Other Config Files ===
-if [ -f ~/.bashrc ]; then
-  source ~/.bashrc
-fi
-
-if [ -f ~/.bash_profile ]; then
-  source ~/.bash_profile
-fi
-
 if [ -f ~/.commandsrc ]; then
   source ~/.commandsrc
 fi
