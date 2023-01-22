@@ -85,7 +85,7 @@ function setup-utils() {
   if [ $OS_IDENTIFY = "ubuntu" ]; then
     sudo apt install colordiff fd-find bat lsd exa -y
     elif [ $OS_IDENTIFY = "mac-m1" ]; then
-    brew install colordiff fd bat exa lsd -y
+    brew install colordiff fd bat exa lsd
   fi
 }
 
