@@ -3,7 +3,7 @@
 # ====================
 # Env Variables
 # ====================
-export PATH="$(npm bin -g):$PATH"
+export PATH="$(npm bin --location=global):$PATH"
 export NPM_CONFIG_PREFIX=~/.npm-global
 
 # ====================
@@ -13,12 +13,6 @@ export NPM_CONFIG_PREFIX=~/.npm-global
 # ====================
 # Functions
 # ====================
-
-function nestg() {
-  nest g module $1
-  nest g service $1
-  nest g controller $1
-}
 
 function yarn-v3-init() {
   yarn init -y

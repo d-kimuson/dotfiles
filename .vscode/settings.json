@@ -2,5 +2,14 @@
   "editor.tabSize": 2,
   "bashBeautify.tabSize": 2,
   "editor.formatOnSave": true,
-  "cSpell.words": ["kimsuon"]
+  "cSpell.words": [
+    "containerd",
+    "dbus",
+    "kimsuon",
+    "noninteractive",
+    "pgrep",
+    "pipefail",
+    "rootlesskit",
+    "uidmap"
+  ]
 }

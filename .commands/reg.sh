@@ -15,7 +15,6 @@ alias sfile='find . -type f | grep'
 alias cdd='cd ~/Desktop'
 alias cdp='cd ~/Playground'
 alias cda='cd ~/Apps'
-alias cds='cd ~/Desktop/GoogleDrive/Slides'
 
 # 遊び
 alias cal='\cal -NC3'
@@ -25,45 +24,16 @@ alias tenki='curl wttr.in/Chiba'
 # デフォルトコマンドの上書き
 # より使いやすく互換性がある実行ファイルへの上書きをする
 # 元のコマンドは \<cmd> で呼べる EX: \cat file
+# TODO: やっぱり行儀悪いので消したい...
 # ====================
 
-if [[ -x `which colordiff` ]]; then
-  alias diff='colordiff'
-fi
-
 if [[ -x `which lsd` ]]; then
-  alias ls='lsd'
-  alias tree='lsd --tree'
-fi
-
-if [[ -x `which exa` ]]; then
-  alias ll='exa -abghHliS'
+  tree='lsd --tree'
 fi
 
 if [[ -x `which bat` ]]; then
-  alias cat='bat --pager ""'
+  alias bcat='bat --pager ""'
 fi
-
-BRER_PREFIX=$(brew config | grep 'HOMEBREW_PREFIX' | cut -d ' ' -f 2)
-
-path=(
-    $BRER_PREFIX/opt/coreutils/libexec/gnubin(N-/) # coreutils
-    $BRER_PREFIX/opt/ed/libexec/gnubin(N-/) # ed
-    $BRER_PREFIX/opt/findutils/libexec/gnubin(N-/) # findutils
-    $BRER_PREFIX/opt/gnu-sed/libexec/gnubin(N-/) # sed
-    $BRER_PREFIX/opt/gnu-tar/libexec/gnubin(N-/) # tar
-    $BRER_PREFIX/opt/grep/libexec/gnubin(N-/) # grep
-    ${path}
-)
-manpath=(
-    $BRER_PREFIX/opt/coreutils/libexec/gnuman(N-/) # coreutils
-    $BRER_PREFIX/opt/ed/libexec/gnuman(N-/) # ed
-    $BRER_PREFIX/opt/findutils/libexec/gnuman(N-/) # findutils
-    $BRER_PREFIX/opt/gnu-sed/libexec/gnuman(N-/) # sed
-    $BRER_PREFIX/opt/gnu-tar/libexec/gnuman(N-/) # tar
-    $BRER_PREFIX/opt/grep/libexec/gnuman(N-/) # grep
-    ${manpath}
-)
 
 # ====================
 # Functions

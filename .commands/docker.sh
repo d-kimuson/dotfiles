@@ -11,6 +11,43 @@ alias dcmp='docker-compose'
 # Functions
 # ====================
 
+function lima-status() {
+  if [ "$(limactl list | grep 'docker' | grep 'Running')" != "" ]; then
+    echo "running"
+    elif [ "$(limactl list | grep 'docker' | grep 'Stopped')" != "" ]; then
+    echo "stopped"
+  else
+    echo "deleted"
+  fi
+}
+
+function start-lima() {
+  LIMA_STATUS=$(lima-status)
+  if [ "$LIMA_STATUS" = "running" ]; then
+    echo "lima is already runninng."
+    elif [ "$LIMA_STATUS" = "stopped" ]; then
+    cd ~/dotfiles/config/lima && limactl start docker && cd -
+  else
+    cd ~/dotfiles/config/lima && limactl start ./docker.yaml && cd -
+  fi
+}
+
+function stop-lima() {
+  # 現状わざわざ stop するのは壊れて再起動したいときくらいなので削除までまとめちゃう
+  LIMA_STATUS=$(lima-status)
+  
+  if [ "$LIMA_STATUS" = "running" ]; then
+    limactl stop -f docker
+  fi
+  
+  limactl delete docker
+}
+
+function restart-lima() {
+  stop-lima
+  start-lima
+}
+
 function dkill () {
   # Usage
   # - dkill: コンテナの全削除

@@ -2,7 +2,7 @@ SHELL=/bin/zsh
 target := ".zshrc" ".commandsrc" ".localrc" ".gitconfig" ".czrc" ".gitconfig-mfac"
 
 setup:
-	make link
+	make relink
 
 pull:
 	git pull origin master

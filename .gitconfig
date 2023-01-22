@@ -26,6 +26,6 @@
 [merge]
   ff = false
 # なんで書いていたのかよく覚えてない
-# [url "github:"]
-#     InsteadOf = https://github.com/
-#     InsteadOf = git@github.com:
+[url "github:"]
+    InsteadOf = https://github.com/
+    InsteadOf = git@github.com:

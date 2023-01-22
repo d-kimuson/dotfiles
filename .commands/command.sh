@@ -4,8 +4,7 @@
 # Alias
 # ====================
 
-alias reload='source ~/.zshrc'
-alias cedit='code ~/dotfiles/.commands'
+alias reload='exec $SHELL -l'
 
 # ====================
 # Functions

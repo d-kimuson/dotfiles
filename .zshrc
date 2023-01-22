@@ -1,12 +1,3 @@
-# === Prezto ===
-if [[ -s "${ZDOTDIR:-$HOME}/.zprezto/init.zsh" ]]; then
-  source "${ZDOTDIR:-$HOME}/.zprezto/init.zsh"
-fi
-
-autoload -Uz promptinit
-promptinit
-prompt steeef
-
 # === Load Other Config Files ===
 if [ -f ~/.commandsrc ]; then
   source ~/.commandsrc
@@ -14,6 +5,7 @@ fi
 
 # === Env Variables ===
 eval "$(anyenv init -)"
+eval "$(starship init zsh)"
 
 # os dependent
 function get_os() {
@@ -43,6 +35,8 @@ function get_os() {
 }
 
 export OS_IDENTIFY=$(get_os)
+export PATH="$HOME/.anyenv/bin:$PATH"
+export STARSHIP_CONFIG=~/dotfiles/config/starship.toml
 
 if [ $OS_IDENTIFY = "mac-m1" ]; then
   source ~/dotfiles/environment/mac-m1rc
