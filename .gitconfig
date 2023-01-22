@@ -13,11 +13,13 @@
     openpr = "!f() { gh browse -- `git log --merges --oneline --reverse --ancestry-path $1...master | grep 'Merge pull request #' | head -n 1 | cut -f5 -d' ' | sed -e 's%#%%'`; }; f"
 [init]
     defaultBranch = main
-[merge]
-    ff = false
 [color]
     status = always
 [pull]
     ff = only
+[hub]
+  protocol = ssh
 [core]
-    excludesFile = /Users/kaito/.gitignore_global
+  excludesFile = ~/.gitignore_global
+[merge]
+  ff = false
