@@ -9,5 +9,15 @@
     ps = "!git push origin HEAD"
     pl = "!git fetch && git merge origin/`git branch | grep '*' | cut -f 2 -d ' '`"
     his = log --pretty=format:\"%Cgreen%h %Creset%cr %Cblue[%cn] %Creset%s\" --graph --date=relative --all
-[hub]
-  protocol = ssh
+    showpr = "!f() { git log --merges --oneline --reverse --ancestry-path $1...master | grep 'Merge pull request #' | head -n 1; }; f"
+    openpr = "!f() { gh browse -- `git log --merges --oneline --reverse --ancestry-path $1...master | grep 'Merge pull request #' | head -n 1 | cut -f5 -d' ' | sed -e 's%#%%'`; }; f"
+[init]
+    defaultBranch = main
+[merge]
+    ff = false
+[color]
+    status = always
+[pull]
+    ff = only
+[core]
+    excludesFile = /Users/kaito/.gitignore_global

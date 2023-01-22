@@ -14,7 +14,7 @@ alias gb='git branch'
 alias gunadd='git restore --staged'  # ステージングを外す
 alias guncom='git rm -rf --cached'   # コミットを外す
 alias g-current-branch='git branch | grep "*" | cut -f 2 -d " "'
-alias gpull='git fetch && git merge origin/`git branch | grep "*" | cut -f 2 -d " "`'
+alias gpull='git fetch && git merge --ff origin/`git branch | grep "*" | cut -f 2 -d " "`'
 
 # ====================
 # Functions

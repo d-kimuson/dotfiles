@@ -19,7 +19,7 @@ alias cds='cd ~/Desktop/GoogleDrive/Slides'
 
 # 遊び
 alias cal='\cal -NC3'
-alias tenki='curl wttr.in/Fukusima'
+alias tenki='curl wttr.in/Chiba'
 
 # ====================
 # デフォルトコマンドの上書き
@@ -43,6 +43,27 @@ fi
 if [[ -x `which bat` ]]; then
   alias cat='bat --pager ""'
 fi
+
+BRER_PREFIX=$(brew config | grep 'HOMEBREW_PREFIX' | cut -d ' ' -f 2)
+
+path=(
+    $BRER_PREFIX/opt/coreutils/libexec/gnubin(N-/) # coreutils
+    $BRER_PREFIX/opt/ed/libexec/gnubin(N-/) # ed
+    $BRER_PREFIX/opt/findutils/libexec/gnubin(N-/) # findutils
+    $BRER_PREFIX/opt/gnu-sed/libexec/gnubin(N-/) # sed
+    $BRER_PREFIX/opt/gnu-tar/libexec/gnubin(N-/) # tar
+    $BRER_PREFIX/opt/grep/libexec/gnubin(N-/) # grep
+    ${path}
+)
+manpath=(
+    $BRER_PREFIX/opt/coreutils/libexec/gnuman(N-/) # coreutils
+    $BRER_PREFIX/opt/ed/libexec/gnuman(N-/) # ed
+    $BRER_PREFIX/opt/findutils/libexec/gnuman(N-/) # findutils
+    $BRER_PREFIX/opt/gnu-sed/libexec/gnuman(N-/) # sed
+    $BRER_PREFIX/opt/gnu-tar/libexec/gnuman(N-/) # tar
+    $BRER_PREFIX/opt/grep/libexec/gnuman(N-/) # grep
+    ${manpath}
+)
 
 # ====================
 # Functions
