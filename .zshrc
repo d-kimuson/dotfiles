@@ -13,10 +13,6 @@ if [ -f ~/.commandsrc ]; then
 fi
 
 # === Env Variables ===
-export PIPENV_VENV_IN_PROJECT=1
-export PIPENV_IGNORE_VIRTUALENVS=1
-export NPM_CONFIG_PREFIX=~/.npm-global
-
 eval "$(anyenv init -)"
 
 # os dependent
