@@ -1,4 +1,5 @@
-target := ".zshrc" ".commandsrc" ".localrc" ".gitconfig" ".czrc" ".gitconfig-mfac" "environment"
+SHELL=/bin/zsh
+target := ".zshrc" ".commandsrc" ".localrc" ".gitconfig" ".czrc" ".gitconfig-mfac"
 
 setup:
 	make link
@@ -11,11 +12,7 @@ relink:
 	make link
 
 link:
-	for item in $(target); do\
-		ln -sf ~/dotfiles/$${item} ~/$${item};\
-	done
+	@./scripts/link.sh $(target)
 
 unlink:
-	for item in $(target); do\
-		unlink ~/$${item};\
-	done
+	@./scripts/unlink.sh $(target)
