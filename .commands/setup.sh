@@ -89,6 +89,8 @@ function setup-utils() {
   fi
 }
 
+# TODO: direnv
+
 function setup-anyenv() {
   if [ "$(ls -a ~ | grep anyenv)" = "" ]; then
     git clone https://github.com/anyenv/anyenv ~/.anyenv
