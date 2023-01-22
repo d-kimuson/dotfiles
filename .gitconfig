@@ -11,3 +11,9 @@
     his = log --pretty=format:\"%Cgreen%h %Creset%cr %Cblue[%cn] %Creset%s\" --graph --date=relative --all
 [hub]
   protocol = ssh
+[core]
+  excludesFile = ~/.gitignore_global
+[init]
+  defaultBranch = main
+[merge]
+  ff = false

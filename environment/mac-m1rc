@@ -1,0 +1,8 @@
+#!/bin/zsh
+
+if [ "$(uname)" = "Darwin" ] && [ "$(which arch)" != "arch not found" ] && [ "$(uname -m)" = "x86_64" ]; then
+  exec arch -arm64e /bin/zsh
+fi
+
+export PATH="$PATH:/opt/homebrew/bin"
+export DOCKER_HOST=unix:///$HOME/.lima/docker/sock/docker.sock
