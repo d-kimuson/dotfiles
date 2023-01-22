@@ -1,5 +1,5 @@
 SHELL=/bin/zsh
-target := ".zshrc" ".commandsrc" ".localrc" ".gitconfig" ".czrc" ".gitconfig-mfac"
+target := ".zshrc" ".commandsrc" ".localrc" ".gitconfig" ".czrc" ".gitconfig-mfac" ".gitignore_global"
 
 setup:
 	make relink
