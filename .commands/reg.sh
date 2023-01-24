@@ -4,8 +4,8 @@
 # Alias
 # ====================
 
-alias diffy='diff -y --left-column'  # Github Like
-alias diffg='diff -u'
+alias diffy='colordiff -y --left-column'  # Github Like
+alias diffg='colordiff -u'
 alias fdir='find . -type d -name'    # 完全一致
 alias ffile='find . -type f -name'
 alias sdir='find . -type d | grep'   # 部分一致
