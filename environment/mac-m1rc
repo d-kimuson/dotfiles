@@ -34,3 +34,12 @@ manpath=(
 # ====================
 # Functions
 # ====================
+
+switch-arch() {
+  if  [[ "$(uname -m)" == arm64 ]]; then
+    arch=x86_64
+    elif [[ "$(uname -m)" == x86_64 ]]; then
+    arch=arm64e
+  fi
+  exec arch -arch $arch /bin/zsh
+}
