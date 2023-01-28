@@ -3,8 +3,8 @@
 # ====================
 # Env Variables
 # ====================
-export PATH="$(npm bin --location=global):$PATH"
 export NPM_CONFIG_PREFIX=~/.npm-global
+export PATH="$(npm bin --location=global 2>/dev/null):$PATH"
 
 # ====================
 # Alias

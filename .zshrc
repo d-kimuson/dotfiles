@@ -1,13 +1,6 @@
-# === Load Other Config Files ===
-if [ -f ~/.commandsrc ]; then
-  source ~/.commandsrc
-fi
-
-# === Env Variables ===
-eval "$(anyenv init -)"
-eval "$(starship init zsh)"
-
-# os dependent
+# ====================
+# Functions
+# ====================
 function get_os() {
   if [ "$(uname)" = "Darwin" ]; then
     if [ "$(which arch)" = "arch not found" ]; then
@@ -34,16 +27,41 @@ function get_os() {
   echo $os
 }
 
-export OS_IDENTIFY=$(get_os)
-export PATH="$HOME/.anyenv/bin:$PATH"
-export STARSHIP_CONFIG=~/dotfiles/config/starship.toml
-
+# ====================
+# Env Dependent
+# ====================
+OS_IDENTIFY=$(get_os)
 if [ $OS_IDENTIFY = "mac-m1" ]; then
   source ~/dotfiles/environment/mac-m1rc
 fi
 
-# local
+# ====================
+# anyenv
+# ====================
+export PATH="$HOME/.anyenv/bin:$PATH"
+eval "$(anyenv init -)"
 
+# ====================
+# Env variables
+# ====================
+export STARSHIP_CONFIG=~/dotfiles/config/starship.toml
+
+# ====================
+# Load .commands files
+# ====================
+if [ -f ~/.commandsrc ]; then
+  source ~/.commandsrc
+fi
+
+# ====================
+# local
+# ====================
 if [ -f ~/.localrc ]; then
   source ~/.localrc
 fi
+
+# ====================
+# Activate tools
+# ====================
+eval "$(starship init zsh)"
+eval "$(direnv hook zsh)"
