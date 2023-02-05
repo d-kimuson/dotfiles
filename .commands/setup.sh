@@ -9,6 +9,7 @@ function setup() {
   setup-package-manager # もしかしたら password とか求められちゃうかも...
   setup-zsh
   setup-starship
+  setup-git
   setup-utils
   
   if [ "$OS_IDENTIFY" = "mac-m1" ]; then
@@ -29,6 +30,13 @@ function setup() {
 # ====================
 # common
 # ====================
+
+function setup-git() {
+  if [ "$OS_IDENTIFY" = "mac-m1" ]; then
+    brew install git
+    brew link --overwrite git
+  fi
+}
 
 function setup-package-manager() {
   if [ "$OS_IDENTIFY" = "ubuntu" ]; then
