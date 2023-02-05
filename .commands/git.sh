@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# 補完をちゃんと効かせる
+zstyle ':completion:*:*:git:*' script ~/.zsh/git-completion.bash
+fpath=(~/.zsh $fpath)
+autoload -Uz compinit && compinit
+
 # ====================
 # Alias
 # ====================

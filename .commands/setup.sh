@@ -8,14 +8,13 @@ function setup() {
   
   setup-package-manager # もしかしたら password とか求められちゃうかも...
   setup-zsh
-  setup-startship
-  setup-dotfiles
+  setup-starship
   setup-utils
   
-  if [ $OS_IDENTIFY = "mac-m1" ]; then
+  if [ "$OS_IDENTIFY" = "mac-m1" ]; then
     echo "setup for m1mac (debug)"
     setup-m1mac
-    elif [ $OS_IDENTIFY = "ubuntu" ]; then
+    elif [ "$OS_IDENTIFY" = "ubuntu" ]; then
     setup-ubuntu
   else
     echo "Since the setup function for the $OS_IDENTIFY is not defined, so skipped."
@@ -32,17 +31,17 @@ function setup() {
 # ====================
 
 function setup-package-manager() {
-  if [ $OS_IDENTIFY = "ubuntu" ]; then
+  if [ "$OS_IDENTIFY" = "ubuntu" ]; then
     sudo apt update
     sudo apt upgrade -y
-    elif [ $OS_IDENTIFY = "mac-m1" ]; then
+    elif [ "$OS_IDENTIFY" = "mac-m1" ]; then
     brew update && brew upgrade
   fi
 }
 
 function setup-zsh() {
   if [ "$(echo $SHELL | grep zsh)" = "" ]; then
-    if [ $OS_IDENTIFY = "ubuntu" ]; then
+    if [ "$OS_IDENTIFY" = "ubuntu" ]; then
       sudo apt install zsh -y
       chsh -s $(which zsh)
     fi
@@ -71,21 +70,11 @@ function setup-github() {
   echo "登録したら、`ssh -T git@github.com` で接続チェック"
 }
 
-function setup-dotfiles() {
-  if [ $(ls ~ | grep dotfiles) = "" ]; then
-    cd ~
-    git clone git@github.com:d-kimuson/dotfiles.git
-    make setup
-  else
-    echo "skipped dotfiles installatoin, because already installed."
-  fi
-}
-
-function setup-startship() {
-  if [ $(which starship | grep starship) = "" ]; then
-    curl -sS https://starship.rs/install.sh | sh
-  else
+function setup-starship() {
+  if [[ -x `which starship` ]]; then
     echo "skipped starship installatoin, because already installed."
+  else
+    curl -sS https://starship.rs/install.sh | sh
   fi
 }
 
@@ -96,9 +85,11 @@ function setup-utils() {
   if [ $OS_IDENTIFY = "ubuntu" ]; then
     sudo apt install colordiff fd-find bat lsd exa -y
     elif [ $OS_IDENTIFY = "mac-m1" ]; then
-    brew install colordiff fd bat exa lsd -y
+    brew install colordiff fd bat exa lsd
   fi
 }
+
+# TODO: direnv
 
 function setup-anyenv() {
   if [ "$(ls -a ~ | grep anyenv)" = "" ]; then
