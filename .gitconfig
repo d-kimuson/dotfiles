@@ -25,7 +25,8 @@
   excludesFile = ~/.gitignore_global
 [merge]
   ff = false
-# なんで書いていたのかよく覚えてない
-# [url "github:"]
-#     InsteadOf = https://github.com/
-#     InsteadOf = git@github.com:
+# git remote add origin するときに github:... 形式に変換する
+# fetch するときは InsteardOf を上から解決するので https を強制できる設定
+[url "github:"]
+    InsteadOf = https://github.com/
+    InsteadOf = git@github.com:
