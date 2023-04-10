@@ -3,9 +3,11 @@
   "bashBeautify.tabSize": 2,
   "editor.formatOnSave": true,
   "cSpell.words": [
+    "aarch",
     "containerd",
     "dbus",
     "kimsuon",
+    "mfac",
     "noninteractive",
     "pgrep",
     "pipefail",
