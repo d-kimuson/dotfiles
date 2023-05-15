@@ -13,10 +13,13 @@ images:
     arch: "aarch64"
 
 mounts:
-  - location: "~"
+  # - location: "~"
   - location: "~/mfac"
+    writable: true
   - location: "~/Apps"
+    writable: true
   - location: "~/Playground"
+    writable: true
   - location: "/tmp/lima"
     writable: true
 

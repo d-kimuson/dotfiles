@@ -9,7 +9,7 @@ fi
 # ====================
 
 export PATH="$PATH:/opt/homebrew/bin"
-export DOCKER_HOST=unix:///$HOME/.lima/docker/sock/docker.sock
+export DOCKER_HOST=unix:///$HOME/.lima/docker-arm/sock/docker.sock
 
 BRER_PREFIX=$(brew config | grep 'HOMEBREW_PREFIX' | cut -d ' ' -f 2)
 path=(
