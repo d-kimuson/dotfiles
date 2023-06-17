@@ -53,3 +53,15 @@ function yarn-v3-replace() {
   
   yarn install
 }
+
+function pnpm-init() {
+  declare -a project_name_tokens=()
+  printf "ディレクトリ名を指定してください >> "; read project_name_tokens
+  PROJECT_NAME=$(echo $project_name_tokens)
+  
+  git clone git@github.com:d-kimuson/pnpm-boilerplate.git $PROJECT_NAME
+  cd $PROJECT_NAME
+  ./scripts/setup_repository.sh
+  
+  code .
+}
