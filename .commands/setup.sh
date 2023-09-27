@@ -25,6 +25,7 @@ function setup() {
   
   setup-github
   setup-anyenv
+  # TODO: setup-direnv
 }
 
 # ====================

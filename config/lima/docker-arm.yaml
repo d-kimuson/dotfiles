@@ -1,20 +1,19 @@
 arch: "aarch64"
 
 images:
-  - location: "https://cloud-images.ubuntu.com/releases/22.04/release-20230210/ubuntu-22.04-server-cloudimg-amd64.img"
+  - location: "https://cloud-images.ubuntu.com/releases/22.04/release-20230729/ubuntu-22.04-server-cloudimg-amd64.img"
     arch: "x86_64"
-    digest: "sha256:4401cf7e994842f11398a54d0159b689b2fcace166be6147013f128ddb15875e"
-  - location: "https://cloud-images.ubuntu.com/releases/22.04/release-20230210/ubuntu-22.04-server-cloudimg-arm64.img"
+    digest: "sha256:d5b419272e01cd69bfc15cbbbc5700d2196242478a54b9f19746da3a1269b7c8"
+  - location: "https://cloud-images.ubuntu.com/releases/22.04/release-20230729/ubuntu-22.04-server-cloudimg-arm64.img"
     arch: "aarch64"
-    digest: "sha256:d044311b6e2d838f1175a67a5f7fa6bc0936f8001180df539025ec6587c33d28"
+    digest: "sha256:5ecab49ff44f8e44954752bc9ef4157584b7bdc9e24f06031e777f60860a9d17"
   - location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
     arch: "x86_64"
   - location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-arm64.img"
     arch: "aarch64"
 
 mounts:
-  # - location: "~"
-  - location: "~/mfac"
+  - location: "~/sms"
     writable: true
   - location: "~/Apps"
     writable: true
@@ -42,13 +41,6 @@ provision:
       # NOTE: you may remove the lines below, if you prefer to use rootful docker, not rootless
       systemctl disable --now docker
       apt-get install -y uidmap dbus-user-session
-  - mode: system
-    script: |
-      #!/bin/bash
-      set -eux -o pipefail
-      apt-get update
-      apt-get install -y chromium
-      apt-get install -y chromium-browser
   - mode: user
     script: |
       #!/bin/bash

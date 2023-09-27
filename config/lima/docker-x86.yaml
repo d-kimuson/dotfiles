@@ -1,20 +1,19 @@
 arch: "x86_64"
 
 images:
-  # Try to use release-yyyyMMdd image if available. Note that release-yyyyMMdd will be removed after several months.
-  - location: "https://cloud-images.ubuntu.com/releases/22.04/release-20221201/ubuntu-22.04-server-cloudimg-amd64.img"
+  - location: "https://cloud-images.ubuntu.com/releases/22.04/release-20230729/ubuntu-22.04-server-cloudimg-amd64.img"
     arch: "x86_64"
-    digest: "sha256:8a814737df484d9e2f4cb2c04c91629aea2fced6799fc36f77376f0da91dba65"
-  - location: "https://cloud-images.ubuntu.com/releases/22.04/release-20221201/ubuntu-22.04-server-cloudimg-arm64.img"
+    digest: "sha256:d5b419272e01cd69bfc15cbbbc5700d2196242478a54b9f19746da3a1269b7c8"
+  - location: "https://cloud-images.ubuntu.com/releases/22.04/release-20230729/ubuntu-22.04-server-cloudimg-arm64.img"
     arch: "aarch64"
-    digest: "sha256:8a0477adcbdadefd58ae5c0625b53bbe618aedfe69983b824da8d02be0a8c961"
+    digest: "sha256:5ecab49ff44f8e44954752bc9ef4157584b7bdc9e24f06031e777f60860a9d17"
   - location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-amd64.img"
     arch: "x86_64"
   - location: "https://cloud-images.ubuntu.com/releases/22.04/release/ubuntu-22.04-server-cloudimg-arm64.img"
     arch: "aarch64"
 
 mounts:
-  - location: "~/mfac"
+  - location: "~/sms"
     writable: true
   - location: "~/Apps"
     writable: true

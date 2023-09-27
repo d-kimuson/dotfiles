@@ -23,10 +23,6 @@
   protocol = ssh
 [core]
   excludesFile = ~/.gitignore_global
+  editor = nano
 [merge]
   ff = false
-# git remote add origin するときに github:... 形式に変換する
-# fetch するときは InsteardOf を上から解決するので https を強制できる設定
-[url "github:"]
-    InsteadOf = https://github.com/
-    InsteadOf = git@github.com:
