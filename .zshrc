@@ -45,6 +45,7 @@ eval "$(anyenv init -)"
 # Env variables
 # ====================
 export STARSHIP_CONFIG=~/dotfiles/config/starship.toml
+export DOCKER_CONFIG=$HOME/.docker
 
 # ====================
 # Load .commands files

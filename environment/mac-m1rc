@@ -9,7 +9,7 @@ fi
 # ====================
 
 export PATH="$PATH:/opt/homebrew/bin"
-export DOCKER_HOST=unix:///$HOME/.lima/docker-arm/sock/docker.sock
+export DOCKER_HOST="unix:///$HOME/.colima/default/docker.sock"
 
 BRER_PREFIX=$(brew config | grep 'HOMEBREW_PREFIX' | cut -d ' ' -f 2)
 path=(
@@ -39,7 +39,7 @@ switch-arch() {
   if  [[ "$(uname -m)" == arm64 ]]; then
     arch=x86_64
     elif [[ "$(uname -m)" == x86_64 ]]; then
-    arch=arm64e
+    arch=arm64
   fi
   exec arch -arch $arch /bin/zsh
 }

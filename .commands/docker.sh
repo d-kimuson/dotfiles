@@ -11,6 +11,11 @@ alias dcmp='docker-compose'
 # Functions
 # ====================
 
+function colima-start() {
+  colima start --cpu ${COLIMA_CPU:-6} --memory ${COLIMA_MEMORY:-24} --disk ${COLIMA_DISK:-120} \
+  --arch aarch64 --vm-type vz --vz-rosetta --mount-type virtiofs --mount-inotify --mount $HOME/sms/:w
+}
+
 function lima-status-x86() {
   if [ "$(limactl list | grep 'docker-x86' | grep 'Running')" != "" ]; then
     echo "running"

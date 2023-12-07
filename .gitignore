@@ -3,3 +3,5 @@
 *-e
 .vscode/configurationCache.log
 .vscode/dryrun.log
+
+.gitconfig-sms

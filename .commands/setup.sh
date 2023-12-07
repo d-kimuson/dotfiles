@@ -147,7 +147,7 @@ function setup-m1mac() {
   brew install coreutils diffutils ed findutils gawk gnu-sed gnu-tar grep gzip
   
   # utility
-  brew install ag jq lv parallel pandoc sift wget wdiff --with-gettext xmlstarlet
+  brew install ag jq lv parallel pandoc sift wget wdiff xmlstarlet
   
   # to be latest
   brew install nano unzip
