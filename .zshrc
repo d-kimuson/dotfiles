@@ -38,8 +38,12 @@ fi
 # ====================
 # anyenv
 # ====================
-export PATH="$HOME/.anyenv/bin:$PATH"
-eval "$(anyenv init -)"
+# export PATH="$HOME/.anyenv/bin:$PATH"
+
+eval "$(mise activate --shims)"
+# eval "$(anyenv init -)"
+# eval "$(mise activate)"
+# eval "$(nodenv init -)"
 
 # ====================
 # Env variables
