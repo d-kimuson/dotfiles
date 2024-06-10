@@ -38,13 +38,21 @@ fi
 # ====================
 # anyenv
 # ====================
-export PATH="$HOME/.anyenv/bin:$PATH"
-eval "$(anyenv init -)"
+# export PATH="$HOME/.anyenv/bin:$PATH"
+# eval "$(anyenv init -)"
+
+# ====================
+# rtx
+# ====================
+export PATH="$HOME/.local/share/rtx/shims:$PATH"
+eval "$(mise activate --shims zsh)"
 
 # ====================
 # Env variables
 # ====================
 export STARSHIP_CONFIG=~/dotfiles/config/starship.toml
+export DOCKER_CONFIG=$HOME/.docker
+export PATH="$PATH:$HOME/bin"
 
 # ====================
 # Load .commands files
@@ -72,3 +80,18 @@ case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
+
+# bun completions
+[ -s "/Users/kaito/.bun/_bun" ] && source "/Users/kaito/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# pnpm
+export PNPM_HOME="/Users/kaito/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

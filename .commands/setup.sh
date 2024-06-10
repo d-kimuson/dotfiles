@@ -24,7 +24,7 @@ function setup() {
   echo "Performs common setup process."
   
   setup-github
-  setup-anyenv
+  # setup-anyenv
   # TODO: setup-direnv
 }
 
@@ -100,43 +100,37 @@ function setup-utils() {
 
 # TODO: direnv
 
-function setup-anyenv() {
-  if [ "$(ls -a ~ | grep anyenv)" = "" ]; then
-    git clone https://github.com/anyenv/anyenv ~/.anyenv
-    ~/.anyenv/bin/anyenv init
-  else
-    echo "skipped anyenv installatoin, because already installed."
-  fi
+# function setup-anyenv() {
+#   if [ "$(ls -a ~ | grep anyenv)" = "" ]; then
+#     git clone https://github.com/anyenv/anyenv ~/.anyenv
+#     ~/.anyenv/bin/anyenv init
+#   else
+#     echo "skipped anyenv installatoin, because already installed."
+#   fi
   
-  echo "execute: setup-anyenv-2"
-  echo $SHELL -l
-}
+#   echo "execute: setup-anyenv-2"
+#   echo $SHELL -l
+# }
 
-function setup-anyenv-2() {
-  anyenv install --init
-  anyenv install nodenv
-  anyenv install pyenv
+# function setup-anyenv-2() {
+#   anyenv install --init
+#   anyenv install nodenv
+#   anyenv install pyenv
   
-  echo "execute: setup-anyenv-3"
-  echo $SHELL -l
-}
+#   echo "execute: setup-anyenv-3"
+#   exec $SHELL -l
+# }
 
-function setup-anyenv-3() {
-  nodenv install 18.3.0
-  nodenv global 18.3.0
-  anyenv install pyenv
-}
-
-function setup-anyenv-3() {
-  # nodenv
-  nodenv install 18.3.0
-  nodenv global 18.3.0
+# function setup-anyenv-3() {
+#   # nodenv
+#   nodenv install 18.3.0
+#   nodenv global 18.3.0
   
-  # pyenv
-  pyenv install 3.10.2
-  pyenv global 3.10.2
-  pip install --upgrade pip
-}
+#   # pyenv
+#   pyenv install 3.10.2
+#   pyenv global 3.10.2
+#   pip install --upgrade pip
+# }
 
 # ====================
 # For envs
@@ -157,4 +151,8 @@ function setup-ubuntu() {
   # zsh & prezeto
   sudo apt install make gcc -y
   sudo apt install -y zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libffi-dev
+}
+
+function setup-mise() {
+  brew install mise
 }

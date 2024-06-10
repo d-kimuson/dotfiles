@@ -11,6 +11,19 @@ alias dcmp='docker-compose'
 # Functions
 # ====================
 
+function install-compose() {
+  mkdir -p $DOCKER_CONFIG/cli-plugins
+  curl -SL https://github.com/docker/compose/releases/download/v2.23.1/docker-compose-darwin-aarch64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+  chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+}
+
+function colima-start() {
+  colima start --cpu 6 --memory 8 --disk 60 --arch aarch64\
+  --vm-type vz --vz-rosetta --mount-type virtiofs --mount-inotify\
+  --mount $HOME/Apps/:w\
+  --mount $HOME/Playground/:w\
+}
+
 function lima-status-x86() {
   if [ "$(limactl list | grep 'docker-x86' | grep 'Running')" != "" ]; then
     echo "running"
