@@ -18,8 +18,10 @@ function install-compose() {
 }
 
 function colima-start() {
-  colima start --cpu 6 --memory 8 --disk 60 --arch aarch64\
+  colima start --cpu ${COLIMA_CPU:-6} --memory ${COLIMA_MEMORY:-24} --disk ${COLIMA_DISK:-120} \
+  --arch aarch64 \
   --vm-type vz --vz-rosetta --mount-type virtiofs --mount-inotify\
+  --mount $HOME/sms/:w\
   --mount $HOME/Apps/:w\
   --mount $HOME/Playground/:w\
 }

@@ -39,13 +39,11 @@ fi
 # anyenv
 # ====================
 # export PATH="$HOME/.anyenv/bin:$PATH"
-# eval "$(anyenv init -)"
 
-# ====================
-# rtx
-# ====================
-export PATH="$HOME/.local/share/rtx/shims:$PATH"
-eval "$(mise activate --shims zsh)"
+eval "$(mise activate --shims)"
+# eval "$(anyenv init -)"
+# eval "$(mise activate)"
+# eval "$(nodenv init -)"
 
 # ====================
 # Env variables
