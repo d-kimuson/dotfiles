@@ -2,7 +2,12 @@
   "editor.tabSize": 2,
   "bashBeautify.tabSize": 2,
   "editor.formatOnSave": true,
+  "[rust]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
   "cSpell.words": [
+    "dotfiles",
     "aarch",
     "containerd",
     "dbus",
