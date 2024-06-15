@@ -3,6 +3,8 @@
     email = dev.kimuson@gmail.com
 [includeIf "gitdir:~/sms/"]
     path = .gitconfig-sms
+[include]
+    path = .gitconfig-local
 [alias]
     a = "add"
     st = "status"
@@ -12,6 +14,8 @@
     defaultBranch = main
 [color]
     status = always
+[merge]
+  ff = false
 [pull]
     ff = only
 [hub]
@@ -19,5 +23,3 @@
 [core]
   excludesFile = ~/.gitignore_global
   editor = nano
-[merge]
-  ff = false
