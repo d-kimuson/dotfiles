@@ -4,7 +4,7 @@
 # Activate tools
 # ====================
 # TODO: build & push 周りがちゃんとできたら適切なパスに変える
-~/dotfiles/dotfiles_manager/target/debug/dotfiles-manager activate | source /dev/stdin
+dotfiles_manager activate | source /dev/stdin
 
 eval "$(mise activate --shims)"
 eval "$(starship init zsh)"
