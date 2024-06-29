@@ -53,10 +53,10 @@ pub fn get_aliases() -> Vec<AliasDeclaration> {
             name: "gpush",
             definition: "git push origin HEAD",
         },
-        // TODO: gpushf, glog
+        // TODO: glog
         AliasDeclaration {
-            name: "gcd",
-            definition: "cd $(git rev-parse --show-toplevel)",
+            name: "gpushf",
+            definition: "git push origin HEAD --force-with-lease",
         },
         AliasDeclaration {
             name: "gunadd",
@@ -113,7 +113,7 @@ pub fn get_functions() -> Vec<FunctionDeclaration> {
               os="unknown"
             fi
   
-  echo $os
+            echo $os
             "#,
         },
         FunctionDeclaration {
@@ -225,6 +225,10 @@ pub fn get_functions() -> Vec<FunctionDeclaration> {
 
             git add $1 && git status
             "#,
+        },
+        FunctionDeclaration {
+            name: "gcd",
+            definition: "cd $(git rev-parse --show-toplevel)",
         },
         FunctionDeclaration {
             name: "gback",
