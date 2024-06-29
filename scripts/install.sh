@@ -3,7 +3,7 @@
 REPO="d-kimuson/dotfiles"
 OUTPUT_DIRECTORY="download"
 OUTPUT_BINARY="dotfiles_manager"
-BRANCH=${1:master}
+BRANCH=${1:-master}
 
 ARTIFACT_NAME=""
 if [ "$(uname)" == "Darwin" ] && [ "$(uname -m)" == "arm64" ]; then
