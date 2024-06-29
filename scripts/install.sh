@@ -3,7 +3,6 @@
 REPO="d-kimuson/dotfiles"
 OUTPUT_DIRECTORY="download"
 OUTPUT_BINARY="dotfiles_manager"
-BRANCH="using_dotfiles_manager"
 BRANCH=${1:master}
 
 ARTIFACT_NAME=""
