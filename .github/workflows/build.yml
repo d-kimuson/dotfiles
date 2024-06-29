@@ -21,6 +21,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            dotfiles_manager
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -31,6 +34,11 @@ jobs:
       - name: Build
         working-directory: dotfiles_manager
         run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Try Activate
+        working-directory: dotfiles_manager
+        run: |
+          ./target/${{ matrix.target }}/release/dotfiles_manager activate | source /dev/stdin
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
