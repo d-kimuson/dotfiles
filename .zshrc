@@ -1,24 +1,12 @@
 #!/usr/bin/env bash
 
 # ====================
-# Activate tools
+# Initialize Manager
 # ====================
-# TODO: build & push 周りがちゃんとできたら適切なパスに変える
 dotfiles_manager activate | source /dev/stdin
 
-eval "$(mise activate --shims)"
-eval "$(starship init zsh)"
-eval "$(direnv hook zsh)"
-
 # ====================
-# auto completion
-# ====================
-if [ -s "/Users/kaito/.bun/_bun" ]; then
-  source "/Users/kaito/.bun/_bun"
-fi
-
-# ====================
-# PATH
+# SET PATH
 # ====================
 path=(
   ${path}
@@ -28,6 +16,20 @@ path=(
 
 if [ "$(get_os)" = "mac-m1" ]; then
   export PATH="$PATH:/opt/homebrew/bin"
+fi
+
+# ====================
+# Activate tools
+# ====================
+eval "$(mise activate --shims)"
+eval "$(starship init zsh)"
+eval "$(direnv hook zsh)"
+
+# ====================
+# auto completion
+# ====================
+if [ -s "/Users/kaito/.bun/_bun" ]; then
+  source "/Users/kaito/.bun/_bun"
 fi
 
 # ====================
