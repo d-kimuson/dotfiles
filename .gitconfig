@@ -18,6 +18,8 @@
   ff = false
 [pull]
     ff = only
+[fetch]
+	prune = true
 [hub]
   protocol = ssh
 [core]
