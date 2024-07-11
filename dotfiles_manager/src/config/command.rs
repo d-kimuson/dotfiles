@@ -49,10 +49,6 @@ pub fn get_aliases() -> Vec<AliasDeclaration> {
             name: "g",
             definition: "git",
         },
-        AliasDeclaration {
-            name: "gpush",
-            definition: "git push origin HEAD",
-        },
         // TODO: glog
         AliasDeclaration {
             name: "gpushf",
@@ -229,6 +225,10 @@ pub fn get_functions() -> Vec<FunctionDeclaration> {
         FunctionDeclaration {
             name: "gcd",
             definition: "cd $(git rev-parse --show-toplevel)",
+        },
+        FunctionDeclaration {
+            name: "gpull",
+            definition: "git fetch && git merge origin/$(git rev-parse --abbrev-ref HEAD)",
         },
         FunctionDeclaration {
             name: "gback",
