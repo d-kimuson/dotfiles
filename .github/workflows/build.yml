@@ -5,6 +5,10 @@ on:
     paths:
       - 'dotfiles_manager/**'
 
+  push:
+    branches:
+      - 'master'
+
 jobs:
   build:
     runs-on: ${{ matrix.runner }}
