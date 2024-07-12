@@ -135,7 +135,7 @@ pub fn get_functions() -> Vec<FunctionDeclaration> {
         FunctionDeclaration {
             name: "colima-start",
             definition: r#"
-            colima start --cpu ${COLIMA_CPU:-6} --memory ${COLIMA_MEMORY:-24} --disk ${COLIMA_DISK:-120} \
+            colima start --cpu ${COLIMA_CPU:-6} --memory ${COLIMA_MEMORY:-12} --disk ${COLIMA_DISK:-120} \
             --arch aarch64 \
             --vm-type vz --vz-rosetta --mount-type virtiofs --mount-inotify\
             --mount $HOME/sms/:w\
