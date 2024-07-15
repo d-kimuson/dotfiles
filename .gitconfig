@@ -1,10 +1,7 @@
 [user]
     name = d-kimsuon
     email = dev.kimuson@gmail.com
-[includeIf "gitdir:~/sms/"]
-    path = .gitconfig-sms
-[include]
-    path = .gitconfig-local
+    signingkey = ~/.ssh/git_sign.pub
 [alias]
     a = "add"
     st = "status"
@@ -12,8 +9,10 @@
     openpr = "!f() { gh browse -- `git log --merges --oneline --reverse --ancestry-path $1...master | grep 'Merge pull request #' | head -n 1 | cut -f5 -d' ' | sed -e 's%#%%'`; }; f"
 [init]
     defaultBranch = main
-[color]
-    status = always
+[commit]
+  gpgsign = true
+[gpg]
+  format = ssh
 [merge]
   ff = false
 [pull]
@@ -25,3 +24,9 @@
 [core]
   excludesFile = ~/.gitignore_global
   editor = nano
+[color]
+  status = always
+[includeIf "gitdir:~/sms/"]
+  path = .gitconfig-sms
+[include]
+  path = .gitconfig-local
