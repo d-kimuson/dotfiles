@@ -49,7 +49,10 @@ pub fn get_aliases() -> Vec<AliasDeclaration> {
             name: "g",
             definition: "git",
         },
-        // TODO: glog
+        AliasDeclaration {
+            name: "gblog",
+            definition: "git log --oneline main..",
+        },
         AliasDeclaration {
             name: "gpushf",
             definition: "git push origin HEAD --force-with-lease",
@@ -229,6 +232,18 @@ pub fn get_functions() -> Vec<FunctionDeclaration> {
         FunctionDeclaration {
             name: "gpull",
             definition: "git fetch && git merge origin/$(git rev-parse --abbrev-ref HEAD)",
+        },
+        FunctionDeclaration {
+            name: "gautofixup",
+            definition: r#"
+            if [ -z "$1" ]; then
+                echo "required commit hash";
+                return 1;
+            fi
+
+            git commit --fixup $1
+            git rebase -i --autosquash $1~1
+            "#,
         },
         FunctionDeclaration {
             name: "gback",
