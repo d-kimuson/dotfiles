@@ -54,6 +54,10 @@ pub fn get_aliases() -> Vec<AliasDeclaration> {
             definition: "git log --oneline main..",
         },
         AliasDeclaration {
+            name: "gpush",
+            definition: "git push origin HEAD",
+        },
+        AliasDeclaration {
             name: "gpushf",
             definition: "git push origin HEAD --force-with-lease",
         },
