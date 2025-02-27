@@ -1,0 +1,28 @@
+{
+  "name": "dotfiles_manager_v2",
+  "version": "1.0.0",
+  "description": "Dotfiles manager written in TypeScript",
+  "type": "module",
+  "scripts": {
+    "build": "tsx src/build.ts",
+    "dev": "tsx watch src/build.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "dotfiles",
+    "cli"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.3.0+sha512.ee592eda8815a8a293c206bb0917c4bb0ff274c50def7cbc17be05ec641fc2d1b02490ce660061356bd0d126a4d7eb2ec8830e6959fb8a447571c631d5a2442d",
+  "devDependencies": {
+    "@tsconfig/node22": "22.0.0",
+    "@tsconfig/strictest": "2.0.5",
+    "@types/node": "22.13.5",
+    "tsx": "4.19.3",
+    "typescript": "5.7.3",
+    "vitest": "3.0.7"
+  }
+}

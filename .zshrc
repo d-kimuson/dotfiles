@@ -3,7 +3,7 @@
 # ====================
 # Initialize Manager
 # ====================
-dotfiles_manager activate | source /dev/stdin
+source ~/dotfiles/dotfiles_manager_v2/output/shell_aliases.sh
 
 # ====================
 # SET PATH
