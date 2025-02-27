@@ -8,6 +8,15 @@ export interface FunctionDeclaration {
   definition: string;
 }
 
+export const fn = (name: string, definition: string): FunctionDeclaration => {
+  return {
+    name,
+    definition: definition.slice(
+      definition.startsWith('\n') ? 1 : 0,
+      definition.endsWith('\n') ? -1 : undefined
+    ),
+  }
+}
 export interface AliasDeclaration {
   name: string;
   definition: string;
@@ -21,15 +30,8 @@ export function toCommandFromAlias(alias: AliasDeclaration): Command {
 }
 
 export function toCommandFromFunction(func: FunctionDeclaration): Command {
-  const commandName = func.name;
-  const cleanedDefinition = func.definition
-    .split('\n')
-    .map(line => `    ${line.trim()}`)
-    .filter(line => !line.endsWith(' '))
-    .join('\n');
-
   return {
-    name: commandName,
-    definition: `function ${commandName}() {\n${cleanedDefinition}\n}`,
+    name: func.name,
+    definition: `function ${func.name}() {\n${func.definition}\n}`,
   };
 } 

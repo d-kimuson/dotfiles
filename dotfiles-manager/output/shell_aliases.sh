@@ -16,157 +16,157 @@ alias gunadd="git restore --staged";
 alias guncom="git rm -rf --cached";
 alias gpull="git pull origin HEAD";
 function c() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required file path";
     return 1;
-    fi
-    bat --pager '' $1
+  fi
+  bat --pager '' $1
 }
 function get_os() {
-    if [ "$(uname)" = "Darwin" ]; then
+  if [ "$(uname)" = "Darwin" ]; then
     if [ "$(which arch)" = "arch not found" ]; then
-    os="mac-intel"
+      os="mac-intel"
     else
-    os="mac-m1"
+      os="mac-m1"
     fi
-    elif [ "$(uname)" = "Linux" ]; then
+  elif [ "$(uname)" = "Linux" ]; then
     if [ -e /etc/debian_version ] || [ -e /etc/debian_release ]; then
-    if [ -e /etc/lsb-release ]; then
-    os="ubuntu"
-    else
-    os="debian"
-    fi
+      if [ -e /etc/lsb-release ]; then
+        os="ubuntu"
+      else
+        os="debian"
+      fi
     elif [ -e /etc/centos-release ]; then
-    os="centos"
+      os="centos"
     else
-    os="unknown-linux"
+      os="unknown-linux"
     fi
-    else
+  else
     os="unknown"
-    fi
-    echo $os
+  fi
+  echo $os
 }
 function kill-port() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required port number";
     return 1;
-    fi
-    lsof -i :$1 | awk -F " " '{ print $2 }' | grep -v "PID" | xargs kill -9
+  fi
+  lsof -i :$1 | awk -F " " '{ print $2 }' | grep -v "PID" | xargs kill -9
 }
 function install-compose() {
-    mkdir -p $DOCKER_CONFIG/cli-plugins
-    curl -SL https://github.com/docker/compose/releases/download/v2.23.1/docker-compose-darwin-aarch64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-    chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+  mkdir -p $DOCKER_CONFIG/cli-plugins
+  curl -SL https://github.com/docker/compose/releases/download/v2.23.1/docker-compose-darwin-aarch64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+  chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
 }
 function colima-start() {
-    colima start --cpu ${COLIMA_CPU:-6} --memory ${COLIMA_MEMORY:-12} --disk ${COLIMA_DISK:-120} \
-    --arch aarch64 \
-    --vm-type vz --vz-rosetta --mount-type virtiofs --mount-inotify\
-    --mount $HOME/sms/:w\
-    --mount $HOME/Apps/:w\
-    --mount $HOME/Playground/:w
+  colima start --cpu ${COLIMA_CPU:-6} --memory ${COLIMA_MEMORY:-12} --disk ${COLIMA_DISK:-120} \
+  --arch aarch64 \
+  --vm-type vz --vz-rosetta --mount-type virtiofs --mount-inotify\
+  --mount $HOME/sms/:w\
+  --mount $HOME/Apps/:w\
+  --mount $HOME/Playground/:w
 }
 function dkill_all() {
-    docker rm -f $(docker ps -aq)
+  docker rm -f $(docker ps -aq)
 }
 function dkill() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required container id or name";
     return 1;
-    fi
-    docker rm -f $1
+  fi
+  docker rm -f $1
 }
 function dkilli_all() {
-    docker rmi $(docker images -aq)
+  docker rmi $(docker images -aq)
 }
 function dkilli() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required container id or name";
     return 1;
-    fi
-    docker rmi -f $1
+  fi
+  docker rmi -f $1
 }
 function dbash() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required container id or name";
     return 1;
-    fi
-    docker exec -it $1 bash
+  fi
+  docker exec -it $1 bash
 }
 function dsh() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required container id or name";
     return 1;
-    fi
-    docker exec -it $1 sh
+  fi
+  docker exec -it $1 sh
 }
 function dlog() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required container id or name";
     return 1;
-    fi
-    docker logs -f $1
+  fi
+  docker logs -f $1
 }
 function gadd() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required file path";
     return 1;
-    fi
-    git add $1 && git status
+  fi
+  git add $1 && git status
 }
 function gcd() {
-    cd $(git rev-parse --show-toplevel)
+  cd $(git rev-parse --show-toplevel)
 }
 function gpull() {
-    git fetch && git merge origin/$(git rev-parse --abbrev-ref HEAD)
+  git fetch && git merge origin/$(git rev-parse --abbrev-ref HEAD)
 }
 function gautofixup() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required commit hash";
     return 1;
-    fi
-    git commit --fixup $1
-    git rebase -i --autosquash $1~1
+  fi
+  git commit --fixup $1
+  git rebase -i --autosquash $1~1
 }
 function gback() {
-    if [ -z "$1" ]; then
+  if [ -z "$1" ]; then
     echo "required commit hash";
     return 1;
-    fi
-    git reset --hard ${1};
+  fi
+  git reset --hard ${1};
 }
 function gignore() {
-    # https://github.com/github/gitignore のテンプレートから gitignore を生成する
-    echo "一覧: https://github.com/github/gitignore"
-    INPUT='INIT'
-    while [ "$INPUT" != "q" ]; do
+  # https://github.com/github/gitignore のテンプレートから gitignore を生成する
+  echo "一覧: https://github.com/github/gitignore"
+  INPUT='INIT'
+  while [ "$INPUT" != "q" ]; do
     printf "Select Ignore Template(Press q to quit) >> "; read INPUT
     if [ "$INPUT" != "q" ]; then
-    touch .gitignore
-    curl "https://raw.githubusercontent.com/github/gitignore/master/"$INPUT".gitignore" | grep -v '404' >> .gitignore
-    cat .gitignore
+      touch .gitignore
+      curl "https://raw.githubusercontent.com/github/gitignore/master/"$INPUT".gitignore" | grep -v '404' >> .gitignore
+      cat .gitignore
     fi
-    done
+  done
 }
 function setup_m1mac() {
-    brew update && brew upgrade
-    # replace
-    brew install coreutils diffutils ed findutils gawk gnu-sed gnu-tar grep gzip
-    # utility
-    brew install ag jq lv parallel pandoc sift wget wdiff xmlstarlet
-    # to be latest
-    brew install nano unzip
-    # rust
-    curl https://sh.rustup.rs -sSf | sh
-    source $HOME/.cargo/env
+  brew update && brew upgrade
+  # replace
+  brew install coreutils diffutils ed findutils gawk gnu-sed gnu-tar grep gzip
+  # utility
+  brew install ag jq lv parallel pandoc sift wget wdiff xmlstarlet
+  # to be latest
+  brew install nano unzip
+  # rust
+  curl https://sh.rustup.rs -sSf | sh
+  source $HOME/.cargo/env
 }
 function setup_ubuntu() {
-    sudo apt update
-    sudo apt upgrade -y
-    sudo apt install zsh -y
-    chsh -s $(which zsh)
-    sudo apt install make gcc -y
-    sudo apt install -y zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libffi-dev
-    curl https://sh.rustup.rs -sSf | sh
-    source $HOME/.cargo/env
+  sudo apt update
+  sudo apt upgrade -y
+  sudo apt install zsh -y
+  chsh -s $(which zsh)
+  sudo apt install make gcc -y
+  sudo apt install -y zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libffi-dev
+  curl https://sh.rustup.rs -sSf | sh
+  source $HOME/.cargo/env
 }

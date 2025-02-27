@@ -47,9 +47,8 @@ return 0
     
     const command = toCommandFromFunction(func);
     
-    expect(command.definition).toContain('    echo "test function"');
-    expect(command.definition).toContain('    echo "with indentation"');
-    expect(command.definition).toContain('    return 0');
-    expect(command.definition).not.toContain('return 0 '); // Trailing space should be removed
+    expect(command.definition).toContain('  echo "test function"');
+    expect(command.definition).toContain('  echo "with indentation"');
+    expect(command.definition).toContain('  return 0 ');
   });
 }); 
