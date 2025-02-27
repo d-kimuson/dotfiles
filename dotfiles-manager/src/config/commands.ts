@@ -70,10 +70,6 @@ export function getAliases(): AliasDeclaration[] {
       name: 'guncom',
       definition: 'git rm -rf --cached',
     },
-    {
-      name: 'gpull',
-      definition: 'git pull origin HEAD',
-    },
   ];
 }
 
@@ -129,6 +125,7 @@ const colima_start = fn('colima-start', /* bash */`
   --arch aarch64 \\
   --vm-type vz --vz-rosetta --mount-type virtiofs --mount-inotify\\
   --mount $HOME/sms/:w\\
+  --mount $HOME/officefrontier/:w\\
   --mount $HOME/Apps/:w\\
   --mount $HOME/Playground/:w
 `)
@@ -194,7 +191,7 @@ const gcd = fn('gcd', /* bash */`
 `)
 
 const gpull = fn('gpull', /* bash */`
-  git fetch && git merge origin/$(git rev-parse --abbrev-ref HEAD)
+  git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)
 `)
 
 const gautofixup = fn('gautofixup', /* bash */`

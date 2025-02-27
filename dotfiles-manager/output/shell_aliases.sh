@@ -14,7 +14,6 @@ alias gpush="git push origin HEAD";
 alias gpushf="git push origin HEAD --force-with-lease";
 alias gunadd="git restore --staged";
 alias guncom="git rm -rf --cached";
-alias gpull="git pull origin HEAD";
 function c() {
   if [ -z "$1" ]; then
     echo "required file path";
@@ -63,6 +62,7 @@ function colima-start() {
   --arch aarch64 \
   --vm-type vz --vz-rosetta --mount-type virtiofs --mount-inotify\
   --mount $HOME/sms/:w\
+  --mount $HOME/officefrontier/:w\
   --mount $HOME/Apps/:w\
   --mount $HOME/Playground/:w
 }
@@ -118,7 +118,7 @@ function gcd() {
   cd $(git rev-parse --show-toplevel)
 }
 function gpull() {
-  git fetch && git merge origin/$(git rev-parse --abbrev-ref HEAD)
+  git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)
 }
 function gautofixup() {
   if [ -z "$1" ]; then
