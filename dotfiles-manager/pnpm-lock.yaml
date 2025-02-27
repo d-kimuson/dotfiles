@@ -7,28 +7,24 @@ settings:
 importers:
 
   .:
-    dependencies:
-      commander:
-        specifier: ^13.1.0
-        version: 13.1.0
     devDependencies:
       '@tsconfig/node22':
-        specifier: ^22.0.0
+        specifier: 22.0.0
         version: 22.0.0
       '@tsconfig/strictest':
-        specifier: ^2.0.5
+        specifier: 2.0.5
         version: 2.0.5
       '@types/node':
-        specifier: ^22.13.5
+        specifier: 22.13.5
         version: 22.13.5
       tsx:
-        specifier: ^4.19.3
+        specifier: 4.19.3
         version: 4.19.3
       typescript:
-        specifier: ^5.7.3
+        specifier: 5.7.3
         version: 5.7.3
       vitest:
-        specifier: ^3.0.7
+        specifier: 3.0.7
         version: 3.0.7(@types/node@22.13.5)(tsx@4.19.3)
 
 packages:
@@ -337,10 +333,6 @@ packages:
   check-error@2.1.1:
     resolution: {integrity: sha512-OAlb+T7V4Op9OwdkjmguYRqncdlx5JiofwOAUkmTF+jNdHwzTaTs4sRAGpzLF3oOz5xAyDGrPgeIDFQmDOTiJw==}
     engines: {node: '>= 16'}
-
-  commander@13.1.0:
-    resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
-    engines: {node: '>=18'}
 
   debug@4.4.0:
     resolution: {integrity: sha512-6WTZ/IxCY/T6BALoZHaE4ctp9xm+Z5kY/pzYaCHRFeyVhojxlrm+46y68HA6hr0TcwEssoxNiDEUJQjfPZ/RYA==}
@@ -735,8 +727,6 @@ snapshots:
       pathval: 2.0.0
 
   check-error@2.1.1: {}
-
-  commander@13.1.0: {}
 
   debug@4.4.0:
     dependencies:

@@ -1,5 +1,5 @@
 {
-  "name": "dotfiles_manager_v2",
+  "name": "dotfiles-manager",
   "version": "1.0.0",
   "description": "Dotfiles manager written in TypeScript",
   "type": "module",
