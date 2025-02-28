@@ -1,2 +1,18 @@
 .history
-memo.local.md
+
+# memo file
+memo.local.*
+tmp.local.*
+
+# Copilot
+.vscode/.copilot-codeGeneration-instructions.md
+
+# Cline (Roo Code)
+.clinerules
+activeContext.md
+memory-bank-prompt.md
+productContext.md
+progress.md
+projectbrief.md
+systemPatterns.md
+techContext.md

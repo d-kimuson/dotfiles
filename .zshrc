@@ -50,9 +50,7 @@ esac
 # Env Dependent
 # ====================
 OS_IDENTIFY=$(get_os)
-if [ "$OS_IDENTIFY" = "mac-m1" ]; then
-  export DOCKER_HOST="unix:///$HOME/.colima/default/docker.sock"
-  
+if [ "$OS_IDENTIFY" = "mac-m1" ]; then  
   BRER_PREFIX="/opt/homebrew"
   
   path=(
@@ -89,3 +87,5 @@ fi
 if [ -f ~/.localrc ]; then
   source ~/.localrc
 fi
+
+. "$HOME/.local/bin/env"
