@@ -8,15 +8,29 @@
 $ brew install gh
 $ cd $HOME
 $ git clone git@github.com:d-kimuson/dotfiles.git
-$ ./scripts/install.sh
 ```
 
 ## Setup
 
 ```bash
 $ mkdir backup && mv .zshrc backup
-$ dotfiles_manager link
+$ ./scripts/sync.sh
 ```
+
+## Alias Manager のビルド
+
+Alias Manager を更新した場合は、以下のコマンドでビルドしてください：
+
+```bash
+$ cd alias-manager
+$ pnpm i
+$ pnpm build
+```
+
+ビルド成果物は `alias-manager/output/shell_aliases.sh` に生成され、`.zshrc` から読み込まれます。
+
+> 注意: dotfiles setup 時（`sync.sh` 実行時）はビルドは実行されません。  
+> 事前にコミットされたビルド成果物を使用するため、変更時は手動でビルドしてコミットしてください。
 
 ## リポジトリに載せない設定を書く
 

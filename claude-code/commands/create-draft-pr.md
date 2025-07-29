@@ -1,0 +1,25 @@
+---
+description: 'カレントブランチのプルリクエストを作成する'
+allowed-tools: Bash(./.claude/scripts/get_base_branch.sh:*),Bash(git log:*),Bash(git diff:*),Bash(git add:*),Bash(git push:*),Bash(gh pr create:*),Read(../.github/pull_request_template.md)
+---
+
+カレントブランチのプルリクエストを作成してください。
+
+## Process
+
+1. **変更内容の把握**
+   - カレントブランチと base branch を git コマンドで特定
+   - カレントブランチ <-> ベースブランチ間の差分を確認する
+   - 現在コミットされていない差分を確認する
+   - 作業の流れで依頼され変更内容を把握している場合、このステップはスキップしてOK
+2. **コミットする**
+   - コミットされていない差分が存在する場合、レビュワーが把握しやすい粒度でコミットを積んでください
+   - コミットされていない差分がしなければスキップして OK
+3. **プッシュする**
+   - カレントブランチのコミットを push してください
+   - `git push -u origin HEAD`
+4. **プルリクエストを作成**
+   - `cat (git rev-parse --show-toplevel)/.github/pull_request_template.md` で PR テンプレートを確認し、テンプレートを埋める形で PR Body を作成してください。
+     - 動作確認の箇所にはユーザーがすべき修正と CI Pass を追加してください。静的解析以外に行った動作確認(Ex. スクリプトを実行など)をした場合は追加してください。
+   - gh コマンドを用いてドラフトプルリクエストを作成してください。ドラフトPRが作成できない場合は非対応リポジトリなので、通常のPRでリトライしてください。
+   - base ブランチを1で確認したブランチにしてください
