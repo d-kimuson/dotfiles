@@ -13,8 +13,7 @@ TypeScriptで実装されたdotfilesマネージャーです。
 git clone https://github.com/yourusername/dotfiles.git ~/dotfiles
 
 # 依存関係のインストール
-cd ~/dotfiles/dotfiles_manager_v2
-pnpm install
+pnpm i
 ```
 
 ## 使い方
