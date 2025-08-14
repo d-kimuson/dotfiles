@@ -6,3 +6,6 @@
 
 .gitconfig-sms
 .gitconfig-local
+
+# gemini
+.claude/settings.local.json

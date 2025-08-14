@@ -89,3 +89,5 @@ if [ -f ~/.localrc ]; then
 fi
 
 . "$HOME/.local/bin/env"
+
+alias claude="/Users/kaito-kimura/.claude/local/claude"

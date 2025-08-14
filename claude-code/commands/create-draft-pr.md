@@ -1,6 +1,6 @@
 ---
 description: 'カレントブランチのプルリクエストを作成する'
-allowed-tools: Bash(./.claude/scripts/get_base_branch.sh:*),Bash(git log:*),Bash(git diff:*),Bash(git add:*),Bash(git push:*),Bash(gh pr create:*),Read(../.github/pull_request_template.md)
+allowed-tools: Bash(git log:*),Bash(git diff:*),Bash(git add:*),Bash(git push:*),Bash(gh pr create:*)
 ---
 
 カレントブランチのプルリクエストを作成してください。

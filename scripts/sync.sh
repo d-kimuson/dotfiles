@@ -135,7 +135,57 @@ else
     log_warning "Claude commandsディレクトリが見つかりません: $claude_commands_source"
 fi
 
+# Claude Agents
+log_info "Claude Agentを設定しています..."
+claude_commands_source="$DOTFILES_DIR/claude-code/agents"
+claude_commands_target="$HOME/.claude/agents"
 
+if [ -d "$claude_commands_source" ]; then
+    create_symlink "$claude_commands_source" "$claude_commands_target" "Claude Agents"
+else
+    log_warning "Claude Agentsディレクトリが見つかりません: $claude_commands_source"
+fi
+
+# Claude Settings
+log_info "Claude Settingsを設定しています..."
+claude_settings_source="$DOTFILES_DIR/claude-code/settings.json"
+claude_settings_target="$HOME/.claude/settings.json"
+
+if [ -f "$claude_settings_source" ]; then
+    create_symlink "$claude_settings_source" "$claude_settings_target" "Claude Settings"
+else
+    log_warning "Claude Settingsファイルが見つかりません: $claude_settings_source"
+fi
+
+# Claude Memory
+log_info "Claude Memory(CLAUDE.md)を設定しています..."
+claude_memory_source="$DOTFILES_DIR/claude-code/CLAUDE.md"
+claude_memory_target="$HOME/.claude/CLAUDE.md"
+
+if [ -f "$claude_memory_source" ]; then
+    create_symlink "$claude_memory_source" "$claude_memory_target" "Claude Memory"
+else
+    log_warning "Claude Memoryファイルが見つかりません: $claude_memory_source"
+fi
+
+# Claude MCP
+log_info "Claude MCPを設定しています..."
+# 存在したらエラーになっちゃうが冪等にしたいので set +e して /dev/null に捨てる
+set +e
+~/.claude/local/claude mcp add context7 -s user -- npx -y @upstash/context7-mcp@latest > /dev/null 2>&1
+set -e
+
+# Gemini Commands
+log_info "Gemini Commandsを設定しています..."
+gemini_commands_source="$DOTFILES_DIR/gemini-cli/commands"
+gemini_commands_target="$HOME/.gemini/commands"
+
+if [ -d "$gemini_commands_source" ]; then
+    create_symlink "$gemini_commands_source" "$gemini_commands_target" "Gemini Commands"
+    log_info "Gemini Commandsをコピーしました: $gemini_commands_source -> $gemini_commands_target"
+else
+    log_warning "Gemini Commandsディレクトリが見つかりません: $gemini_commands_source"
+fi
 
 # Final message
 log_success "=== セットアップが完了しました! ==="
