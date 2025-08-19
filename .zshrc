@@ -12,6 +12,7 @@ path=(
   ${path}
   $HOME/bin
   $BUN_INSTALL/bin
+  $HOME/.local/bin
 )
 
 if [ "$(get_os)" = "mac-m1" ]; then
@@ -87,7 +88,3 @@ fi
 if [ -f ~/.localrc ]; then
   source ~/.localrc
 fi
-
-. "$HOME/.local/bin/env"
-
-alias claude="/Users/kaito-kimura/.claude/local/claude"
