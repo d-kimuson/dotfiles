@@ -21,4 +21,11 @@ TypeScriptの`error TS2305: Module has no exported member '...'`エラーです�
 
 ### GitHub のリソースは GitHub CLI で参照
 
-- ユーザーから渡された github の URL等はプライベートで読めなかったりするケースが多いです。基本的に認証込みで参照できる gh コマンドを用いてリソースを取得しなさい。
+- ユーザーから渡された github の URLの参照には認証が必要であることがほとんどあるため WebFetch は利用しません。
+- 代わりに gh, git コマンドを利用します。
+  - ファイルの内容を確認する:
+    - `curl "$(gh api 'repos/<owner>/<repo>/contents/path/to/file.txt?ref=<ref>' | jq -r '.download_url')"`
+  - PR の内容を確認する:
+    - gh pr view <pr_number> --json title,body,headRefName,commits
+  - コミットハッシュの diff を確認する:
+    - `git fetch && git show <commit_hash>`
