@@ -146,20 +146,9 @@ link_directory "$DOTFILES_DIR/claude-code/commands" "$HOME/.claude/commands"
 log_info "Claude Agentを設定しています..."
 link_directory "$DOTFILES_DIR/claude-code/agents" "$HOME/.claude/agents"
 
-# Claude Settings
-log_info "Claude Settingsを設定しています..."
-link_file "$DOTFILES_DIR/claude-code/settings.json" "$HOME/.claude/settings.json"
-
 # Claude Memory
 log_info "Claude Memory(CLAUDE.md)を設定しています..."
 link_file "$DOTFILES_DIR/claude-code/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
-
-# Claude MCP
-log_info "Claude MCPを設定しています..."
-# 存在したらエラーになっちゃうが冪等にしたいので set +e して /dev/null に捨てる
-set +e
-~/.claude/local/claude mcp add context7 -s user -- npx -y @upstash/context7-mcp@latest > /dev/null 2>&1
-set -e
 
 # Gemini Commands
 log_info "Gemini Commandsを設定しています..."

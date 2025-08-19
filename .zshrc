@@ -22,7 +22,7 @@ fi
 # ====================
 # Activate tools
 # ====================
-eval "$(mise activate --shims)"
+eval "$(~/.local/bin/mise activate --shims)"
 eval "$(starship init zsh)"
 eval "$(direnv hook zsh)"
 

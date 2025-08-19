@@ -2,20 +2,42 @@
 
 シェル周りの設定リポジトリ、`$HOME/dotfiles` に設置してシンボリックリンクを貼ることで適用できる
 
+## Requirements
+
+- [direnv](https://direnv.net/docs/installation.html)
+  - `brew install direnv`, `sudo apt install direnv`
+- [starship](https://starship.rs/ja-JP/guide/#%F0%9F%9A%80-installation)
+  - `curl -sS https://starship.rs/install.sh | sh`
+- [mise](https://mise.jdx.dev/getting-started.html)
+  - `curl https://mise.run | sh`
+- [Claude Code](https://docs.anthropic.com/ja/docs/claude-code/setup)
+  - `curl -fsSL https://claude.ai/install.sh | bash`
+- [Gemini CLI](https://github.com/google-gemini/gemini-cli)
+  - `brew install gemini-cli`, `npm install -g @google/gemini-cli`
+- gh
+  - `brew install gh`, `sudo apt install gh`
+
 ## Installation
 
 ```bash
-$ brew install gh
-$ cd $HOME
-$ git clone git@github.com:d-kimuson/dotfiles.git
+cd $HOME
+git clone git@github.com:d-kimuson/dotfiles.git
 ```
 
 ## Setup
 
 ```bash
-$ mkdir backup && mv .zshrc backup
-$ ./scripts/sync.sh
+./scripts/sync.sh
+exec $SHELL -l
+mise use node@22 -g
+mise use python@latest -g
+./scripts/claude_code_mcp.sh
 ```
+
+以下のファイルは symlink できない(すべきでない)ので手動でコピー等する
+
+- [claude-code/settings.json](./claude-code/settings.json)
+  - 対象: `~/.claude/settings.json`
 
 ## Alias Manager のビルド
 
