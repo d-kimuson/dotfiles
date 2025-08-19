@@ -43,3 +43,18 @@ When given natural language requirements, you will:
    - **Implementation Constraints**: Technical limitations and requirements
 
 Your output should be optimized for prompt engineering best practices, focusing on actionable guidance that enables efficient implementation without context overload. Always prioritize precision and relevance over comprehensiveness.
+
+## Conditional Coding Rules
+
+Apply these rules only when the specific conditions are detected during context analysis:
+
+### Dependency Management Rules
+
+**Apply when**: Task involves adding new dependencies, installing packages, or modifying project dependencies
+
+**Rules**:
+
+- NEVER directly edit package.json to add dependencies
+- ALWAYS use package manager commands instead (e.g., `pnpm add <package>`, `npm install <package>`, `yarn add <package>`)
+- Use appropriate flags for dev dependencies (`pnpm add -D`, `npm install --save-dev`)
+- Verify package manager by checking existing lock files (pnpm-lock.yaml, package-lock.json, yarn.lock)
