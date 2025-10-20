@@ -82,6 +82,13 @@ if [ "$OS_IDENTIFY" = "mac-m1" ]; then
   autoload -Uz compinit && compinit
 fi
 
+# Claude Code
+function cc_install() {
+  set -euo pipefail
+  local VERSION=$1
+  curl -fsSL https://claude.ai/install.sh | bash -s $VERSION && sudo mv ~/.local/bin/claude /usr/local/bin
+}
+
 # ====================
 # local
 # ====================
