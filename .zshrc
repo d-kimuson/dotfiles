@@ -15,6 +15,10 @@ path=(
   $HOME/.local/bin
 )
 
+if [ ! -d $HOME/bin ]; then
+  mkdir $HOME/bin
+fi
+
 if [ "$(get_os)" = "mac-m1" ]; then
   export PATH="$PATH:/opt/homebrew/bin"
 fi
@@ -87,7 +91,7 @@ fi
 function cc_install() {
   set -euo pipefail
   local VERSION=$1
-  curl -fsSL https://claude.ai/install.sh | bash -s $VERSION && sudo mv ~/.local/bin/claude /usr/local/bin
+  curl -fsSL https://claude.ai/install.sh | bash -s $VERSION && mv ~/.local/bin/claude $HOME/bin/claude
 }
 
 # ====================
