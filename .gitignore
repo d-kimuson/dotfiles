@@ -9,3 +9,6 @@
 
 # gemini
 .claude/settings.local.json
+
+# modular-mcp
+modular-mcp.json
