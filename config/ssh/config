@@ -2,3 +2,8 @@ Host github github.com
   HostName github.com
   IdentityFile ~/.ssh/github
   User git
+
+Host home-server
+  HostName 192.168.1.20
+  User kaito
+  IdentityFile ~/.ssh/github
