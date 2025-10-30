@@ -8,7 +8,8 @@ allowed-tools: Bash(git log:*),Bash(git diff:*),Bash(git add:*),Bash(git push:*)
 ## Process
 
 1. **変更内容の把握**
-   - カレントブランチと base branch を git コマンドで特定
+   - カレントブランチを特定: `git rev-parse --abbrev-ref HEAD`
+   - base branch を reflog から特定: `git reflog -n 30 | grep 'checkout'`
    - カレントブランチ <-> ベースブランチ間の差分を確認する
    - 現在コミットされていない差分を確認する
    - 作業の流れで依頼され変更内容を把握している場合、このステップはスキップしてOK
