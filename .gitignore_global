@@ -22,3 +22,7 @@ techContext.md
 
 # serena mcp
 frontend/.serena/
+
+# claude code
+**/.claude/x-rules/**
+**/.claude/x-tasks.md
