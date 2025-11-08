@@ -94,6 +94,47 @@ function cc_install() {
   curl -fsSL https://claude.ai/install.sh | bash -s $VERSION && mv ~/.local/bin/claude $HOME/bin/claude
 }
 
+function cc_litellm_activate() {
+  if [ -z "$OPENAI_API_KEY" ]; then
+    echo "OPENAI_API_KEY is not set"
+    return 1
+  fi
+
+  if [ ! -f ~/dotfiles/litellm/litellm_config.yaml ]; then
+    echo "~/dotfiles/litellm/litellm_config.yaml is not found"
+    return 1
+  fi
+
+  local -r proxy_port="8082"
+  local -r proxy_url="http://127.0.0.1:$proxy_port"
+
+  docker run \
+    -v ~/dotfiles/litellm/litellm_config.yaml:/app/config.yaml \
+    -e OPENAI_API_KEY=$OPENAI_API_KEY \
+    -p 127.0.0.1:$proxy_port:4000 \
+    --name litellm-proxy \
+    -d \
+    ghcr.io/berriai/litellm:main-latest \
+    --config /app/config.yaml --detailed_debug
+
+  export ANTHROPIC_BASE_URL="$proxy_url"
+  # export DISABLE_COST_WARNINGS="true"
+  export ANTHROPIC_MODEL="gpt-5"
+  export ANTHROPIC_DEFAULT_HAIKU_MODEL="gpt-5-mini"
+  export ANTHROPIC_DEFAULT_OPUS_MODEL="gpt-5"
+  export ANTHROPIC_DEFAULT_SONNET_MODEL="gpt-5"
+}
+
+function cc_litellm_deactivate() {
+  docker rm -f litellm-proxy
+  unset ANTHROPIC_BASE_URL
+  # unset DISABLE_COST_WARNINGS
+  unset ANTHROPIC_MODEL
+  unset ANTHROPIC_DEFAULT_HAIKU_MODEL
+  unset ANTHROPIC_DEFAULT_OPUS_MODEL
+  unset ANTHROPIC_DEFAULT_SONNET_MODEL
+}
+
 # ====================
 # local
 # ====================
