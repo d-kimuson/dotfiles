@@ -94,7 +94,7 @@ allowed-tools: Bash(git), Read(*), Write, Edit(*.ts)
 
 **Example Task tool invocation**:
 ```
-Task(subagent_type="ccd-pr-creator", prompt="Create PR for current branch", description="Create PR")
+Task(subagent_type="pr-creator", prompt="Create PR for current branch", description="Create PR")
 ```
 </structure>
 

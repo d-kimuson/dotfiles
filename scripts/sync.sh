@@ -146,6 +146,10 @@ link_directory "$DOTFILES_DIR/claude-code/commands" "$HOME/.claude/commands"
 log_info "Claude Agentを設定しています..."
 link_directory "$DOTFILES_DIR/claude-code/agents" "$HOME/.claude/agents"
 
+# Claude Skills
+log_info "Claude Skillsを設定しています..."
+link_directory "$DOTFILES_DIR/claude-code/skills" "$HOME/.claude/skills"
+
 # Claude Memory
 log_info "Claude Memory(CLAUDE.md)を設定しています..."
 link_file "$DOTFILES_DIR/claude-code/CLAUDE.md" "$HOME/.claude/CLAUDE.md"

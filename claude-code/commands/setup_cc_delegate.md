@@ -6,11 +6,11 @@ allowed-tools: Read(*), Glob(*), Write(.cc-delegate/*), Bash(git)
 <overview>
 Set up project-specific documents required for the `/delegate` command workflow.
 
-Read `claude-code/commands/delegate.md` first to understand the overall context.
+Read `~/.claude/commands/delegate.md` first to understand the overall context.
 
 **Target files** (under `.cc-delegate/`):
-1. `review-guideline.md`: Project-specific review criteria for ccd-reviewer agent
-2. `branch-rule.md`: Branch naming conventions for ccd-prepare-env agent
+1. `review-guideline.md`: Project-specific review criteria for reviewer agent
+2. `branch-rule.md`: Branch naming conventions for prepare-env agent
 </overview>
 
 <file_handling_policy>

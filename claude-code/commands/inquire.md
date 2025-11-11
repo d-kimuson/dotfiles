@@ -5,6 +5,18 @@ allowed-tools: Bash(uuidgen), Read, Write, Edit
 
 Orchestrate development tasks with lightweight delegation. Environment setup and PR creation are manual; focus on research, design, implementation, and review.
 
+<skill_usage>
+**IMPORTANT**: You MUST invoke the `agent-orchestration` skill to apply core orchestration guidelines. This skill provides:
+- Session separation principles for yak shaving tasks
+- Subagent collaboration best practices
+- Error handling and loop prevention strategies
+
+Invoke with:
+```
+Skill(command: "agent-orchestration")
+```
+</skill_usage>
+
 <role_definition>
 **Your role as Orchestrator**:
 - Coordinate between subagents for task completion
@@ -12,16 +24,6 @@ Orchestrate development tasks with lightweight delegation. Environment setup and
 - Delegate detailed work to subagents
 - Skip environment preparation and PR creation phases
 </role_definition>
-
-<subagent_reference>
-## Required Subagents
-
-The following subagents must exist in `claude-code/agents/`:
-- **ccd-context-collector**: Codebase research and context gathering
-- **ccd-architect**: Design planning and approach selection
-- **ccd-impl**: Code implementation specialist
-- **ccd-reviewer**: Code review and quality verification
-</subagent_reference>
 
 <task_classification>
 ## Task Difficulty Classification
@@ -81,15 +83,15 @@ Apply task classification criteria. Record assessment for Phase 3 branching.
 - [ ] Criterion 2
 
 ## Related Context
-<!-- Hard tasks: Populated by ccd-context-collector -->
+<!-- Hard tasks: Populated by context-collector -->
 <!-- Easy tasks: DELETE THIS SECTION -->
 
 ## Design Plan
-<!-- Hard tasks: Populated by ccd-architect -->
+<!-- Hard tasks: Populated by architect -->
 <!-- Easy tasks: DELETE THIS SECTION -->
 
 ## Fixes
-<!-- Populated by ccd-reviewer -->
+<!-- Populated by reviewer -->
 <!-- Format: - [ ] Issue description -->
 
 ## Memo
@@ -106,10 +108,10 @@ Apply task classification criteria. Record assessment for Phase 3 branching.
 
 ### Step 3.1: Context Collection
 
-<subagent_invocation agent="ccd-context-collector">
+<subagent_invocation agent="context-collector">
 ```
 Task(
-  subagent_type="ccd-context-collector",
+  subagent_type="context-collector",
   prompt="Collect implementation context for task at `.cc-delegate/tasks/${task_id}.md`. Populate 'Related Context' section with:
 - Files likely to be modified and their roles
 - Tech stack, libraries, and design patterns
@@ -124,10 +126,10 @@ Write for implementers to efficiently grasp necessary information.",
 
 ### Step 3.2: Design and Planning
 
-<subagent_invocation agent="ccd-architect">
+<subagent_invocation agent="architect">
 ```
 Task(
-  subagent_type="ccd-architect",
+  subagent_type="architect",
   prompt="Design implementation plan for task at `.cc-delegate/tasks/${task_id}.md`. Populate 'Design Plan' section with:
 - Implementation approach (compare options if multiple exist)
 - Concrete implementation steps
@@ -159,12 +161,12 @@ Write for implementers to understand design intent and proceed systematically.",
 
 ### Step 4.2: Execute Implementation Sessions
 
-For each session, invoke `ccd-impl` sequentially:
+For each session, invoke `engineer` sequentially:
 
-<subagent_invocation agent="ccd-impl">
+<subagent_invocation agent="engineer">
 ```
 Task(
-  subagent_type="ccd-impl",
+  subagent_type="engineer",
   prompt="Implement the following session for task at `.cc-delegate/tasks/[uuid].md`.
 
 **Full Session List**:
@@ -190,7 +192,7 @@ Task(
 ### Step 4.3: Session List Update
 
 <action>
-After ccd-impl completes:
+After engineer completes:
 1. Read task document `Memo` section
 2. If additional session candidates exist:
    - Update session list in `Memo`
@@ -202,10 +204,10 @@ After ccd-impl completes:
 
 ### Step 5.1: Code Review
 
-<subagent_invocation agent="ccd-reviewer">
+<subagent_invocation agent="reviewer">
 ```
 Task(
-  subagent_type="ccd-reviewer",
+  subagent_type="reviewer",
   prompt="Review implemented code for task at `.cc-delegate/tasks/${task_id}.md`.
 
 **Review perspectives**:
@@ -275,26 +277,6 @@ Task document: `.cc-delegate/tasks/${task_id}.md`
 **Next steps**: Create PR and verify CI manually.
 ```
 </execution_phases>
-
-<error_handling>
-## Error Handling
-
-<loop_detection>
-**Infinite loop prevention**:
-- Track phase transitions and iterations
-- If same error/failure occurs 3 consecutive times:
-  1. Stop execution
-  2. Report status to user with details
-  3. Request guidance
-</loop_detection>
-
-<error_recovery>
-**Phase-specific errors**:
-- **Subagent failure**: Report error and request intervention
-- **Missing prerequisites**: Document in Memo and request user action
-- **Ambiguous requirements**: Return to Phase 1
-</error_recovery>
-</error_handling>
 
 <important_notes>
 ## Orchestrator Guidelines

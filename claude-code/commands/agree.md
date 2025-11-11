@@ -5,6 +5,18 @@ allowed-tools: Read, Write, Edit
 
 Lightweight task orchestration with full judgment delegation. No task document required. Decide autonomously whether design and review are necessary based on complexity and workload.
 
+<skill_usage>
+**IMPORTANT**: You MUST invoke the `agent-orchestration` skill to apply core orchestration guidelines. This skill provides:
+- Session separation principles for yak shaving tasks
+- Subagent collaboration best practices
+- Error handling and loop prevention strategies
+
+Invoke with:
+```
+Skill(command: "agent-orchestration")
+```
+</skill_usage>
+
 <role_definition>
 **Your role**:
 - Coordinate task completion with minimal overhead
@@ -17,9 +29,9 @@ Lightweight task orchestration with full judgment delegation. No task document r
 ## Available Subagents
 
 Use these subagents when needed (all optional):
-- **ccd-architect**: Design planning for complex tasks
-- **ccd-impl**: Code implementation (use for multi-session work)
-- **ccd-reviewer**: Code review for substantial changes
+- **architect**: Design planning for complex tasks
+- **engineer**: Code implementation (use for multi-session work)
+- **reviewer**: Code review for substantial changes
 </subagent_reference>
 
 <execution_workflow>
@@ -39,18 +51,18 @@ Think harder about:
   - Multiple implementation options exist?
   - Architectural impact unclear?
   - High uncertainty requiring upfront planning?
-  → YES: Use **ccd-architect** for design planning
+  → YES: Use **architect** for design planning
 
 - **Should work be split into sessions?**
   - Substantial workload (multiple files, features)?
   - Natural break points exist?
-  → YES: Use **ccd-impl** for each session with clear scope
+  → YES: Use **engineer** for each session with clear scope
 
 - **Is review needed?**
   - Substantial code changes (>100 lines)?
   - Critical business logic affected?
   - Complex refactoring performed?
-  → YES: Use **ccd-reviewer** after implementation
+  → YES: Use **reviewer** after implementation
 </decision_criteria>
 
 ### Step 3: Execute
@@ -64,10 +76,10 @@ Think harder about:
 
 **Pattern B: Complex task** (design needed, review needed)
 1. Create todo list with TodoWrite
-2. Invoke ccd-architect for design planning (store output in temporary memo)
+2. Invoke architect for design planning (store output in temporary memo)
 3. Split into sessions based on design
-4. Invoke ccd-impl for each session sequentially
-5. Invoke ccd-reviewer after all sessions
+4. Invoke engineer for each session sequentially
+5. Invoke reviewer after all sessions
 6. If issues found, create fix sessions and return to step 4
 7. Report completion
 
@@ -82,7 +94,7 @@ Think harder about:
 <iteration_handling>
 **If review finds issues**:
 1. Update todo list with fix items
-2. Implement fixes (directly or via ccd-impl)
+2. Implement fixes (directly or via engineer)
 3. Re-review if fixes are substantial
 4. Continue until clean
 
@@ -116,9 +128,9 @@ Report to user:
 <tool_usage>
 ### Tool Usage
 - **TodoWrite**: Always use for task tracking
-- **ccd-architect**: Optional, invoke when uncertainty exists
-- **ccd-impl**: Optional, use for session-based work
-- **ccd-reviewer**: Optional, use for substantial changes
+- **architect**: Optional, invoke when uncertainty exists
+- **engineer**: Optional, use for session-based work
+- **reviewer**: Optional, use for substantial changes
 - **Direct implementation**: Preferred for simple, clear tasks
 </tool_usage>
 
@@ -152,10 +164,10 @@ Report to user:
 
 **Execution**:
 1. TodoWrite: ["Design auth flow", "Implement sessions", "Review"]
-2. Invoke ccd-architect for design planning
+2. Invoke architect for design planning
 3. Split sessions: [Models, API endpoints, Middleware, Frontend integration]
-4. Invoke ccd-impl for each session
-5. Invoke ccd-reviewer
+4. Invoke engineer for each session
+5. Invoke reviewer
 6. If issues: fix and re-review
 7. Report completion
 
@@ -169,7 +181,7 @@ Report to user:
 **Execution**:
 1. TodoWrite: ["Refactor Component A", "Refactor B", ..., "Review"]
 2. Implement directly (pattern is clear, repeat 5 times)
-3. Invoke ccd-reviewer (substantial changes)
+3. Invoke reviewer (substantial changes)
 4. Fix any issues
 5. Report completion
 
