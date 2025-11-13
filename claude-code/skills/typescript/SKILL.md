@@ -176,6 +176,34 @@ Even if "you know" the shape, external data can change:
 <best_practices>
 ## General Best Practices
 
+### Prefer Arrow Functions Over Function Declarations
+
+**Rule**: Use arrow functions (`=>`) instead of `function` keyword for consistency and lexical scoping benefits.
+
+**Rationale**:
+- Consistent lexical `this` binding (no context confusion)
+- More concise syntax
+- Better integration with modern TypeScript patterns
+- Prevents accidental hoisting-related bugs
+
+```typescript
+// ❌ Function declaration
+function calculateTotal(items: Item[]): number {
+  return items.reduce((sum, item) => sum + item.price, 0)
+}
+
+// ✅ Arrow function
+const calculateTotal = (items: Item[]): number => {
+  return items.reduce((sum, item) => sum + item.price, 0)
+}
+
+// ✅ Concise form (single expression)
+const calculateTotal = (items: Item[]): number =>
+  items.reduce((sum, item) => sum + item.price, 0)
+```
+
+**Exception**: When hoisting is genuinely required (rare), document the reason.
+
 ### Discriminated Unions for State
 
 ```typescript
@@ -185,7 +213,7 @@ type LoadingState<T> =
   | { status: 'success'; data: T }
   | { status: 'error'; error: Error }
 
-function render(state: LoadingState<User>) {
+const render = (state: LoadingState<User>) => {
   switch (state.status) {
     case 'idle':
       return 'Not started'
@@ -204,7 +232,7 @@ function render(state: LoadingState<User>) {
 ### Exhaustiveness Checking
 
 ```typescript
-function assertNever(x: never): never {
+const assertNever = (x: never): never => {
   throw new Error(`Unexpected value: ${x}`)
 }
 
@@ -239,12 +267,12 @@ type User =
 
 ```typescript
 // ❌ Disables all type checking
-function process(data: any) {
+const process = (data: any) => {
   return data.foo.bar  // No errors, runtime explosion
 }
 
 // ✅ Forces validation
-function process(data: unknown) {
+const process = (data: unknown) => {
   if (typeof data === 'object' && data !== null && 'foo' in data) {
     // Narrow the type before use
   }
