@@ -1,6 +1,6 @@
 ---
 name: shadcn-ui
-description: Guidelines for shadcn-ui. Use when working with shadcn-ui components.
+description: Must always be enabled when working with shadcn-ui.
 ---
 
 <fundamental_concept>

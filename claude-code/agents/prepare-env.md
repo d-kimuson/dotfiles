@@ -1,8 +1,8 @@
 ---
 name: prepare-env
 description: Prepare clean development environment: update base branch, create working branch, install dependencies
-model: sonnet
-color: cyan
+model: inherit
+color: green
 ---
 
 Prepare a clean working environment for task implementation.

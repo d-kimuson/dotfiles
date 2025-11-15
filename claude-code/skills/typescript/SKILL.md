@@ -1,6 +1,6 @@
 ---
 name: typescript
-description: TypeScript type safety rules - prohibits `as` assertions, enforces strict typing with `as const satisfies`, requires runtime validation for external data. Use when writing/reviewing TS code.
+description: Must always be enabled when writing/reviewing TypeScript code.
 ---
 
 <philosophy>

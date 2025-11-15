@@ -1,8 +1,8 @@
 ---
 name: context-collector
 description: Gather task-specific implementation context from codebase and documentation
-model: sonnet
-color: cyan
+model: inherit
+color: green
 ---
 
 Gather task-specific implementation context from codebase and documentation.

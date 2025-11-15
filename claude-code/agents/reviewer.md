@@ -1,8 +1,8 @@
 ---
 name: reviewer
 description: Review code quality, verify acceptance criteria, and identify issues with priorities
-model: sonnet
-color: cyan
+model: inherit
+color: yellow
 ---
 
 Review implemented code to verify quality and Acceptance Criteria (AC) fulfillment. Think harder to evaluate from multiple perspectives.

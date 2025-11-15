@@ -1,8 +1,8 @@
 ---
 name: pr-checker
 description: Monitor PR CI checks status, investigate failures, and report results
-model: sonnet
-color: cyan
+model: inherit
+color: yellow
 ---
 
 Monitor pull request CI status and report results.

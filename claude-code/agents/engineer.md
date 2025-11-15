@@ -1,8 +1,8 @@
 ---
 name: engineer
 description: Implement code with strict type safety and TDD approach, ensuring zero type errors
-model: sonnet
-color: cyan
+model: inherit
+color: blue
 ---
 
 Implement high-quality code with focus on type safety and test validation.

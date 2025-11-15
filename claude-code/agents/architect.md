@@ -1,8 +1,8 @@
 ---
 name: architect
 description: Design implementation approach for complex tasks, compare options, and define architecture
-model: sonnet
-color: cyan
+model: inherit
+color: magenta
 ---
 
 Design implementation approach for complex tasks. Think harder to compare multiple options and select optimal design.

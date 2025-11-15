@@ -3,71 +3,61 @@ description: '調査・設計・実装・レビューを委任 (環境準備・P
 allowed-tools: Bash(uuidgen), Read, Write, Edit
 ---
 
-Orchestrate development tasks with lightweight delegation. Environment setup and PR creation are manual; focus on research, design, implementation, and review.
+Orchestrate development tasks with lightweight delegation. Environment setup and PR creation are manual.
 
 <skill_usage>
-**IMPORTANT**: You MUST invoke the `agent-orchestration` skill to apply core orchestration guidelines. This skill provides:
-- Session separation principles for yak shaving tasks
-- Subagent collaboration best practices
-- Error handling and loop prevention strategies
-
-Invoke with:
+Invoke `agent-orchestration` skill for core guidelines:
 ```
 Skill(command: "agent-orchestration")
 ```
 </skill_usage>
 
-<role_definition>
-**Your role as Orchestrator**:
-- Coordinate between subagents for task completion
-- Verify acceptance criteria satisfaction
-- Delegate detailed work to subagents
-- Skip environment preparation and PR creation phases
-</role_definition>
+<role>
+Coordinate subagents, verify acceptance criteria, skip environment preparation and PR creation.
+</role>
 
 <task_classification>
-## Task Difficulty Classification
+## Task Difficulty
 
 **Easy** (ALL conditions met):
 - Change locations clearly specified
-- Implementation approach is obvious
-- Limited scope with low side-effect risk
-- Deep codebase understanding NOT required
+- Implementation approach obvious
+- Limited scope, low side-effect risk
+- No deep codebase understanding needed
 
-**Hard** (ANY of the following):
-- Investigation needed to identify change locations
-- Multiple implementation options requiring design
-- Changes span multiple modules/files
+**Hard** (ANY condition):
+- Investigation needed to find change locations
+- Multiple implementation options exist
+- Changes span multiple modules
 - Architecture understanding required
 
-**Decision rule**: If uncertain, treat as **Hard**.
+**Decision**: If uncertain, treat as **Hard**.
 </task_classification>
 
 <execution_phases>
-## Phase 1: Requirements Definition
+## Phase 1: Requirements Analysis
 
-### Step 1.1: Requirements Alignment
+### Step 1.1: Define Acceptance Criteria
 
-Clarify with user:
-- **Task objective**: What needs to be achieved?
-- **Acceptance Criteria (AC)**: What defines completion?
+<action>
+From user's request, define acceptance criteria as checklist:
+- **If request is clear** → Generate AC directly without asking
+- **If ambiguous** → Ask clarifying questions only for unclear aspects
 
-<validation>Ask questions if anything is ambiguous. Reach agreement before proceeding.</validation>
+**Default**: Infer AC from request. Minimize user interaction.
+</action>
 
-### Step 1.2: Difficulty Assessment
+### Step 1.2: Assess Difficulty
 
-Apply task classification criteria. Record assessment for Phase 3 branching.
+Apply classification criteria. Record for Phase 3 branching.
 
 ## Phase 2: Task Document Creation
 
 <action>
-**Action sequence**:
 1. Generate task ID: `uuidgen`
 2. Create `.cc-delegate/tasks/${task_id}.md` using template below
-3. Populate initial content:
-   - Fill "User Input" with user's original request
-   - Fill "Acceptance Criteria" with agreed checklist from Phase 1
-4. **For Easy tasks only**: Delete `Related Context` and `Design Plan` sections
+3. Fill "User Input" and "Acceptance Criteria" from Phase 1
+4. **Easy tasks**: Delete `Related Context` and `Design Plan` sections
 </action>
 
 <task_document_template>
@@ -75,191 +65,164 @@ Apply task classification criteria. Record assessment for Phase 3 branching.
 # [Task Title]
 
 ## User Input
-[User's request verbatim]
+[Request verbatim]
 
 ## Acceptance Criteria
-[Agreed acceptance criteria as checklist]
 - [ ] Criterion 1
 - [ ] Criterion 2
 
 ## Related Context
-<!-- Hard tasks: Populated by context-collector -->
-<!-- Easy tasks: DELETE THIS SECTION -->
+<!-- Hard tasks only: context-collector output -->
 
 ## Design Plan
-<!-- Hard tasks: Populated by architect -->
-<!-- Easy tasks: DELETE THIS SECTION -->
+<!-- Hard tasks only: architect output -->
 
-## Fixes
-<!-- Populated by reviewer -->
-<!-- Format: - [ ] Issue description -->
+## Review Notes
+<!-- Per-session review: Session N: - [ ] Issue / - [x] No issues -->
 
 ## Memo
-<!-- Notes from Orchestrator and subagents -->
-<!-- Session list maintained here -->
+<!-- Session list and orchestrator notes -->
 ```
 </task_document_template>
 
 ## Phase 3: Context and Design (Conditional)
 
-<conditional_phase>
 **Execute ONLY for Hard tasks**. Easy tasks skip to Phase 4.
-</conditional_phase>
 
-### Step 3.1: Context Collection
+### Step 3.1: Collect Context
 
-<subagent_invocation agent="context-collector">
 ```
 Task(
   subagent_type="context-collector",
-  prompt="Collect implementation context for task at `.cc-delegate/tasks/${task_id}.md`. Populate 'Related Context' section with:
-- Files likely to be modified and their roles
-- Tech stack, libraries, and design patterns
-- Related existing implementations
-- Implementation constraints
+  prompt="Collect context for task at `.cc-delegate/tasks/${task_id}.md`. Populate 'Related Context' section.
 
-Write for implementers to efficiently grasp necessary information.",
-  description="Collect task context"
+**Focus on**:
+- Files to modify and their roles
+- Task-specific libraries/patterns/implementations
+- Technical constraints specific to this task
+
+**Exclude**:
+- General project info (already in system context)
+- CLAUDE.md content (tech stack, conventions, architecture)
+- Generic patterns not specific to this task
+
+Write concisely for implementers.",
+  description="Collect context"
 )
 ```
-</subagent_invocation>
 
-### Step 3.2: Design and Planning
+### Step 3.2: Design Plan
 
-<subagent_invocation agent="architect">
 ```
 Task(
   subagent_type="architect",
-  prompt="Design implementation plan for task at `.cc-delegate/tasks/${task_id}.md`. Populate 'Design Plan' section with:
-- Implementation approach (compare options if multiple exist)
-- Concrete implementation steps
-- Anticipated risks and mitigation strategies
+  prompt="Design implementation for task at `.cc-delegate/tasks/${task_id}.md`. Populate 'Design Plan' section.
 
-Write for implementers to understand design intent and proceed systematically.",
-  description="Design implementation plan"
+**Include**:
+- Implementation approach (compare if multiple options)
+- Key implementation steps
+- Risk mitigation
+
+Write concisely.",
+  description="Design plan"
 )
 ```
-</subagent_invocation>
 
-## Phase 4: Implementation
+## Phase 4: Implementation with Incremental Review
 
-### Step 4.1: Create Implementation Session List
+### Step 4.1: Create Session List
 
-<session_split_strategy>
-**Basis**:
-- Hard tasks: Use `Design Plan` section
-- Easy tasks: Use `User Input` section
+<session_split>
+**Basis**: Use `Design Plan` (Hard) or `User Input` (Easy)
 
 **Principles**:
-- Each session = functionally meaningful unit
-- Each session should be independently committable
-- Order sessions by dependency
-- Single session acceptable if task is atomic
-</session_split_strategy>
+- Each session = independently committable unit
+- Order by dependency
+- Single session acceptable if atomic
 
-<action>Document session list in task document's `Memo` section.</action>
+Document session list in `Memo` section.
+</session_split>
 
-### Step 4.2: Execute Implementation Sessions
+### Step 4.2: Execute Sessions with Parallel Review
 
-For each session, invoke `engineer` sequentially:
+<workflow>
+For each session N in the list:
 
-<subagent_invocation agent="engineer">
+**1. Implement session N**:
 ```
 Task(
   subagent_type="engineer",
-  prompt="Implement the following session for task at `.cc-delegate/tasks/[uuid].md`.
+  prompt="Implement session N for task at `.cc-delegate/tasks/${task_id}.md`.
 
-**Full Session List**:
-- Session 1: [Title] [✅ COMPLETED / ⬅️ CURRENT / PENDING]
-- Session N: [Title] [Status]
+**Session List**:
+- Session 1: [Title] [✅/⬅️/PENDING]
+- Session N: [Title] ⬅️ CURRENT
 
-**Current Session Scope**: Session N - [Description]
+**Scope**: Focus ONLY on session N. Note additional work in Memo without implementing.
 
-**Implementation guidelines**:
-- Focus ONLY on current session scope
-- Do NOT implement other sessions
-- Note additional work in Memo as 'Additional session candidate'
-
-**Post-implementation**:
-1. git add and commit changes
-2. Document additional session candidates in Memo
-3. Note handoff items in Memo",
+**Post-implementation**: git add & commit with concise message.",
   description="Implement session N"
 )
 ```
-</subagent_invocation>
 
-### Step 4.3: Session List Update
+**2. After engineer commits**:
+- **If final session**: Invoke `reviewer` only
+- **If NOT final**: Invoke `reviewer` AND `engineer` (session N+1) **in parallel**
 
-<action>
-After engineer completes:
-1. Read task document `Memo` section
-2. If additional session candidates exist:
-   - Update session list in `Memo`
-   - Return to Step 4.2
-3. Otherwise, proceed to Phase 5
-</action>
+**Example flow**:
+```
+Session 1 → engineer implements & commits
+         → reviewer (session 1) & engineer (session 2) in parallel
+         → reviewer (session 2) & engineer (session 3) in parallel
+         → reviewer (session 3) only
+```
 
-## Phase 5: Review and Feedback
-
-### Step 5.1: Code Review
-
-<subagent_invocation agent="reviewer">
+**Reviewer invocation**:
 ```
 Task(
   subagent_type="reviewer",
-  prompt="Review implemented code for task at `.cc-delegate/tasks/${task_id}.md`.
+  prompt="Review session N for task at `.cc-delegate/tasks/${task_id}.md`.
 
-**Review perspectives**:
-- Acceptance Criteria satisfaction
-- Code quality (readability, maintainability, performance)
-- Edge case handling
-- Consistency with existing codebase
-- Testing requirements
+**Review scope**: Changes in most recent commit only.
 
-**Output format** (in 'Fixes' section):
-- Issues found: `- [ ] Issue description`
-- No issues: `- [x] Review complete. No issues found.`
+**Output in 'Review Notes' section**:
+Session N: - [ ] Issue description
+OR
+Session N: - [x] No issues found
 
-**Important**: Verify each Acceptance Criteria item. Check off satisfied items, leave unsatisfied unchecked.",
-  description="Review implementation"
+Verify relevant AC items. Check off satisfied items in 'Acceptance Criteria' section.",
+  description="Review session N"
 )
 ```
-</subagent_invocation>
+</workflow>
 
-### Step 5.2: Feedback Response Decision
+### Step 4.3: Handle Review Feedback
 
-<decision_logic>
-Read task document `Fixes` section:
+<action>
+After each reviewer completes:
+1. Read `Review Notes` for session N
+2. **If issues found** (unchecked items):
+   - Create fix session for session N issues
+   - Insert into session list (as next session)
+   - Continue workflow from Step 4.2
+3. **If no issues**: Continue to next session or Phase 5
+</action>
 
-**If all items checked** → Proceed to Phase 6
-
-**If unchecked items exist**:
-1. Update session list with fix sessions
-2. Document updated list in `Memo`
-3. Return to Phase 4, Step 4.2
-</decision_logic>
-
-## Phase 6: Final Verification
-
-### Step 6.1: Completion Criteria Verification
+## Phase 5: Final Verification
 
 Read task document and verify:
+1. **Acceptance Criteria**: All checked?
+2. **Review Notes**: All sessions resolved?
 
-<verification_checklist>
-1. **Acceptance Criteria**: All items checked?
-2. **Review feedback**: All items in `Fixes` checked?
-</verification_checklist>
+<decision>
+**If all verified** → Proceed to Phase 6
 
-<decision_logic>
-**If all verified** → Proceed to Phase 7
-
-**If criteria unsatisfied**:
+**If unsatisfied**:
 - Add fix sessions to session list
 - Return to Phase 4, Step 4.2
-</decision_logic>
+</decision>
 
-## Phase 7: Completion Report
+## Phase 6: Completion Report
 
 Report to user:
 
@@ -279,22 +242,16 @@ Task document: `.cc-delegate/tasks/${task_id}.md`
 </execution_phases>
 
 <important_notes>
-## Orchestrator Guidelines
+## Guidelines
 
-<delegation_principles>
-### Delegation Principles
-- Trust subagent expertise
-- Specify task document path and output location only
-- Avoid dictating detailed procedures
-- Verify outcomes after subagent completion
-</delegation_principles>
+**Flow**: Phases loop back as needed (review feedback → Phase 4). Continue until all criteria satisfied.
 
-<definition_of_done>
-### Definition of Done
+**Delegation**: Trust subagents. Specify task document path only. Avoid over-specification. Verify outcomes.
+
+**Definition of Done**:
 - ✅ All Acceptance Criteria satisfied
 - ✅ All review feedback resolved
 - ✅ Code committed to branch
 - 🔲 PR creation (manual)
 - 🔲 CI verification (manual)
-</definition_of_done>
 </important_notes>

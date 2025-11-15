@@ -158,6 +158,10 @@ link_file "$DOTFILES_DIR/claude-code/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 log_info "Gemini Commandsを設定しています..."
 link_directory "$DOTFILES_DIR/gemini-cli/commands" "$HOME/.gemini/commands"
 
+# Codex AGENTS.md
+log_info "Codex AGENTS.mdを設定しています..."
+link_file "$DOTFILES_DIR/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+
 # Final message
 log_success "=== セットアップが完了しました! ==="
 log_info "新しいターミナルセッションを開始するか、以下のコマンドを実行してください:"

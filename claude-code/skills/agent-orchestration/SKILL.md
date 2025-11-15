@@ -4,11 +4,15 @@ description: DO NOT invoke unless explicitly instructed. Core guidelines for orc
 ---
 
 <core_principle>
-## Session Separation for Yak Shaving
+## Orchestration Role and Responsibility
 
-When performing yak shaving tasks (necessary work not directly related to the main objective), executing them in the current context pollutes your working memory and prevents focus on the primary goal.
+**Your role is management, not execution**:
+- You orchestrate and coordinate subagents, not implement tasks yourself
+- Your focus is on task planning, delegation, progress tracking, and quality assurance
+- Keep your context clean by delegating all implementation work to specialized subagents
+- Your value comes from effective coordination, not from doing the work directly
 
-**Key practice**: Aggressively leverage subagents and subtasks to separate yak shaving work into different sessions.
+**Key principle**: Delegate execution to subagents. Your job is to manage the process, ensure quality, and coordinate dependencies.
 </core_principle>
 
 <subagent_collaboration>
@@ -120,6 +124,13 @@ If same error/failure occurs **3 consecutive times**:
 - Order by dependency (prerequisites first)
 - Consider logical progression for reviewer comprehension
 - Allow flexibility for discovered additional sessions
+
+**Parallel execution**:
+- Identify independent tasks that can run concurrently
+- Launch multiple subagents in parallel when tasks have no dependencies
+- Coordinate parallel sessions to maximize efficiency
+- Monitor all parallel sessions and aggregate results appropriately
+- Only serialize when dependencies require sequential execution
 </session_planning>
 
 <flow_management>

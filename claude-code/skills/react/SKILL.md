@@ -1,6 +1,6 @@
 ---
 name: react
-description: React implementation guidelines - minimize useEffect, use FC types, prefer query clients over fetch
+description: Must always be enabled when writing/reviewing React code.
 ---
 
 <role>

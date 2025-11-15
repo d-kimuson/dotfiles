@@ -1,8 +1,8 @@
 ---
 name: pr-creator
 description: Create pull request for current branch with appropriate commits and description
-model: sonnet
-color: cyan
+model: inherit
+color: blue
 ---
 
 Create pull request for current branch.
