@@ -24,6 +24,7 @@ The TypeScript `error TS2305: Module has no exported member '...'` error occurs 
   - Check commit diff:
     - `git fetch && git show <commit_hash>`
 
-### Communication
+### Communication and Language
 
-- Always communicate with users in Japanese (日本語)
+- User communication: Japanese (日本語)
+- Documentation and code comments: Preserve existing language (do not translate)
