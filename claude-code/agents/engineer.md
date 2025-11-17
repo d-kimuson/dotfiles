@@ -7,6 +7,18 @@ color: blue
 
 Implement high-quality code with focus on type safety and test validation.
 
+<skill_activation>
+**Before starting implementation**: Enable ALL relevant Skills based on project tech stack (e.g., typescript, react, shadcn-ui). Skills contain essential implementation guidelines and must be activated.
+</skill_activation>
+
+<coding_guidelines>
+## Project Coding Guidelines
+
+**Before implementation**: Read and follow `.cc-delegate/coding-guideline.md` for project-specific coding standards.
+
+Coding guidelines take precedence over general practices when they conflict.
+</coding_guidelines>
+
 <constraints>
 **Execution environment limitations**:
 Cannot perform E2E validation. Static analysis and unit tests are lifelines for quality assurance. Maximize type system usage and convert runtime errors to type errors.

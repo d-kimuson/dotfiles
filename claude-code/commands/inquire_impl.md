@@ -5,12 +5,26 @@ allowed-tools: Bash(uuidgen), Read, Write, Edit
 
 Orchestrate development tasks through structured delegation. Manage task state via `.cc-delegate/tasks/<task-id>.md` and coordinate subagents.
 
-<skill_usage>
-Invoke `agent-orchestration` skill for core guidelines:
+<setup>
+## Initial Setup
+
+**1. Load core guidelines**:
 ```
 Skill(command: "agent-orchestration")
 ```
-</skill_usage>
+
+**2. Verify prerequisites**:
+
+Required guideline documents:
+- `.cc-delegate/coding-guideline.md`
+- `.cc-delegate/review-guideline.md`
+- `.cc-delegate/qa-guideline.md`
+- `.cc-delegate/branch-rule.md`
+
+**If any are missing**: Inform the user that these guideline documents must exist before proceeding. Ask if they'd like help creating them.
+
+**If all exist**: Proceed with task orchestration.
+</setup>
 
 <role>
 Manage flow, coordinate subagents, verify acceptance criteria, make phase decisions.
@@ -31,7 +45,10 @@ Manage flow, coordinate subagents, verify acceptance criteria, make phase decisi
 - Changes span multiple modules
 - Architecture understanding required
 
-**Decision**: If uncertain, treat as **Hard**.
+**Decision**:
+- If ANY Hard condition is met → Hard
+- If ALL Easy conditions are met → Easy
+- When in doubt → Default to Hard
 </task_classification>
 
 <execution_phases>
@@ -58,7 +75,7 @@ Apply classification criteria. Record for Phase 3 branching.
 
 <action>
 1. Generate task ID: `uuidgen`
-2. Create `.cc-delegate/tasks/${task_id}.md` using template below
+2. Create `.cc-delegate/tasks/${task_id}/TASK.md` using template below
 3. Fill "User Input" and "Acceptance Criteria" from Phase 1
 4. **Easy tasks**: Delete `Related Context` and `Design Plan` sections
 </action>
@@ -83,8 +100,11 @@ Apply classification criteria. Record for Phase 3 branching.
 ## Review Notes
 <!-- Per-session review: Session N: - [ ] Issue / - [x] No issues -->
 
+## QA Notes
+<!-- Per-session QA: Session N: - [ ] Issue / - [x] All passed -->
+
 ## Memo
-<!-- Session list and orchestrator notes -->
+<!-- Session list and coordination notes -->
 ```
 </task_document_template>
 
@@ -93,7 +113,7 @@ Apply classification criteria. Record for Phase 3 branching.
 ```
 Task(
   subagent_type="prepare-env",
-  prompt="Prepare environment for task at `.cc-delegate/tasks/${task_id}.md`",
+  prompt="Prepare environment for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
   description="Prepare environment"
 )
 ```
@@ -102,24 +122,12 @@ Task(
 
 **Execute ONLY for Hard tasks**. Easy tasks skip to Phase 4.
 
-### Step 3.1: Collect Context
+### Step 3.1: Collect Context and Guidelines
 
 ```
 Task(
   subagent_type="context-collector",
-  prompt="Collect context for task at `.cc-delegate/tasks/${task_id}.md`. Populate 'Related Context' section.
-
-**Focus on**:
-- Files to modify and their roles
-- Task-specific libraries/patterns/implementations
-- Technical constraints specific to this task
-
-**Exclude**:
-- General project info (already in system context)
-- CLAUDE.md content (tech stack, conventions, architecture)
-- Generic patterns not specific to this task
-
-Write concisely for implementers.",
+  prompt="Collect context and guidelines for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
   description="Collect context"
 )
 ```
@@ -129,14 +137,7 @@ Write concisely for implementers.",
 ```
 Task(
   subagent_type="architect",
-  prompt="Design implementation for task at `.cc-delegate/tasks/${task_id}.md`. Populate 'Design Plan' section.
-
-**Include**:
-- Implementation approach (compare if multiple options)
-- Key implementation steps
-- Risk mitigation
-
-Write concisely.",
+  prompt="Design implementation for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
   description="Design plan"
 )
 ```
@@ -165,60 +166,63 @@ For each session N in the list:
 ```
 Task(
   subagent_type="engineer",
-  prompt="Implement session N for task at `.cc-delegate/tasks/${task_id}.md`.
-
-**Session List**:
-- Session 1: [Title] [✅/⬅️/PENDING]
-- Session N: [Title] ⬅️ CURRENT
-
-**Scope**: Focus ONLY on session N. Note additional work in Memo without implementing.
-
-**Post-implementation**: git add & commit with concise message.",
+  prompt="Implement session N for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
   description="Implement session N"
 )
 ```
 
 **2. After engineer commits**:
-- **If final session**: Invoke `reviewer` only
-- **If NOT final**: Invoke `reviewer` AND `engineer` (session N+1) **in parallel**
+
+**Sequential order**:
+1. Invoke `reviewer` for session N
+2. After reviewer completes → Invoke `qa` for session N
+3. **In parallel** with qa (N):
+   - **If NOT final session**: Start `engineer` for session N+1
+   - **If final session**: Wait for qa to complete
 
 **Example flow**:
 ```
-Session 1 → engineer implements & commits
-         → reviewer (session 1) & engineer (session 2) in parallel
-         → reviewer (session 2) & engineer (session 3) in parallel
-         → reviewer (session 3) only
+Session 1 → engineer(1) commits
+         → reviewer(1) completes
+         → qa(1) + engineer(2) run in parallel
+         → reviewer(2) completes (waits for engineer(2))
+         → qa(2) + engineer(3) run in parallel
+         → reviewer(3) completes (waits for engineer(3))
+         → qa(3) completes
 ```
+
+**Important**: If qa or reviewer finds issues, proceed to Step 4.3 even if next engineer session is running.
 
 **Reviewer invocation**:
 ```
 Task(
   subagent_type="reviewer",
-  prompt="Review session N for task at `.cc-delegate/tasks/${task_id}.md`.
-
-**Review scope**: Changes in most recent commit only.
-
-**Output in 'Review Notes' section**:
-Session N: - [ ] Issue description
-OR
-Session N: - [x] No issues found
-
-Verify relevant AC items. Check off satisfied items in 'Acceptance Criteria' section.",
+  prompt="Review session N for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
   description="Review session N"
+)
+```
+
+**QA invocation** (after reviewer completes):
+```
+Task(
+  subagent_type="qa",
+  prompt="Execute QA verification for session N in task at `.cc-delegate/tasks/${task_id}/TASK.md`",
+  description="QA verification"
 )
 ```
 </workflow>
 
-### Step 4.3: Handle Review Feedback
+### Step 4.3: Handle Review and QA Feedback
 
 <action>
-After each reviewer completes:
-1. Read `Review Notes` for session N
-2. **If issues found** (unchecked items):
-   - Create fix session for session N issues
-   - Insert into session list (as next session)
-   - Continue workflow from Step 4.2
-3. **If no issues**: Continue to next session or Phase 5
+After each session's QA verification completes:
+1. Read `Review Notes` and `QA Notes` for that session
+2. **If issues found** (unchecked items in either section):
+   - Define a fix session in `Memo` section titled "Fix session N: [issue summary]"
+   - Insert as the **next** session in the list (even if a future session is already running)
+   - Wait for any in-progress engineer sessions to complete
+   - Continue workflow from Step 4.2 to implement the fix
+3. **If no issues**: Continue to next pending session or Phase 5
 </action>
 
 ## Phase 5: PR Creation and CI Verification
@@ -228,7 +232,7 @@ After each reviewer completes:
 ```
 Task(
   subagent_type="pr-creator",
-  prompt="Create Draft PR for task at `.cc-delegate/tasks/${task_id}.md`. Document PR URL in 'Memo' section.",
+  prompt="Create Draft PR for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
   description="Create PR"
 )
 ```
@@ -238,10 +242,7 @@ Task(
 ```
 Task(
   subagent_type="pr-checker",
-  prompt="Monitor CI for PR in `.cc-delegate/tasks/${task_id}.md` Memo section.
-
-**On failures**: Document in 'Review Notes' section as:
-CI: - [ ] [Test/Check name] - [Failure description]",
+  prompt="Monitor CI for PR in task at `.cc-delegate/tasks/${task_id}/TASK.md`",
   description="Check CI"
 )
 ```
@@ -250,9 +251,9 @@ CI: - [ ] [Test/Check name] - [Failure description]",
 
 <action>
 **If CI failures exist**:
-1. Create fix session for CI issues
-2. Add to session list in `Memo`
-3. Return to Phase 4, Step 4.2
+1. Define a new fix session in `Memo` section titled "Fix CI: [failure summary]"
+2. Append this session to the session list
+3. Return to Phase 4, Step 4.2 to implement the fix session
 
 **If all passed** → Proceed to Phase 6
 </action>
@@ -262,13 +263,16 @@ CI: - [ ] [Test/Check name] - [Failure description]",
 Read task document and verify:
 1. **Acceptance Criteria**: All checked?
 2. **Review Notes**: All sessions/CI checks resolved?
+3. **QA Notes**: All sessions passed?
 
 <decision>
 **If all verified** → Proceed to Phase 7
 
-**If unsatisfied**:
-- Add fix sessions to session list
-- Return to Phase 4, Step 4.2
+**If any unsatisfied**:
+1. Identify unsatisfied criteria/checks
+2. Define fix sessions in `Memo` section
+3. Append to session list
+4. Return to Phase 4, Step 4.2
 </decision>
 
 ## Phase 7: Completion Report
@@ -283,22 +287,20 @@ Report to user:
 **Implementation**: [Brief summary]
 
 **Acceptance Criteria**: All satisfied ✅
+**QA Status**: All passed ✅
 **CI Status**: All passed ✅
 
-Task document: `.cc-delegate/tasks/${task_id}.md`
+Task document: `.cc-delegate/tasks/${task_id}/TASK.md`
 ```
 </execution_phases>
 
 <important_notes>
 ## Guidelines
 
-**Flow**: Phases loop back as needed (review/CI feedback → Phase 4). Continue until all criteria satisfied.
+**Flow**: Phases loop back as needed (review/CI feedback → Phase 4). Continue until Phase 6 verification succeeds.
 
-**Delegation**: Trust subagents. Specify task document path only. Avoid over-specification. Verify outcomes.
-
-**Definition of Done**:
-- ✅ All Acceptance Criteria satisfied
-- ✅ All review feedback resolved
-- ✅ All CI checks passed
-- ✅ Draft PR created
+**Error Handling**:
+- **If subagent fails**: Review error output, determine if recoverable, document in `Memo`, report to user with context
+- **If git operations fail**: Document in `Memo`, ask user to resolve or provide guidance
+- **If task document structure is invalid**: Report specific validation errors to user
 </important_notes>

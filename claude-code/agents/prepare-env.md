@@ -28,9 +28,8 @@ Prepare a clean working environment for task implementation.
 2. Update to latest (`git fetch && git pull`)
 
 **Working branch creation**:
-- Check project branch naming conventions
-- If no convention exists: use `feature/<summary>`, `fix/<summary>`, or `refactor/<summary>`
-- Recommended: include first 8 characters of task ID
+- Follow conventions defined in `.cc-delegate/branch-rule.md`
+- Recommended: include first 8 characters of task ID for traceability
 
 **Git worktree**:
 Do not use unless explicitly instructed.
