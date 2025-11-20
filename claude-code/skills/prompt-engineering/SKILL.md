@@ -6,95 +6,90 @@ description: Core prompt engineering and context engineering best practices for 
 <claude_code_prompts>
 ## Claude Code Prompt Types
 
-Claude Code supports three types of prompts:
-
 <command_type>
 ### 1. Commands
 **Purpose**: Reusable instruction presets invoked by users with `/command-name [args]`
 
-**File Structure**:
+**Structure**:
 - **Location**: `.claude/commands/<command-name>.md`
 - **Invocation**: `/command-name [additional instructions]`
-- **Processing**: Front matter is excluded; body content is passed as instructions
+- **Processing**: Front matter excluded; body content passed as instructions
 
-**Front Matter Specification**:
+**Front Matter**:
 ```yaml
 ---
-description: 'Brief command description (required, <80 chars recommended)'
-allowed-tools: Bash(git), Read(*), Write, Edit(*.ts)
+description: 'Brief description (required, <80 chars, repository's primary language)'
+allowed-tools: Bash(git, gh), Read(*), Edit(*.ts), Grep  # optional but recommended
 ---
 ```
 
-**Field Details**:
-- `description`: User-facing explanation (use repository's primary language)
-- `allowed-tools`: Tools this command uses (optional but recommended)
-  - Formats: `ToolName(*)`, `Bash(git)`, `Bash(git, gh)`, `Edit(*.ts)`, `Write`, `Grep`
-  - Multiple tools: comma+space separated
-  - Example: `Bash(git, gh), Read(*), Edit(*.ts), Grep`
-  - Default-allowed tools need not be listed: `TodoWrite`, `Task`, `Glob`, `Grep`, `Read`
+**allowed-tools formats**: `ToolName(*)`, `Bash(git)`, `Bash(git, gh)`, `Edit(*.ts)`, `Write`
+- Multiple tools: comma+space separated
+- Default-allowed tools (can omit): `TodoWrite`, `Task`, `Glob`, `Grep`, `Read`
+
+**Audience**: `description` → user (project language); body → LLM worker (English)
 </command_type>
 
 <agent_type>
 ### 2. Agents
-**Purpose**: Specialized sub-agents that can be invoked by Claude via Task tool or by users via `@agent-name`
+**Purpose**: Specialized sub-agents invoked via Task tool or `@agent-name`
 
-**File Structure**:
+**Structure**:
 - **Location**: `.claude/agents/<agent-name>.md`
-- **Invocation by user**: `@agent-name [instructions]`
-- **Invocation by Claude**: Task tool with `subagent_type: "agent-name"` parameter
-- **Processing**: Front matter is excluded; body content is passed as instructions
+- **Invocation**: `@agent-name [instructions]` or `Task(subagent_type="agent-name", ...)`
+- **Processing**: Front matter excluded; body content passed as instructions
 
-**Front Matter Specification**:
+**Front Matter**:
 ```yaml
 ---
-name: agent-name
+name: agent-name  # must match filename without .md
 description: 'Brief agent description'
 model: sonnet  # or haiku
-color: cyan    # Terminal display color
+color: cyan    # terminal display color
 ---
 ```
 
-**Field Details**:
-- `name`: Agent identifier (must match filename without extension)
-- `description`: Brief explanation of agent's purpose
-- `model`: LLM model to use (`sonnet` or `haiku`)
-- `color`: Terminal UI color for agent output
+**Audience**: Both caller (orchestrator LLM) and executor (sub-agent LLM) are LLMs
+- Always English
+- No orchestrator concerns (when to invoke, what to do with output)
+- Focus on capability grant and input/output contract
 </agent_type>
 
 <skill_type>
 ### 3. Skills
-**Purpose**: Reusable knowledge and guidelines that can be loaded into sessions
+**Purpose**: Reusable knowledge/guidelines loaded into sessions
 
-**File Structure**:
+**Structure**:
 - **Location**: `.claude/skills/<skill-name>/SKILL.md`
-- **Invocation**: Skill tool with skill name, or auto-loaded based on description
-- **Processing**: Front matter is excluded; body content is injected into context
+- **Invocation**: Skill tool or auto-loaded based on description
+- **Processing**: Front matter excluded; body injected into context
 
-**Front Matter Specification**:
+**Front Matter**:
 ```yaml
 ---
-name: skill-name
+name: skill-name  # must match directory name
 description: 'When this skill should be enabled'
 ---
 ```
 
-**Field Details**:
-- `name`: Skill identifier (must match directory name)
-- `description`: Conditions for when skill should be enabled (e.g., "Must always be enabled when writing TypeScript code")
+**Audience**: Any LLM (main session, orchestrator, or sub-agent)
+- Grant knowledge/capability, not orchestrate workflows
+- Principles, best practices, rules (not "first do X, then Y")
+- Reproducible, interpretation-stable content
 </skill_type>
 
 <document_type>
 ### 4. Documents
-**Purpose**: Standalone prompt documents not tied to Claude Code's command/agent system
+**Purpose**: Standalone prompts not tied to command/agent system
 
-**File Structure**:
-- **Location**: User-specified path (e.g., `docs/prompts/<name>.md`, `.claude/docs/<name>.md`)
-- **Invocation**: Manual reference or inclusion in other prompts
-- **Processing**: No front matter required; entire content is the prompt
+**Structure**:
+- **Location**: User-specified (e.g., `docs/prompts/<name>.md`)
+- **Invocation**: Manual reference or inclusion
+- **Processing**: No front matter; entire content is the prompt
 </document_type>
 
 <context_files>
-### 5. Context Files (CLAUDE.md, GEMINI.md, etc.)
+### 5. Context Files (CLAUDE.md, GEMINI.md, AGENTS.md, etc.)
 **Purpose**: Project-wide or global context that is automatically loaded in every session
 
 **File Structure**:
@@ -111,99 +106,51 @@ description: 'When this skill should be enabled'
 
 **IMPORTANT**: These are guidelines, not absolute rules. Some projects have unique contexts that justify exceptions. Use judgment, but default to minimalism when uncertain.
 
-**Content Guidelines**:
+**Content Principles**:
 
-<minimize_direct_content>
-**1. Prefer Indices Over Direct Content**
-Instead of writing full guidelines, provide pointers to detailed documentation:
-- ❌ Direct: "Use camelCase for variables, PascalCase for types, kebab-case for files..."
-- ✅ Index: "Coding conventions: see docs/coding-style.md"
-- ❌ Direct: "Authentication flow: 1) User submits credentials, 2) Server validates..."
-- ✅ Index: "Architecture decisions: see docs/architecture/"
+1. **Index-first**: Pointers to detailed docs, not exhaustive content
+   - ❌ "Use camelCase for variables, PascalCase for types..."
+   - ✅ "Coding conventions: docs/coding-style.md"
+   - Use direct content only if: cannot be discovered, critically affects every task, extremely concise (1-2 lines)
 
-**When to use direct content**: Only for information that:
-- Cannot be discovered through exploration
-- Critically affects every task (e.g., "Never modify files in vendor/")
-- Is extremely concise (1-2 lines)
-</minimize_direct_content>
+2. **80% rule**: Only information needed in 80% of tasks
+   - ✅ Repository structure, key conventions, critical constraints
+   - ❌ Deployment procedures, testing strategies, specific library usage
 
-<essential_only>
-**2. Include Only 80%-Rule Information**
-Ask for each piece of information: "Is this needed in 80% of tasks?"
-- ✅ Essential: Repository structure, key conventions, critical constraints
-- ❌ Not essential: Deployment procedures, testing strategies, specific library usage
-- ✅ Essential: "Use pnpm (project uses pnpm workspaces)"
-- ❌ Not essential: "Run dev server with `pnpm dev`" (LLM doesn't typically run dev servers)
-</essential_only>
+3. **Abstract/navigational**: Materials to find information, not exhaustive details
+   - ✅ "Database: alembic files in db/migrations/"
+   - ❌ "To create migration: alembic revision -m 'description'"
 
-<abstract_material>
-**3. Provide Abstract, Navigational Information**
-Give LLM the materials to find what it needs:
-- ✅ "Database schema migrations: alembic files in db/migrations/"
-- ✅ "API documentation: docs/api/ (organized by version)"
-- ✅ "Component library: src/components/ (see README for guidelines)"
-- ❌ "To create a migration, run: alembic revision -m 'description'"
-- ❌ "API versioning follows semver: v1.0.0 format with..."
-</abstract_material>
+4. **Command scrutiny**: Only commands LLM runs autonomously in typical tasks
+   - ✅ `pnpm build`, `pnpm test` (LLM runs these)
+   - ❌ `pnpm dev`, `docker-compose up` (user runs these)
 
-<command_examples_scrutiny>
-**4. Scrutinize Command Examples**
-Only include commands that LLM uses in standard workflows:
-- ✅ Include: `git commit`, `pnpm build`, `pnpm test` (standard development)
-- ❌ Exclude: `pnpm dev`, `docker-compose up` (user runs these, not LLM)
-- ❌ Exclude: Deployment commands (unless LLM handles deployments)
-- ❌ Exclude: Database seed commands (unless frequently needed)
-
-**Test**: "Does LLM run this command autonomously in typical tasks?"
-- If user needs to see output (dev server, logs) → Exclude
-- If command is for user convenience (aliases, shortcuts) → Exclude
-- If command is part of implementation/testing workflow → Include
-</command_examples_scrutiny>
-
-**Example - Good Context File**:
+**Good example**:
 ```markdown
 # Project Context
-
 ## Architecture
-- Monorepo using pnpm workspaces
-- API: packages/api (NestJS)
-- Frontend: packages/web (Next.js)
-- Detailed architecture: docs/architecture/README.md
+- Monorepo: pnpm workspaces
+- API: packages/api (NestJS), Frontend: packages/web (Next.js)
+- Details: docs/architecture/README.md
 
 ## Key Conventions
-- Branch naming: feature/*, bugfix/* (see docs/git-workflow.md)
-- Never modify: src/generated/* (auto-generated code)
-- Testing: Vitest for unit, Playwright for E2E (see docs/testing.md)
+- Branch naming: feature/*, bugfix/* (docs/git-workflow.md)
+- Never modify: src/generated/* (auto-generated)
+- Testing: Vitest/Playwright (docs/testing.md)
 
 ## Critical Constraints
-- All database changes require migration (alembic)
+- Database changes require migration (alembic)
 - Public API changes require version bump (semver)
 ```
 
-**Example - Poor Context File** (avoid):
+**Bad example** (avoid):
 ```markdown
 # Project Setup
-
 ## Installation
 1. Install dependencies: `pnpm install`
 2. Set up database: `pnpm db:setup`
-3. Run migrations: `pnpm db:migrate`
-4. Seed data: `pnpm db:seed`
-5. Start dev server: `pnpm dev`
-6. Open browser: http://localhost:3000
-
-## Development Workflow
-- Create feature branch from main
-- Make your changes
-- Run linter: `pnpm lint`
-- Run tests: `pnpm test`
-- Commit with conventional commits
-- Push and create PR
-- Wait for CI to pass
-- Request review
-
-## Architecture
-[500 lines of detailed architecture documentation that should be in docs/]
+...
+[Detailed step-by-step procedures, exhaustive architecture details...]
 ```
 </context_files>
 </claude_code_prompts>
@@ -255,6 +202,234 @@ Only include commands that LLM uses in standard workflows:
 - User-facing instructions (description field handles this)
 - Implementation details that should be in CLAUDE.md
 </conciseness>
+
+<orchestration_patterns>
+### Orchestration Patterns
+**When designing prompts for orchestrated workflows with subagents**:
+
+<prompt_templates>
+#### Use Prompt Templates for Subagent Invocation
+**Orchestrators should provide explicit invocation templates**:
+- Include complete prompt templates showing how to invoke subagents
+- Keep summaries minimal; let templates convey specifics for reproducibility
+- Templates ensure consistency across multiple invocations
+- Templates make the orchestration pattern explicit and maintainable
+
+**Example in orchestrator prompt**:
+```markdown
+## Invoking the Implementation Agent
+
+Use this template:
+
+Task(
+  subagent_type="engineer",
+  prompt="""
+Implement the following feature:
+{feature_description}
+
+Requirements:
+{requirements}
+
+Acceptance criteria:
+{acceptance_criteria}
+
+Follow project conventions and include tests.
+""",
+  description="Implement {feature_name}"
+)
+```
+</prompt_templates>
+
+<responsibility_split>
+#### Split Responsibilities Between Orchestrator and Subagent
+
+**Design principle**: Subagents are single-purpose but reusable across many tasks. Task-specific context belongs in the orchestrator's template; responsibility-specific practices belong in the subagent.
+
+**Subagent prompt** (responsibility-specific, reusable):
+- Core practices always needed for this responsibility
+- Domain-specific knowledge and constraints
+- General workflow for this type of task
+- Error handling patterns for this domain
+- Quality standards for this responsibility
+
+**Orchestrator's invocation template** (task-specific, contextual):
+- Current task context and background
+- Task-specific rules and constraints
+- Specific focus areas or priorities for this task
+- Integration requirements with other workflow steps
+- Project-specific constraints not universally applicable
+
+**Example - Code Review Agent**:
+
+Subagent prompt (`.claude/agents/reviewer.md`):
+```markdown
+Review code changes for quality and correctness.
+
+Check for:
+- Type safety and correctness
+- Security vulnerabilities
+- Performance issues
+- Code style consistency
+- Test coverage adequacy
+
+Report issues with:
+- Severity level (critical/moderate/minor)
+- File path and line numbers
+- Specific recommendations
+- Priority order (critical first)
+```
+
+Orchestrator's template:
+```markdown
+Task(
+  subagent_type="reviewer",
+  prompt="""
+Review the authentication feature implementation.
+
+Context: Healthcare application handling PHI data under HIPAA.
+
+Additional requirements for this review:
+- HIPAA compliance is critical (report violations as critical)
+- All database queries must use parameterized statements
+- Session tokens must expire within 15 minutes
+- Password hashing must use bcrypt with cost factor ≥12
+
+Files to review: src/auth/*.ts
+
+Focus on security and compliance issues.
+""",
+  description="Review auth implementation"
+)
+```
+</responsibility_split>
+
+<design_questions>
+#### Design Questions for Responsibility Split
+
+When designing orchestrated prompts, ask these questions:
+
+**Should this go in the subagent prompt?**
+- Is this practice always required for this type of task?
+- Does this define the agent's core responsibility?
+- Would this agent need this knowledge for ANY task it handles?
+- Is this domain-specific expertise for this responsibility?
+→ **YES**: Include in subagent prompt
+
+**Should this go in the orchestrator's template?**
+- Is this specific to the current task or project?
+- Does this depend on previous steps in the workflow?
+- Is this a temporary constraint or priority?
+- Does this require context from the orchestration flow?
+→ **YES**: Include in invocation template
+
+**Examples**:
+- ✅ Subagent: "Check for type errors and unused variables"
+- ✅ Orchestrator: "Focus on the payment module we refactored in the previous step"
+- ✅ Subagent: "Report security vulnerabilities with severity levels"
+- ✅ Orchestrator: "This handles credit card data—PCI-DSS compliance is critical"
+- ✅ Subagent: "Include test coverage for new functionality"
+- ✅ Orchestrator: "We're under tight deadline—prioritize happy path tests"
+</design_questions>
+
+<benefits>
+#### Benefits of This Approach
+
+**Reusability**: Subagents work across different tasks and projects without modification
+
+**Maintainability**: Task-specific logic lives in one place (orchestrator), not scattered across agent prompts
+
+**Clarity**: Clear separation makes it obvious what's universal vs. contextual
+
+**Consistency**: Templates ensure subagents receive consistent, well-formed instructions
+
+**Testability**: Subagents can be tested independently with different invocation parameters
+</benefits>
+
+<orchestration_anti_patterns>
+#### Common Anti-Patterns in Orchestration
+
+**❌ Duplicating logic across orchestrator and subagent**:
+```markdown
+# Subagent prompt
+- Follow project coding conventions
+- Use TypeScript strict mode
+- Never commit secrets
+
+# Orchestrator template
+Task(prompt="""
+Follow project coding conventions.
+Use TypeScript strict mode.
+Never commit secrets.
+Implement feature X...
+""")
+```
+**Problem**: Maintenance burden, inconsistency risk
+
+**✅ Keep domain practices in subagent only**:
+```markdown
+# Subagent prompt
+- Follow project coding conventions
+- Use TypeScript strict mode
+- Never commit secrets
+
+# Orchestrator template
+Task(prompt="""
+Implement feature X with focus on payment processing logic.
+Ensure PCI-DSS compliance for card data handling.
+""")
+```
+
+---
+
+**❌ Making subagents too task-specific**:
+```markdown
+name: implement-user-authentication-with-jwt-and-oauth
+```
+**Problem**: Not reusable, violates single responsibility
+
+**✅ Keep subagents generic within their domain**:
+```markdown
+name: engineer
+# Orchestrator specifies: "Implement user authentication using JWT and OAuth"
+```
+
+---
+
+**❌ Passing orchestration context to subagents**:
+```markdown
+Task(prompt="""
+This is step 3 of 5 in the workflow.
+After you finish, I will invoke the testing agent.
+The architect agent already designed this in step 1.
+""")
+```
+**Problem**: Violates caller independence, adds unnecessary context
+
+**✅ Provide only task-relevant information**:
+```markdown
+Task(prompt="""
+Implement the authentication feature.
+Architecture decisions: See attached design document.
+Focus on token generation and validation logic.
+""")
+```
+</orchestration_anti_patterns>
+
+<orchestration_considerations>
+#### Additional Considerations
+
+**Failure Handling**:
+- Orchestrators should handle subagent failures gracefully
+- Define retry strategies for critical tasks
+- Provide clear error reporting from subagents back to orchestrators
+- Consider fallback strategies for non-critical failures
+
+**Template Maintenance**:
+- Keep invocation templates in one location for easy updates
+- When subagent prompts change, review all orchestrator templates
+- Document expected inputs/outputs for each subagent
+</orchestration_considerations>
+</orchestration_patterns>
 </core_principles>
 
 <structure_and_clarity>
@@ -412,6 +587,13 @@ Verify before creation/update:
 - [ ] `name` field matches filename (without .md extension)
 - [ ] Appropriate model selected (`sonnet` for complex tasks, `haiku` for speed)
 - [ ] No "invocation_context" or similar caller-specific sections
+
+**For orchestrator prompts** (commands/agents that invoke subagents):
+- [ ] Includes explicit invocation templates for all subagents used
+- [ ] Templates show complete Task tool usage with all parameters
+- [ ] Task-specific context is in templates, not duplicated in subagent prompts
+- [ ] No orchestration workflow details passed to subagents (violates caller independence)
+- [ ] Subagents are kept generic and reusable within their domain
 
 **For documents** (custom paths):
 - [ ] No front matter included (entire content is prompt)
