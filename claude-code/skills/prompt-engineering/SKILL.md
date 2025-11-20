@@ -92,6 +92,120 @@ description: 'When this skill should be enabled'
 - **Invocation**: Manual reference or inclusion in other prompts
 - **Processing**: No front matter required; entire content is the prompt
 </document_type>
+
+<context_files>
+### 5. Context Files (CLAUDE.md, GEMINI.md, etc.)
+**Purpose**: Project-wide or global context that is automatically loaded in every session
+
+**File Structure**:
+- **Location**:
+  - Project: `.claude/CLAUDE.md`, `.gemini/GEMINI.md`, `.claude/.codex/AGENTS.md`
+  - Global: `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.claude/.codex/AGENTS.md`
+- **Processing**: Entire content is injected into every session's base context
+- **No front matter**: Write content directly
+
+**Critical Characteristics**:
+- **Always loaded**: Read in every single session, regardless of task
+- **Maximum cost**: Context tokens consumed in every interaction
+- **Minimum content**: Only include what 80% of tasks need
+
+**IMPORTANT**: These are guidelines, not absolute rules. Some projects have unique contexts that justify exceptions. Use judgment, but default to minimalism when uncertain.
+
+**Content Guidelines**:
+
+<minimize_direct_content>
+**1. Prefer Indices Over Direct Content**
+Instead of writing full guidelines, provide pointers to detailed documentation:
+- ❌ Direct: "Use camelCase for variables, PascalCase for types, kebab-case for files..."
+- ✅ Index: "Coding conventions: see docs/coding-style.md"
+- ❌ Direct: "Authentication flow: 1) User submits credentials, 2) Server validates..."
+- ✅ Index: "Architecture decisions: see docs/architecture/"
+
+**When to use direct content**: Only for information that:
+- Cannot be discovered through exploration
+- Critically affects every task (e.g., "Never modify files in vendor/")
+- Is extremely concise (1-2 lines)
+</minimize_direct_content>
+
+<essential_only>
+**2. Include Only 80%-Rule Information**
+Ask for each piece of information: "Is this needed in 80% of tasks?"
+- ✅ Essential: Repository structure, key conventions, critical constraints
+- ❌ Not essential: Deployment procedures, testing strategies, specific library usage
+- ✅ Essential: "Use pnpm (project uses pnpm workspaces)"
+- ❌ Not essential: "Run dev server with `pnpm dev`" (LLM doesn't typically run dev servers)
+</essential_only>
+
+<abstract_material>
+**3. Provide Abstract, Navigational Information**
+Give LLM the materials to find what it needs:
+- ✅ "Database schema migrations: alembic files in db/migrations/"
+- ✅ "API documentation: docs/api/ (organized by version)"
+- ✅ "Component library: src/components/ (see README for guidelines)"
+- ❌ "To create a migration, run: alembic revision -m 'description'"
+- ❌ "API versioning follows semver: v1.0.0 format with..."
+</abstract_material>
+
+<command_examples_scrutiny>
+**4. Scrutinize Command Examples**
+Only include commands that LLM uses in standard workflows:
+- ✅ Include: `git commit`, `pnpm build`, `pnpm test` (standard development)
+- ❌ Exclude: `pnpm dev`, `docker-compose up` (user runs these, not LLM)
+- ❌ Exclude: Deployment commands (unless LLM handles deployments)
+- ❌ Exclude: Database seed commands (unless frequently needed)
+
+**Test**: "Does LLM run this command autonomously in typical tasks?"
+- If user needs to see output (dev server, logs) → Exclude
+- If command is for user convenience (aliases, shortcuts) → Exclude
+- If command is part of implementation/testing workflow → Include
+</command_examples_scrutiny>
+
+**Example - Good Context File**:
+```markdown
+# Project Context
+
+## Architecture
+- Monorepo using pnpm workspaces
+- API: packages/api (NestJS)
+- Frontend: packages/web (Next.js)
+- Detailed architecture: docs/architecture/README.md
+
+## Key Conventions
+- Branch naming: feature/*, bugfix/* (see docs/git-workflow.md)
+- Never modify: src/generated/* (auto-generated code)
+- Testing: Vitest for unit, Playwright for E2E (see docs/testing.md)
+
+## Critical Constraints
+- All database changes require migration (alembic)
+- Public API changes require version bump (semver)
+```
+
+**Example - Poor Context File** (avoid):
+```markdown
+# Project Setup
+
+## Installation
+1. Install dependencies: `pnpm install`
+2. Set up database: `pnpm db:setup`
+3. Run migrations: `pnpm db:migrate`
+4. Seed data: `pnpm db:seed`
+5. Start dev server: `pnpm dev`
+6. Open browser: http://localhost:3000
+
+## Development Workflow
+- Create feature branch from main
+- Make your changes
+- Run linter: `pnpm lint`
+- Run tests: `pnpm test`
+- Commit with conventional commits
+- Push and create PR
+- Wait for CI to pass
+- Request review
+
+## Architecture
+[500 lines of detailed architecture documentation that should be in docs/]
+```
+</context_files>
 </claude_code_prompts>
 
 <core_principles>
@@ -302,6 +416,16 @@ Verify before creation/update:
 **For documents** (custom paths):
 - [ ] No front matter included (entire content is prompt)
 - [ ] Location/path is clearly specified in user instructions
+
+**For context files** (CLAUDE.md, AGENTS.md, GEMINI.md, etc.):
+- [ ] No front matter included (entire content is context)
+- [ ] **80% rule**: Every piece of information is needed in 80% of tasks
+- [ ] **Index-first**: Direct content minimized, pointers to detailed docs used instead
+- [ ] **Abstract/navigational**: Provides materials to find information, not exhaustive details
+- [ ] **Command scrutiny**: Only commands LLM autonomously runs in typical tasks
+- [ ] No step-by-step procedures (e.g., "1. Install, 2. Setup, 3. Run...")
+- [ ] No user-facing workflows (e.g., "Start dev server and open browser")
+- [ ] Extremely concise (typically <100 lines for project context)
 </validation_checklist>
 
 <anti_patterns>
@@ -366,5 +490,51 @@ docs/contributing.md, or DEVELOPMENT.md for conventions.
 **✅ Trust base context**:
 ```markdown
 Follow project conventions (documented in base context).
+```
+
+---
+
+**❌ Context file with exhaustive details**:
+```markdown
+# CLAUDE.md
+
+## Coding Style
+- Variables: camelCase (e.g., userName, itemCount)
+- Types: PascalCase (e.g., UserProfile, ItemList)
+- Files: kebab-case (e.g., user-profile.ts, item-list.tsx)
+- Constants: UPPER_SNAKE_CASE (e.g., API_URL, MAX_ITEMS)
+- Functions: camelCase with verb prefix (e.g., getUserName, calculateTotal)
+...
+[50 more lines of coding style]
+```
+
+**✅ Context file with index**:
+```markdown
+# CLAUDE.md
+
+## Coding Style
+See docs/coding-style.md for naming conventions and formatting rules.
+
+## Critical: Never modify src/generated/* (auto-generated)
+```
+
+---
+
+**❌ Context file with user-facing workflows**:
+```markdown
+## Development Setup
+1. Install dependencies: `pnpm install`
+2. Start database: `docker-compose up db`
+3. Run migrations: `pnpm db:migrate`
+4. Start dev server: `pnpm dev`
+5. Open http://localhost:3000 in your browser
+```
+
+**✅ Context file with LLM-relevant info**:
+```markdown
+## Development
+- Package manager: pnpm (workspaces enabled)
+- Database migrations: alembic (db/migrations/)
+- Build: `pnpm build`, Test: `pnpm test`
 ```
 </anti_patterns>

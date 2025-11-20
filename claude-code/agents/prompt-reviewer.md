@@ -320,4 +320,145 @@ Review code and provide feedback.  # No mention of writing to review.md!
 - ❌ Prompt duplicates content from activated skill (redundant)
 </skill_activation_check>
 </workflow_coherence>
+
+<context_file_review>
+### Context File Review (CLAUDE.md, AGENTS.md, GEMINI.md, etc.)
+**Critical review for files loaded in every session**
+
+**IMPORTANT**: These guidelines promote minimalism but aren't absolute rules. Some projects have unique contexts justifying exceptions. Flag potential issues but acknowledge when exceptions may be warranted.
+
+<always_loaded_scrutiny>
+#### Always-Loaded Cost Analysis
+**Context files are loaded in EVERY session - maximize signal-to-noise ratio**:
+- Does EVERY piece of information pass the 80% rule?
+- Is there ANY content that could be discovered through exploration instead?
+- Are there ANY details that belong in dedicated documentation files?
+
+**Review questions**:
+1. **Per-section test**: "Is this section needed in 80% of tasks?"
+   - If NO → Remove or convert to index
+2. **Per-line test**: "Does this line add unique essential value?"
+   - If NO → Remove or merge with other content
+3. **Discoverability test**: "Can LLM find this through Glob/Grep/Read?"
+   - If YES → Consider removing and letting LLM discover when needed
+</always_loaded_scrutiny>
+
+<index_vs_direct>
+#### Index-First Verification
+**Context files should be navigation maps, not encyclopedias**:
+
+**Flag as critical issue**:
+- ❌ Exhaustive lists (coding conventions, API endpoints, component props)
+- ❌ Detailed procedures (setup steps, deployment workflows, testing strategies)
+- ❌ Full guideline text (should reference external docs instead)
+
+**Approve**:
+- ✅ Pointers to documentation (e.g., "Conventions: docs/style-guide.md")
+- ✅ Critical constraints (e.g., "Never modify src/generated/*")
+- ✅ Structural overview (e.g., "API: packages/api, Frontend: packages/web")
+
+**Replacement suggestions**:
+- "Coding style: camelCase for variables..." → "Coding style: see docs/style-guide.md"
+- "Testing: Use Vitest with..." → "Testing: Vitest (see docs/testing.md)"
+- "Authentication flow: 1)..." → "Authentication: see docs/auth-flow.md"
+</index_vs_direct>
+
+<command_scrutiny>
+#### Command Example Scrutiny
+**Only include commands LLM runs autonomously in typical workflows**:
+
+**Critical questions for each command**:
+1. Does LLM run this autonomously (without user intervention)?
+2. Is this part of implementation/testing workflow (not user convenience)?
+3. Does user need to see the output/interact with result?
+
+**Flag for removal**:
+- ❌ Dev server commands (`pnpm dev`, `npm start`, `docker-compose up`)
+- ❌ Interactive tools (`pnpm dev`, browser URLs, debug consoles)
+- ❌ User convenience aliases (custom shortcuts, helper scripts user runs)
+- ❌ Database seed/reset commands (unless LLM frequently needs them)
+- ❌ Deployment commands (unless LLM handles deployments)
+
+**Approve for inclusion**:
+- ✅ Build/test commands (`pnpm build`, `pnpm test`, `pnpm typecheck`)
+- ✅ Git commands (`git commit`, `git push`)
+- ✅ Code generation (`pnpm generate`, `pnpm db:migrate`)
+
+**Test**: "In a typical implementation task, does LLM run this command?"
+</command_scrutiny>
+
+<abstraction_level>
+#### Abstraction Level Check
+**Context files should provide materials for discovery, not exhaustive details**:
+
+**Flag as too detailed (convert to index)**:
+- ❌ API endpoint specifications with request/response formats
+- ❌ Component API documentation with all props and types
+- ❌ Database schema with all tables and columns
+- ❌ Configuration options with all possible values
+
+**Approve as appropriate abstraction**:
+- ✅ "API: docs/api/ (organized by version)"
+- ✅ "Components: src/components/ (see component READMEs)"
+- ✅ "Database: PostgreSQL (schema in db/schema.sql)"
+- ✅ "Config: .env.example shows available options"
+
+**Principle**: Give LLM the **map**, not the **territory**
+</abstraction_level>
+
+<workflow_procedure_check>
+#### Workflow and Procedure Check
+**Context files should not contain step-by-step procedures**:
+
+**Flag for removal**:
+- ❌ "1. Install dependencies, 2. Setup database, 3. Run migrations..."
+- ❌ "To add a feature: create branch, implement, test, commit, PR..."
+- ❌ "Development workflow: start server, open browser, make changes..."
+- ❌ "Testing procedure: write test, run test, check coverage..."
+
+**Why remove**:
+- Procedures are task-specific, not needed in 80% of sessions
+- LLM can infer standard workflows
+- Takes up context space in every session for rare use
+
+**When to keep**:
+- Only if procedure is NON-STANDARD and critical (e.g., "Always run security scan before commit")
+- Even then, consider: "Security: pre-commit scan required (see docs/security.md)"
+</workflow_procedure_check>
+
+<conciseness_check>
+#### Extreme Conciseness Enforcement
+**Context files should typically be <100 lines**:
+
+**Per-section budget**:
+- Architecture overview: ~10 lines
+- Key conventions: ~10 lines
+- Critical constraints: ~5 lines
+- Tool configuration: ~10 lines
+
+**Exceeding 100 lines triggers deep review**:
+1. What can be converted to indices?
+2. What can be discovered through exploration?
+3. What isn't needed in 80% of tasks?
+4. What can be condensed further?
+
+**Example reduction**:
+```markdown
+# Before (150 lines)
+## Testing
+We use Vitest for unit tests and Playwright for E2E tests.
+Unit tests: src/**/*.test.ts
+E2E tests: e2e/**/*.spec.ts
+Run unit tests: pnpm test
+Run E2E tests: pnpm test:e2e
+Coverage: pnpm test:coverage
+Watch mode: pnpm test:watch
+...
+
+# After (2 lines)
+## Testing
+Vitest for unit, Playwright for E2E (see docs/testing.md)
+```
+</conciseness_check>
+</context_file_review>
 </critical_review_points>

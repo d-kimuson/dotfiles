@@ -18,7 +18,20 @@ Create, update, or delete Claude Code prompts based on user instructions. This i
 Use this decision tree to determine which prompt type to create:
 
 ```
-┌─ User needs slash command invocation (e.g., /my-command)?
+┌─ User needs context loaded in EVERY session (CLAUDE.md, AGENTS.md, GEMINI.md)?
+│  ├─ YES → Create **Context File** (.claude/CLAUDE.md, .codex/AGENTS.md, gemini-cli/GEMINI.md)
+│  │  Use cases:
+│  │  - Project-wide context needed in 80% of tasks
+│  │  - Critical constraints and conventions
+│  │  - Navigation/index to detailed documentation
+│  │  WARNING: Minimize content - always loaded cost is high
+│  │
+│  └─ NO (not needed in 80% of tasks) → Consider alternatives:
+│     - Task-specific → Include in command/agent prompts
+│     - Detailed guidelines → Create docs/ files, reference from context
+│     - Rarely used → Let LLM discover through exploration
+│
+├─ User needs slash command invocation (e.g., /my-command)?
 │  └─ YES → Create **Command** (.claude/commands/<name>.md)
 │
 ├─ User needs specialized sub-agent with specific model/settings?
@@ -135,6 +148,51 @@ color: cyan    # Terminal display color
 **Note**: Documents do not require front matter. Write content directly without metadata headers.
 </usage_note>
 </document_type>
+
+<context_file_type>
+### 4. Context Files (CLAUDE.md, AGENTS.md, GEMINI.md, etc.)
+
+**Purpose**: Project-wide or global context automatically loaded in every session
+
+<structure>
+#### File Structure
+- **Location**:
+  - Project: `.claude/CLAUDE.md`, `.gemini/GEMINI.md`, `.claude/.codex/AGENTS.md`
+  - Global: `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.claude/.codex/AGENTS.md`
+- **Processing**: Entire content is injected into every session's base context
+- **No front matter**: Write content directly
+</structure>
+
+<critical_guidelines>
+#### Critical Guidelines for Context Files
+
+**⚠️ WARNING: Context files are loaded in EVERY session**
+- Maximum cost: Context tokens consumed in every interaction
+- Minimum content: Only include what 80% of tasks need
+- Extreme conciseness: Typically <100 lines (aim for <500 tokens)
+- Token budget: ~300-500 tokens ideal, 1000 tokens absolute maximum
+
+**Content Strategy**:
+1. **Prefer indices over direct content**
+   - ❌ "Variables: camelCase, Types: PascalCase, Files: kebab-case..."
+   - ✅ "Coding conventions: see docs/coding-style.md"
+
+2. **Include only 80%-rule information**
+   - Ask: "Is this needed in 80% of tasks?"
+   - Essential: Repository structure, key conventions, critical constraints
+   - Not essential: Deployment procedures, testing strategies, specific library usage
+
+3. **Provide abstract, navigational information**
+   - ✅ "Database migrations: alembic files in db/migrations/"
+   - ❌ "To create migration: alembic revision -m 'description'"
+
+4. **Scrutinize command examples**
+   - ✅ Include: `pnpm build`, `pnpm test` (LLM runs these)
+   - ❌ Exclude: `pnpm dev`, `docker-compose up` (user runs these)
+
+**See prompt-engineering skill for detailed context file guidelines**
+</critical_guidelines>
+</context_file_type>
 </prompt_types>
 
 <execution_workflow>
@@ -142,9 +200,12 @@ color: cyan    # Terminal display color
 
 ### Step 1: Determine Prompt Type
 Based on user request, identify:
+- **Context File** (`.claude/CLAUDE.md`, etc.): Context loaded in every session
 - **Command** (`.claude/commands/`): User wants `/command-name` invocation
 - **Agent** (`.claude/agents/`): User wants `@agent-name` or Task tool usage
 - **Document** (custom path): User specifies location or general documentation
+
+**If Context File**: Apply extra scrutiny in Step 2 (see below)
 
 ### Step 2: Design with Principles
 Apply prompt-engineering skill guidelines.
@@ -154,6 +215,14 @@ Apply prompt-engineering skill guidelines.
 - Caller independence: Can this be invoked by anyone without context?
 - Essential information only: What's truly needed vs. nice-to-have?
 - Responsibility boundaries: What belongs here vs. CLAUDE.md?
+
+**For Context Files, think EXTRA HARD** about:
+- **80% rule**: Is EVERY piece of information needed in 80% of tasks?
+- **Index-first**: Can this be replaced with a pointer to detailed docs?
+- **Discoverability**: Can LLM find this through exploration instead?
+- **Command scrutiny**: Does LLM autonomously run this command in typical tasks?
+- **Extreme conciseness**: Can this be condensed further? Target <100 lines.
+- **Abstraction level**: Am I giving the map (good) or the territory (bad)?
 
 ### Step 3: Write Concisely
 Follow prompt-engineering skill guidelines for conciseness and clarity.
