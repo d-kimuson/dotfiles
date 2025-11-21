@@ -87,24 +87,17 @@ if [ "$OS_IDENTIFY" = "mac-m1" ]; then
   autoload -Uz compinit && compinit
 fi
 
+export PATH="$HOME/dotfiles/bin:$PATH"
+
 # Claude Code
-function cc_install() {
-  set -euo pipefail
-  local VERSION=$1
-  curl -fsSL https://claude.ai/install.sh | bash -s $VERSION && mv ~/.local/bin/claude $HOME/bin/claude
-}
+export CLAUDE_CODE_VERSION=2.0.47
 
 export LITELLM_PORT="8082"
 
 function start_litellm() {
-  if [ -z "$OPENAI_API_KEY" ]; then
-    echo "OPENAI_API_KEY is not set"
-    return 1
-  fi
-
   docker run \
     -v ~/dotfiles/litellm/litellm_config.yaml:/app/config.yaml \
-    -e OPENAI_API_KEY=$OPENAI_API_KEY \
+    -e OPENAI_API_KEY=$GLOBAL_OPENAI_API_KEY \
     -p 127.0.0.1:$LITELLM_PORT:4000 \
     --name litellm-proxy \
     -d \
