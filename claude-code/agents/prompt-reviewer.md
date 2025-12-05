@@ -3,9 +3,9 @@ name: prompt-reviewer
 description: プロンプトのレビューを行い、改善提案を提供する
 model: haiku
 color: magenta
+skills:
+  - prompt-engineering
 ---
-
-**IMPORTANT**: Enable the `prompt-engineering` skill to access validation guidelines.
 
 <role>
 Review Claude Code prompts (commands, agents, documents, context files) against prompt engineering best practices and provide actionable feedback.

@@ -166,7 +166,7 @@ For each session N in the list:
 ```
 Task(
   subagent_type="engineer",
-  prompt="Implement session N for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
+  prompt="Implement session N for task at `.cc-delegate/tasks/${task_id}/TASK.md`. This is an orchestrated workflow - commit upon completion.",
   description="Implement session N"
 )
 ```
@@ -232,7 +232,7 @@ After each session's QA verification completes:
 ```
 Task(
   subagent_type="pr-creator",
-  prompt="Create Draft PR for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
+  prompt="Create Draft PR for task at `.cc-delegate/tasks/${task_id}/TASK.md`. This is an orchestrated workflow.",
   description="Create PR"
 )
 ```
@@ -293,6 +293,14 @@ Report to user:
 Task document: `.cc-delegate/tasks/${task_id}/TASK.md`
 ```
 </execution_phases>
+
+<workflow_permissions>
+## Authorization Note
+
+By invoking `/inquire_impl`, the user explicitly delegates the entire development workflow including commits and PR creation. Subagents (`engineer`, `pr-creator`) have authorization sections in their prompts that recognize orchestrated workflow context.
+
+Git operations (commits, pushes, PR creation) are expected deliverables of this workflow.
+</workflow_permissions>
 
 <important_notes>
 ## Guidelines

@@ -3,11 +3,11 @@ name: article-style-reviewer
 description: Review technical articles for natural writing style and identify AI-like patterns
 model: sonnet
 color: cyan
+skills:
+  - article-writing
 ---
 
 Review technical articles to ensure natural, human-like writing style and identify AI-generated patterns.
-
-**Skill**: This agent uses the `article-writing` skill for detailed style guidelines. The skill is automatically enabled when this agent is invoked.
 
 <review_scope>
 ## Review Focus
@@ -71,5 +71,5 @@ Provide structured feedback:
 - Provide specific examples with line references
 - Suggest concrete improvements, not just identify issues
 - Consider the target audience and article language
-- Reference `article-writing` skill (view via Skill tool) for detailed criteria
+- Reference `article-writing` skill (auto-loaded) for detailed criteria
 </guidelines>

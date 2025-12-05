@@ -44,10 +44,19 @@ allowed-tools: Bash(git, gh), Read(*), Edit(*.ts), Grep  # optional but recommen
 ---
 name: agent-name  # must match filename without .md
 description: 'Brief agent description'
-model: sonnet  # or haiku
+model: sonnet  # or haiku, or inherit (use caller's model)
 color: cyan    # terminal display color
+skills:        # optional: auto-load skills when agent starts
+  - typescript
+  - react
 ---
 ```
+
+**skills field**:
+- Skills listed here are automatically loaded when the agent is invoked
+- No need for manual `Skill(...)` calls or "Enable the X skill" instructions in body
+- Use this for skills the agent ALWAYS needs (not conditionally)
+- For dynamic/conditional skill loading, use `Skill(...)` tool in the prompt body
 
 **Audience**: Both caller (orchestrator LLM) and executor (sub-agent LLM) are LLMs
 - Always English
@@ -598,7 +607,8 @@ Verify before creation/update:
 **For agents** (`.claude/agents/*.md`):
 - [ ] Front matter includes `name`, `description`, `model`, `color`
 - [ ] `name` field matches filename (without .md extension)
-- [ ] Appropriate model selected (`sonnet` for complex tasks, `haiku` for speed)
+- [ ] Appropriate model selected (`sonnet` for complex tasks, `haiku` for speed, `inherit` for caller's model)
+- [ ] `skills` field used for always-required skills (no manual "Enable X skill" in body)
 - [ ] No "invocation_context" or similar caller-specific sections
 
 **For orchestrator prompts** (commands/agents that invoke subagents):

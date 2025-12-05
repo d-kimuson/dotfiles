@@ -65,6 +65,12 @@ Based on user request, identify:
 ### Step 2: Design with Principles
 Apply prompt-engineering skill guidelines.
 
+**For Agents requiring Skills**:
+- Use `skills` front matter field to auto-load required skills
+- ❌ Avoid: "**IMPORTANT**: Enable the `typescript` skill..." in body
+- ✅ Prefer: `skills: [typescript, react]` in front matter
+- Only use manual `Skill(...)` for conditional/dynamic skill loading
+
 **Think harder** about:
 - Single responsibility: What is the ONE thing this prompt does?
 - Caller independence: Can this be invoked by anyone without context?

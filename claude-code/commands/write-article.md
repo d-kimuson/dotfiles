@@ -10,11 +10,7 @@ Transform bullet-point technical content into a natural, readable article follow
 <workflow>
 ## Workflow
 
-### Step 1: Enable Article Writing Skill
-
-Use the Skill tool to enable `article-writing` skill for writing guidelines.
-
-### Step 2: Understand the Content
+### Step 1: Understand the Content
 
 - Review the bullet-point content provided by the user
 - Clarify any ambiguities if needed:
@@ -23,7 +19,7 @@ Use the Skill tool to enable `article-writing` skill for writing guidelines.
   - Key points to emphasize
   - Technical detail level
 
-### Step 3: Write the Article
+### Step 2: Write the Article
 
 Transform the bullet points into a natural article following the guidelines:
 
@@ -38,7 +34,7 @@ Apply natural writing style:
 - Short paragraphs with natural flow
 - Avoid AI-like patterns (numbered headings, excessive ordered lists, overly formal language)
 
-### Step 4: Parallel Review (4 Sessions)
+### Step 3: Parallel Review (4 Sessions)
 
 Launch 4 parallel review sessions in a **single message**:
 
@@ -148,19 +144,19 @@ Provide feedback on both technical accuracy AND content integrity.""",
 )
 ```
 
-### Step 5: Aggregate Feedback
+### Step 4: Aggregate Feedback
 
 - Collect all 4 review results
 - Identify common issues across reviews
 - Prioritize fixes: Critical > Moderate > Minor
 
-### Step 6: Apply Improvements
+### Step 5: Apply Improvements
 
 - Fix critical issues (factual errors, major style problems)
 - Apply moderate improvements (clarity, flow, technical accuracy)
 - Consider minor suggestions based on context
 
-### Step 7: Present Final Article
+### Step 6: Present Final Article
 
 - Show the improved article to the user
 - Summarize key changes made based on reviews
@@ -171,7 +167,7 @@ Provide feedback on both technical accuracy AND content integrity.""",
 ## Important Notes
 
 - **Parallel execution**: Run all 4 review tasks in a single message for efficiency
-- **Skill activation**: Always enable `article-writing` skill at the start
+- **Skill loading**: Enable `article-writing` skill in the main session; subagents (`article-style-reviewer`) auto-load it via front matter
 - **Style priority**: AI-like patterns are critical to fix (numbered headings, excessive ol, formal language)
 - **Factual accuracy**: Technical errors are critical; verify claims carefully
 - **User engagement**: Ask clarifying questions when the content is ambiguous
