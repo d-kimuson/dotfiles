@@ -95,11 +95,21 @@ export CLAUDE_CODE_VERSION=2.0.47
 export LITELLM_PORT="8082"
 
 function start_litellm() {
+  config_file= ~/dotfiles/litellm/litellm_config.default.yaml
+
+  if [ -f ~/dotfiles/litellm/litellm_config.yaml ]; then
+    config_file= ~/dotfiles/litellm/litellm_config.yaml
+  fi
+
   docker run \
-    -v ~/dotfiles/litellm/litellm_config.yaml:/app/config.yaml \
+    -v $config_file:/app/config.yaml \
     -e OPENAI_API_KEY=$GLOBAL_OPENAI_API_KEY \
     -p 127.0.0.1:$LITELLM_PORT:4000 \
     --name litellm-proxy \
+    --health-cmd='wget -q -O - http://127.0.0.1:4000/health || exit 1' \
+    --health-interval=5s \
+    --health-timeout=10s \
+    --health-retries=5 \
     -d \
     ghcr.io/berriai/litellm:main-latest \
     --config /app/config.yaml --detailed_debug
