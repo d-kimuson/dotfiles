@@ -141,21 +141,32 @@ More prompts ≠ better; essential information density is paramount:
 
 **For orchestrators** (commands/agents that invoke sub-agents):
 
+**CRITICAL: Invocation template requirement**:
+- ✅ Orchestrators MUST include explicit Task tool invocation templates for each subagent
+- ✅ Templates MUST show complete parameter examples (subagent_type, prompt with placeholders, description)
+- ❌ Flag as CRITICAL issue if templates are missing or incomplete
+- **Why critical**: Templates ensure consistency, reproducibility, and maintainable orchestration patterns
+
 **Verify orchestrator ↔ sub-agent contract**:
-- Does orchestrator specify what it expects from sub-agents?
+- Does orchestrator's template specify what it expects from sub-agents?
 - Do sub-agent prompts actually provide what orchestrator expects?
 - Is the data flow smooth and unambiguous?
+- Is task-specific context in orchestrator template, not duplicated in subagent?
 
 **Common integration issues**:
+- ❌ CRITICAL: No invocation templates provided (orchestrator can't reliably invoke subagents)
 - ❌ Orchestrator expects JSON output, but sub-agent has no JSON format specification
 - ❌ Orchestrator passes task via file, but sub-agent doesn't mention reading from file
 - ❌ Orchestrator expects specific fields, but sub-agent defines different fields
+- ❌ Domain practices duplicated in both orchestrator and subagent (should be in subagent only)
 
 **Review checklist**:
-1. **Input contract**: How does orchestrator pass information? Does sub-agent acknowledge this?
-2. **Output contract**: What does orchestrator expect? Does sub-agent specify producing exactly this?
-3. **Assumptions alignment**: Does orchestrator assume context that isn't actually provided?
-4. **Workflow integration**: If multiple sub-agents, do their inputs/outputs chain correctly?
+1. **Template presence**: Are complete Task tool invocation templates provided for all subagents?
+2. **Input contract**: How does orchestrator pass information? Does sub-agent acknowledge this?
+3. **Output contract**: What does orchestrator expect? Does sub-agent specify producing exactly this?
+4. **Responsibility split**: Is task-specific context in template? Are domain practices only in subagent?
+5. **Assumptions alignment**: Does orchestrator assume context that isn't actually provided?
+6. **Workflow integration**: If multiple sub-agents, do their inputs/outputs chain correctly?
 
 **Skill activation coherence**:
 - Is skill activation instruction present when skill content is referenced?

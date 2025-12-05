@@ -209,13 +209,26 @@ description: 'When this skill should be enabled'
 
 <prompt_templates>
 #### Use Prompt Templates for Subagent Invocation
-**Orchestrators should provide explicit invocation templates**:
-- Include complete prompt templates showing how to invoke subagents
-- Keep summaries minimal; let templates convey specifics for reproducibility
-- Templates ensure consistency across multiple invocations
-- Templates make the orchestration pattern explicit and maintainable
+**CRITICAL REQUIREMENT: Orchestrators MUST provide explicit invocation templates**:
+- Include complete prompt templates showing how to invoke subagents with all parameters
+- Templates are NOT optional—they are essential for stable, reproducible orchestration
+- Keep summaries minimal; let templates convey specifics through concrete examples
+- Templates ensure consistency across multiple invocations and make maintenance easier
 
-**Example in orchestrator prompt**:
+**Why templates are essential**:
+1. **Consistency**: Same invocation pattern every time, reducing variability
+2. **Reproducibility**: Future maintainers can see exact invocation structure
+3. **Clarity**: Makes the orchestration contract explicit, not implicit
+4. **Maintainability**: Single source of truth for how subagents should be invoked
+5. **Discoverability**: New users can understand the pattern immediately
+
+**Without templates** (❌ Bad):
+```markdown
+Invoke the engineer agent to implement the feature.
+```
+**Problem**: Orchestrator must guess parameter structure, leading to inconsistent invocations
+
+**With templates** (✅ Good):
 ```markdown
 ## Invoking the Implementation Agent
 

@@ -71,6 +71,12 @@ Apply prompt-engineering skill guidelines.
 - Essential information only: What's truly needed vs. nice-to-have?
 - Responsibility boundaries: What belongs here vs. CLAUDE.md?
 
+**For Orchestrators** (commands/agents that invoke subagents):
+- **Invocation templates are ESSENTIAL**: Include complete Task tool usage templates showing how to invoke each subagent
+- **Why templates matter**: They ensure consistency, make the pattern explicit, and enable reproducible orchestration
+- **Responsibility split**: Keep subagents generic/reusable; task-specific context goes in orchestrator's template
+- See `<orchestration_patterns>` in prompt-engineering skill for detailed guidance
+
 **For Context Files, think EXTRA HARD** (see prompt-engineering skill):
 - **80% rule**: Is EVERY piece of information needed in 80% of tasks?
 - **Index-first**: Can this be replaced with a pointer to detailed docs?
@@ -86,22 +92,27 @@ Follow prompt-engineering skill guidelines for conciseness and clarity.
 Run automated checklist from prompt-engineering skill.
 
 ### Step 5: Parallel Review Sessions
-Launch 3 parallel `prompt-reviewer` agents to get diverse feedback:
+Launch 3 parallel `prompt-reviewer` agents to get diverse feedback.
+
+**IMPORTANT**: If the prompt is an orchestrator (invokes subagents), ensure reviewers check:
+- Presence of complete invocation templates (CRITICAL requirement)
+- Template quality and completeness
+- Proper responsibility split between orchestrator and subagents
 
 ```
 Task(
   subagent_type="prompt-reviewer",
-  prompt="Review the following prompt:\n\n[prompt content]",
+  prompt="Review the following prompt:\n\n[prompt content]\n\nNote: This is an orchestrator prompt that invokes subagents. Verify invocation templates are complete and follow best practices.",
   description="Review prompt (1/3)"
 )
 Task(
   subagent_type="prompt-reviewer",
-  prompt="Review the following prompt:\n\n[prompt content]",
+  prompt="Review the following prompt:\n\n[prompt content]\n\nNote: This is an orchestrator prompt that invokes subagents. Verify invocation templates are complete and follow best practices.",
   description="Review prompt (2/3)"
 )
 Task(
   subagent_type="prompt-reviewer",
-  prompt="Review the following prompt:\n\n[prompt content]",
+  prompt="Review the following prompt:\n\n[prompt content]\n\nNote: This is an orchestrator prompt that invokes subagents. Verify invocation templates are complete and follow best practices.",
   description="Review prompt (3/3)"
 )
 ```
