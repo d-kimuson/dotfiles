@@ -90,7 +90,7 @@ fi
 export PATH="$HOME/dotfiles/bin:$PATH"
 
 # Claude Code
-export CLAUDE_CODE_VERSION=2.0.47
+export CLAUDE_CODE_VERSION=latest
 
 export LITELLM_PORT="8082"
 
