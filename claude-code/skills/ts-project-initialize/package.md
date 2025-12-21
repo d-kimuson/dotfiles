@@ -1,10 +1,17 @@
 # package
 
+## Core Rule
+
+- エントリーポイントになるアプリケーション(frontend, backend, desktop, mobile, ...etc) は apps/${name} に配置
+- 共通になる internal パッケージは packages/${name} に配置
+
 ## .node-version
 
 ```text
 24.11.1
 ```
+
+固定ではなく `mise ls-remote node` を実行し、偶数番(Ex. 22, 24, ..etc) の最新のものを指定する
 
 ## package.json
 
@@ -22,7 +29,7 @@
 }
 ```
 
-パッケージ作成後に `` を実行することで できる(する)
+パッケージ作成後に実行
 
 ```bash
 pnpm dlx corepack use pnpm@latest # packageManager を最新 & ハッシュ固定にアップデート
@@ -70,4 +77,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+```
+
+## gitignore
+
+```bash
+curl "https://raw.githubusercontent.com/github/gitignore/master/Node.gitignore" | grep -v '404' >> .egitignore
 ```

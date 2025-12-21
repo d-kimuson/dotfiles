@@ -124,6 +124,7 @@ const router = createRouter({
 
 declare module "@tanstack/react-router" {
   interface Register {
+    // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
     router: typeof router;
   }
 }

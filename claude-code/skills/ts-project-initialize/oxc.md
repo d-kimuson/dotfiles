@@ -4,6 +4,7 @@
 
 - lint rule はパッケージに応じて一部削除すること
 - 例えば FE がないなら react や jsx-a11y などは不要
+- マルチパッケージの場合はワークスペースルートにこれらの設定を置く
 
 ## セットアップ
 
@@ -192,7 +193,7 @@ pnpm add -D oxlint oxlint-tsgolint oxfmt
     "typescript/no-non-null-assertion": "error", // non-null assertion operator の使用を禁止
     "typescript/use-unknown-in-catch-callback-variable": "error", // catch 節では unknown 型を使用
     "typescript/no-empty-object-type": "error", // 空オブジェクト型 {} の使用を禁止
-    "typescript/no-import-type-side-effects": "error", // 副作用を持つ type import を防止
+    "typescript/no-import-type-side-effects": "off", // 副作用を持つ type import を防止, typescript/consistent-type-imports に寄せる
 
     "unicorn/prefer-node-protocol": "error", // Node.js 組み込みモジュールは node: プロトコルで import
 
@@ -235,9 +236,9 @@ pnpm add -D oxlint oxlint-tsgolint oxfmt
     /* Style */
     "func-style": ["error", "expression"], // 関数宣言よりアロー関数式を優先
     "no-duplicate-imports": "error", // 同一モジュールからの import を統合
-    "sort-imports": ["error", { "allowSeparatedGroups": true }],
+    "sort-imports": "off", // 自動修正対応してない・不安定・oxcfmt の experimentalSortImports でソートできるため無効n
 
-    "import/consistent-type-specifier-style": ["error", "prefer-inline"], // type import は inline スタイルを使用
+    "import/consistent-type-specifier-style": "off", // type import は inline スタイルを使用, typescript/consistent-type-imports に寄せる
 
     "typescript/prefer-for-of": "error", // インデックスアクセス不要な場合は for-of を使用
     "typescript/consistent-type-imports": [
@@ -385,6 +386,8 @@ pnpm add -D oxlint oxlint-tsgolint oxfmt
 }
 
 ```
+
+補足: ルールのコメントはそのまま残してほしい
 
 ## lefthook
 
