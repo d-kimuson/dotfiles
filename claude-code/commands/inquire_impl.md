@@ -49,6 +49,8 @@ Manage flow, coordinate subagents, verify acceptance criteria, make phase decisi
 - If ANY Hard condition is met → Hard
 - If ALL Easy conditions are met → Easy
 - When in doubt → Default to Hard
+
+**IMPORTANT**: Difficulty ONLY affects Phase 3 (Context/Design). ALL other phases and subagent delegations apply regardless of difficulty. Easy tasks still require engineer, reviewer, qa, pr-creator, and pr-checker subagents.
 </task_classification>
 
 <execution_phases>
@@ -144,6 +146,8 @@ Task(
 
 ## Phase 4: Implementation with Incremental Review
 
+**CRITICAL**: The orchestrator NEVER implements code directly. ALL implementation work MUST be delegated to the `engineer` subagent via Task tool. This applies to ALL tasks regardless of difficulty or simplicity.
+
 ### Step 4.1: Create Session List
 
 <session_split>
@@ -238,6 +242,8 @@ Task(
 ```
 
 ### Step 5.2: Monitor CI
+
+**MANDATORY**: Do NOT proceed to Phase 6 until pr-checker confirms all CI checks have completed. This step cannot be skipped or reported as "in progress" at task completion.
 
 ```
 Task(

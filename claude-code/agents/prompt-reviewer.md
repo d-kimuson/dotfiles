@@ -1,7 +1,6 @@
 ---
 name: prompt-reviewer
-description: プロンプトのレビューを行い、改善提案を提供する
-model: haiku
+description: Reviews prompts and provides improvement suggestions
 color: magenta
 skills:
   - prompt-engineering

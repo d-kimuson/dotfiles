@@ -174,6 +174,11 @@ If same error/failure occurs **3 consecutive times**:
 - Is design phase needed?
 - Should this be multiple sessions?
 - Is review necessary for this change?
-- Can this be handled directly vs. delegated?
+
+**NEVER bypass subagent delegation**:
+- Implementation work ALWAYS goes to engineer subagent
+- PR creation ALWAYS goes to pr-creator subagent
+- CI monitoring ALWAYS goes to pr-checker subagent
+- "Simple" or "Easy" tasks do NOT justify direct execution
 </decision_autonomy>
 </best_practices>

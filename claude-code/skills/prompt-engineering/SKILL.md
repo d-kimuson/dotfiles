@@ -103,8 +103,8 @@ description: 'When this skill should be enabled'
 
 **File Structure**:
 - **Location**:
-  - Project: `.claude/CLAUDE.md`, `.gemini/GEMINI.md`, `.claude/.codex/AGENTS.md`
-  - Global: `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.claude/.codex/AGENTS.md`
+  - Project: `.claude/CLAUDE.md`, `.gemini/GEMINI.md`, `.claude/AGENTS.md`
+  - Global: `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.claude/AGENTS.md`
 - **Processing**: Entire content is injected into every session's base context
 - **No front matter**: Write content directly
 
