@@ -91,6 +91,7 @@ export PATH="$HOME/dotfiles/bin:$PATH"
 
 # Claude Code
 export CLAUDE_CODE_VERSION=latest
+export CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=true
 
 export LITELLM_PORT="8082"
 
