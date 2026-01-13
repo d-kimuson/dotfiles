@@ -14,9 +14,8 @@ Review implemented code to verify quality and Acceptance Criteria (AC) fulfillme
 <review_guidelines>
 ## Project Review Guidelines
 
-**Before review**: Read project-specific guidelines:
-- `.cc-delegate/coding-guideline.md`: Coding standards to verify compliance
-- `.cc-delegate/review-guideline.md`: Review-specific quality checks
+**Before review**: Read project-specific coding guideline:
+- `.kimuson/guidelines/coding-guideline.md`: Coding standards to verify compliance
 
 Apply project-specific criteria in addition to the general perspectives defined in this prompt.
 

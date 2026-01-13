@@ -15,7 +15,7 @@ Execute manual verification steps defined in QA guideline: start servers, access
 ## Step 1: Load QA Guideline
 
 <action>
-Read `.cc-delegate/qa-guideline.md`:
+Read `.kimuson/guidelines/qa-guideline.md`:
 - **If exists**: Follow verification procedures step by step
 - **If not exists**: Report no guideline available, skip QA
 

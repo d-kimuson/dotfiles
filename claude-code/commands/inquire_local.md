@@ -62,7 +62,7 @@ Apply classification criteria. Record for Phase 3 branching.
 
 <action>
 1. Generate task ID: `uuidgen`
-2. Create `.cc-delegate/tasks/${task_id}/TASK.md` using template below
+2. Create `.kimuson/tasks/${task_id}/TASK.md` using template below
 3. Fill "User Input" and "Acceptance Criteria" from Phase 1
 4. **Easy tasks**: Keep `Related Context`, delete `Design Plan` section only
 </action>
@@ -102,7 +102,7 @@ Apply classification criteria. Record for Phase 3 branching.
 ```
 Task(
   subagent_type="context-collector",
-  prompt="Collect context and guidelines for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
+  prompt="Collect context and guidelines for task at `.kimuson/tasks/${task_id}/TASK.md`",
   description="Collect context"
 )
 ```
@@ -114,7 +114,7 @@ Task(
 ```
 Task(
   subagent_type="architect",
-  prompt="Design implementation for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
+  prompt="Design implementation for task at `.kimuson/tasks/${task_id}/TASK.md`",
   description="Design plan"
 )
 ```
@@ -143,7 +143,7 @@ For each session N in the list:
 ```
 Task(
   subagent_type="engineer",
-  prompt="Implement session N for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
+  prompt="Implement session N for task at `.kimuson/tasks/${task_id}/TASK.md`",
   description="Implement session N"
 )
 ```
@@ -174,7 +174,7 @@ Session 1 → engineer(1) commits
 ```
 Task(
   subagent_type="reviewer",
-  prompt="Review session N for task at `.cc-delegate/tasks/${task_id}/TASK.md`",
+  prompt="Review session N for task at `.kimuson/tasks/${task_id}/TASK.md`",
   description="Review session N"
 )
 ```
@@ -183,7 +183,7 @@ Task(
 ```
 Task(
   subagent_type="qa",
-  prompt="Execute QA verification for session N in task at `.cc-delegate/tasks/${task_id}/TASK.md`",
+  prompt="Execute QA verification for session N in task at `.kimuson/tasks/${task_id}/TASK.md`",
   description="QA verification"
 )
 ```
@@ -233,7 +233,7 @@ Report to user:
 **QA Status**: All passed ✅
 **Review Status**: All issues resolved ✅
 
-Task document: `.cc-delegate/tasks/${task_id}/TASK.md`
+Task document: `.kimuson/tasks/${task_id}/TASK.md`
 
 **Next steps**: Create PR and verify CI manually.
 ```

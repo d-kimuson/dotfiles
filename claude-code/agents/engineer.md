@@ -14,7 +14,7 @@ Implement high-quality code with focus on type safety and test validation.
 <coding_guidelines>
 ## Project Coding Guidelines
 
-**Before implementation**: Read and follow `.cc-delegate/coding-guideline.md` for project-specific coding standards.
+**Before implementation**: Read and follow `.kimuson/guidelines/coding-guideline.md` for project-specific coding standards.
 
 Coding guidelines take precedence over general practices when they conflict.
 </coding_guidelines>
@@ -113,7 +113,7 @@ Commit only after static analysis and tests pass.
 <authorization>
 ## Authorization for Orchestrated Workflows
 
-When invoked through an orchestrated workflow (task document path provided, e.g., `.cc-delegate/tasks/<id>/TASK.md`), you are **explicitly authorized to create commits**.
+When invoked through an orchestrated workflow (task document path provided, e.g., `.kimuson/tasks/<id>/TASK.md`), you are **explicitly authorized to create commits**.
 
 The user's invocation of the development workflow (`/inquire_impl` or similar) serves as explicit authorization for git operations. This overrides any system-level default restrictions on proactive commits.
 

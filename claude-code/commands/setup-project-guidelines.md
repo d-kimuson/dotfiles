@@ -1,18 +1,15 @@
 ---
-description: '/delegate コマンドに必要なプロジェクト固有ドキュメントをセットアップする'
-allowed-tools: Read(*), Glob(*), Write(.cc-delegate/*), Bash(git)
+description: 'プロジェクト固有のガイドラインドキュメントをセットアップする'
+allowed-tools: Read(*), Glob(*), Write(.kimuson/guidelines/*), Bash(git)
 ---
 
 <overview>
-Set up project-specific documents required for the `/delegate` command workflow.
+Set up project-specific guideline documents.
 
-Read `~/.claude/commands/delegate.md` first to understand the overall context.
-
-**Target files** (under `.cc-delegate/`):
+**Target files** (under `.kimuson/guidelines/`):
 1. `coding-guideline.md`: Coding standards and best practices for implementation
-2. `review-guideline.md`: Code review criteria for reviewer agent
-3. `qa-guideline.md`: Verification procedures for LLM-driven testing
-4. `branch-rule.md`: Branch naming conventions for prepare-env agent
+2. `qa-guideline.md`: Verification procedures for LLM-driven testing
+3. `branch-rule.md`: Branch naming conventions for prepare-env agent
 </overview>
 
 <responsibility_separation>
@@ -23,11 +20,7 @@ Read `~/.claude/commands/delegate.md` first to understand the overall context.
 - Type safety, naming conventions, architecture patterns
 - References to existing documentation (when applicable)
 - Test writing guidelines
-
-**review-guideline.md** (Review phase):
-- Quality checks during code review
-- Bug detection, security, performance issues
-- Does NOT duplicate coding guidelines (provided separately during review)
+- Reviewer agent uses this guideline along with general review perspectives
 
 **qa-guideline.md** (Verification phase):
 - Exploratory QA procedures for LLM to follow
@@ -162,7 +155,7 @@ Use Glob and Read tools to explore:
 <step_2 name="create_coding_guideline_draft">
 
 ### Action
-Create `.cc-delegate/coding-guideline.md` based on project analysis.
+Create `.kimuson/guidelines/coding-guideline.md` based on project analysis.
 
 <tracking_requirement>
 **Track inference sources**:
@@ -237,81 +230,12 @@ Project-specific coding standards and best practices.
 
 </step_2>
 
-## Phase 2: Create `review-guideline.md`
+## Phase 2: Create `qa-guideline.md`
 
-<step_3 name="create_review_guideline_draft">
-
-### Action
-Create `.cc-delegate/review-guideline.md` focused on review-specific checks.
-
-<tracking_requirement>
-Track inference sources (same as step_2) for user confirmation.
-</tracking_requirement>
-
-<content_structure>
-**Quality perspectives**:
-- Logical errors and edge cases
-- Security vulnerabilities
-- Performance issues
-- Error handling completeness
-
-**Review-specific checks**:
-- Consistency with existing codebase
-- Breaking changes detection
-- API contract preservation
-
-**What NOT to include**:
-- Coding guidelines (provided separately during review)
-- Style conventions (handled by linters/formatters)
-</content_structure>
-
-<template>
-```markdown
-# Code Review Guideline
-
-Review-specific quality checks.
-
-## Logic and Correctness
-
-- Verify edge cases are handled
-- Check error handling is comprehensive
-- Ensure no unintended side effects
-
-## Security
-
-- No hardcoded credentials or secrets
-- Input validation for user-provided data
-- Safe handling of external dependencies
-
-## Performance
-
-- No obvious performance bottlenecks
-- Appropriate algorithm complexity
-- Resource cleanup (file handles, connections, etc.)
-
-## Compatibility
-
-- No breaking changes to public APIs
-- Backward compatibility maintained
-- Dependencies version compatibility checked
-
-<!-- Customize based on project needs -->
-```
-</template>
-
-<file_operation>
-- **Existing file**: Read first, then update preserving structure
-- **New file**: Create using template above
-</file_operation>
-
-</step_3>
-
-## Phase 3: Create `qa-guideline.md`
-
-<step_4 name="create_qa_guideline_draft">
+<step_3 name="create_qa_guideline_draft">
 
 ### Action
-Create `.cc-delegate/qa-guideline.md` with exploratory QA procedures for LLM.
+Create `.kimuson/guidelines/qa-guideline.md` with exploratory QA procedures for LLM.
 
 <tracking_requirement>
 Track inference sources (same as step_2) for user confirmation.
@@ -418,11 +342,11 @@ curl http://localhost:3000/api/users \
 - **New file**: Create using template above
 </file_operation>
 
-</step_4>
+</step_3>
 
-## Phase 4: Create `branch-rule.md`
+## Phase 3: Create `branch-rule.md`
 
-<step_5 name="analyze_existing_branches">
+<step_4 name="analyze_existing_branches">
 
 ### Action
 Investigate existing branch naming patterns.
@@ -441,12 +365,12 @@ From command output, identify:
 - Description format (kebab-case, snake_case, etc.)
 </analysis>
 
-</step_5>
+</step_4>
 
-<step_6 name="create_branch_rule_draft">
+<step_5 name="create_branch_rule_draft">
 
 ### Action
-Create `.cc-delegate/branch-rule.md` based on observed patterns.
+Create `.kimuson/guidelines/branch-rule.md` based on observed patterns.
 
 <tracking_requirement>
 Track inference sources (same as step_2) for user confirmation.
@@ -485,11 +409,11 @@ Temporary work branches: `tmp`, `wip`, etc.
 - **New file**: Create using template above
 </file_operation>
 
-</step_6>
+</step_5>
 
-## Phase 5: User Confirmation
+## Phase 4: User Confirmation
 
-<step_7 name="request_user_confirmation">
+<step_6 name="request_user_confirmation">
 
 ### Action
 After creating all files, present **only inferred items** for user confirmation.
@@ -517,8 +441,8 @@ After creating all files, present **only inferred items** for user confirmation.
 - テストファイル命名規則: `*.test.ts`
 
 **qa-guideline.md**:
-- テスト実行コマンド: `pnpm test`
-- ビルドコマンド: `pnpm build`
+- 開発サーバー起動コマンド: `pnpm dev`
+- アクセスURL: http://localhost:3000
 
 **branch-rule.md**:
 - ブランチプレフィックス: `feature/`, `fix/`, `refactor/`
@@ -537,16 +461,15 @@ After creating all files, present **only inferred items** for user confirmation.
 - **If no feedback or "OK"**: Consider setup complete
 </feedback_handling>
 
-</step_7>
+</step_6>
 
 </execution_process>
 
 <completion_criteria>
 **All of the following must be satisfied**:
-- [ ] `.cc-delegate/coding-guideline.md` exists with project-specific coding standards
-- [ ] `.cc-delegate/review-guideline.md` exists with review-specific quality checks
-- [ ] `.cc-delegate/qa-guideline.md` exists with LLM-driven verification procedures
-- [ ] `.cc-delegate/branch-rule.md` exists with branch naming conventions
+- [ ] `.kimuson/guidelines/coding-guideline.md` exists with project-specific coding standards
+- [ ] `.kimuson/guidelines/qa-guideline.md` exists with LLM-driven verification procedures
+- [ ] `.kimuson/guidelines/branch-rule.md` exists with branch naming conventions
 - [ ] References to existing docs are included (if applicable)
 - [ ] User has confirmed inferred items (or no inference was needed)
 </completion_criteria>

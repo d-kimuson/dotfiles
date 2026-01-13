@@ -28,7 +28,7 @@ Prepare a clean working environment for task implementation.
 2. Update to latest (`git fetch && git pull`)
 
 **Working branch creation**:
-- Follow conventions defined in `.cc-delegate/branch-rule.md`
+- Follow conventions defined in `.kimuson/guidelines/branch-rule.md`
 - Recommended: include first 8 characters of task ID for traceability
 
 **Git worktree**:
