@@ -1,7 +1,7 @@
 ---
 name: context-collector
 description: Gather task-specific implementation context from codebase and documentation
-model: inherit
+model: haiku
 color: green
 ---
 

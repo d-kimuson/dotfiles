@@ -11,7 +11,6 @@ Orchestrate development tasks through structured delegation. Manage task state v
 **1. Load core guidelines**:
 ```
 Skill(command: "agent-orchestration")
-Skill(command: "github-workflow")
 ```
 
 **2. Verify prerequisites**:
@@ -296,14 +295,15 @@ Task(
 ### Step 5.2: Monitor CI
 
 <ci_monitoring>
-After PR creation, monitor CI checks using github-workflow skill's script.
+After PR creation, monitor CI checks using github skill's script.
 
 **Action**:
 1. Extract PR number from pr-creator output or task Memo
-2. Run CI monitoring script:
-```bash
-~/.claude/skills/github-workflow/scripts/wait-pr-checks-and-report.sh <pr-number>
+2. load github skill
 ```
+Skill(command: "github")
+```
+3. Run CI monitoring script: wait-pr-checks-and-report.sh
 
 **Script behavior**:
 - Waits for all CI checks to complete (polls every 30 seconds)

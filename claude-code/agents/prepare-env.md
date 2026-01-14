@@ -1,8 +1,7 @@
 ---
 name: prepare-env
-description: Prepare clean development environment: update base branch, create working branch, install dependencies
-model: inherit
-color: green
+description: Prepare clean development environment, update base branch, create working branch, install dependencies
+model: haiku
 ---
 
 Prepare a clean working environment for task implementation.

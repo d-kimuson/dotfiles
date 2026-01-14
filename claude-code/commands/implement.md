@@ -11,7 +11,7 @@ Plan and implement features by designing the overall structure and delegating de
 **Load core guidelines**:
 ```
 Skill(command: "agent-orchestration")
-Skill(command: "github-workflow")
+Skill(command: "github")
 ```
 
 **Load project coding guidelines**:
