@@ -4,13 +4,28 @@ allowed-tools: Read(*), Glob(*), Write(.kimuson/guidelines/*), Bash(git)
 ---
 
 <overview>
-Set up project-specific guideline documents.
+Set up project-specific guideline documents based on codebase analysis and existing documentation.
 
 **Target files** (under `.kimuson/guidelines/`):
-1. `coding-guideline.md`: Coding standards and best practices for implementation
-2. `qa-guideline.md`: Verification procedures for LLM-driven testing
-3. `branch-rule.md`: Branch naming conventions for prepare-env agent
+1. `coding-guideline.md`: Coding standards discovered from project code
+2. `qa-guideline.md`: Verification procedures tailored to this project
+3. `branch-rule.md`: Branch naming conventions observed in repository
 </overview>
+
+<critical_principles>
+**CRITICAL: Discovery-only, zero duplication**
+
+- Document ONLY patterns found through codebase analysis (with evidence: file counts, examples)
+- NEVER reference or duplicate CLAUDE.md (it's system context, already loaded in every session)
+- NEVER include generic best practices (TypeScript basics, testing advice, framework patterns)
+- If insufficient patterns found: Document gap for user input, don't invent rules
+
+**Evidence requirement**:
+- Pattern must appear in 3+ files to be "project convention"
+- Cite file counts and example paths for each documented pattern
+- ✅ "Variables: camelCase (observed in 87 files in src/)"
+- ❌ "Variables should use camelCase" (generic, no evidence)
+</critical_principles>
 
 <responsibility_separation>
 ## Document Responsibilities
@@ -20,7 +35,6 @@ Set up project-specific guideline documents.
 - Type safety, naming conventions, architecture patterns
 - References to existing documentation (when applicable)
 - Test writing guidelines
-- Reviewer agent uses this guideline along with general review perspectives
 
 **qa-guideline.md** (Verification phase):
 - Exploratory QA procedures for LLM to follow
@@ -33,200 +47,55 @@ Set up project-specific guideline documents.
 - Temporary vs. permanent branch patterns
 </responsibility_separation>
 
-<writing_guidelines>
-## Guideline Writing Best Practices
-
-Apply prompt engineering principles to create effective, concise guidelines.
-
-<conciseness>
-### Keep Guidelines Concise
-
-**Focus on essential information**:
-- Rules and constraints, not detailed procedures
-- Trust the LLM to infer implementation details
-- Remove redundant explanations
-- Aim for clarity over completeness
-
-**Red flags** (avoid in guidelines):
-- Step-by-step procedures (LLM can infer these)
-- Multiple language examples (pick project's primary language)
-- Hypothetical file paths (only reference verified files)
-- Generic patterns (should be in CLAUDE.md if project-wide)
-</conciseness>
-
-<documentation_references>
-### Referencing Existing Documentation
-
-**When to reference vs. inline**:
-- **Small, concise docs** (< 50 lines): OK to reference by file path only
-  - Example: "Follow patterns in `docs/testing.md`"
-  - LLM will read and apply the document
-- **Large docs or partial relevance**: Summarize key points, reference for details
-  - Extract essential rules into guideline
-  - Reference original doc for comprehensive coverage
-- **Always verify**: Only reference files that actually exist (use Read/Glob)
-
-**Benefits of file references**:
-- Reduces duplication and maintenance burden
-- Guidelines stay focused and readable
-- Changes to source docs automatically propagate
-</documentation_references>
-
-<structure>
-### Structure and Clarity
-
-**Use XML tags for organization**:
-- Group related rules within clear sections
-- Recommended tags: `<rules>`, `<examples>`, `<antipatterns>`
-- Improves LLM comprehension and adherence
-
-**High cohesion**:
-- Keep related information together
-- Don't scatter rules across multiple sections
-- Group by topic, not by severity or type
-</structure>
-
-<specificity>
-### Be Specific and Concrete
-
-**Avoid ambiguity**:
-- Use concrete examples over abstract descriptions
-- Define clear success criteria
-- Specify exact commands when applicable
-
-**Good**:
-```markdown
-## Type Safety
-- Avoid `any`; use `unknown` with type guards if needed
-- Prefer union types over optional properties when state is mutually exclusive
-```
-
-**Avoid**:
-```markdown
-## Type Safety
-- Use TypeScript properly
-- Make sure types are safe
-```
-</specificity>
-</writing_guidelines>
-
-<file_handling_policy>
-**For existing files**:
-- Update rather than recreate
-- Preserve existing structure and style
-- Remove outdated entries (deprecated technologies, obsolete rules)
-- Add missing perspectives
-
-**For new files**:
-- Create from scratch using templates below
-</file_handling_policy>
+<file_handling>
+**Standard pattern**: Existing file → Read first, Edit to update; New file → Write using template principles below
+</file_handling>
 
 <execution_process>
 
 ## Phase 1: Create `coding-guideline.md`
 
-<step_1 name="analyze_project_characteristics">
+<step_1 name="systematic_codebase_analysis">
 
 ### Action
-Gather information to understand project characteristics:
+Systematically analyze the codebase to extract project-specific patterns. Think harder about what patterns are truly consistent across the project.
 
-<investigation_targets>
-**Technology stack**:
-- Language and dependencies: `package.json`, `Cargo.toml`, `go.mod`, `requirements.txt`, etc.
+**Systematic analysis** (think harder about consistency):
+1. **Structure discovery**: Glob for source files (`**/*.{ts,tsx}`, `**/*.test.*`)
+2. **Sample 10-20 files**: Different modules, Read to analyze naming/structure/types
+3. **Extract patterns**: Naming, file organization, type usage, testing, architecture
+4. **Validate consistency**: Grep with `output_mode="count"` to verify pattern prevalence (3+ files = convention)
+5. **Find docs**: Glob for `docs/**/*.md`, `**/CONTRIBUTING.md` (skip CLAUDE.md entirely)
+6. **Large codebases**: Use Task tool with Explore agent if available
 
-**Implementation patterns**:
-- Architecture patterns used in codebase
-- Coding style conventions (variable naming, file organization, etc.)
-
-**Existing documentation**:
-- Guideline documents (coding standards, architecture docs, etc.)
-- README files with development guidelines
-</investigation_targets>
-
-<tools>
-Use Glob and Read tools to explore:
-- Configuration files for tech stack identification
-- Sample implementation files for style analysis
-- Documentation files for existing guidelines
-</tools>
+**If insufficient patterns**: Document gap for user input, don't invent generic rules
 
 </step_1>
 
 <step_2 name="create_coding_guideline_draft">
 
 ### Action
-Create `.kimuson/guidelines/coding-guideline.md` based on project analysis.
+Create `.kimuson/guidelines/coding-guideline.md` from step_1 discoveries. Track sources internally (from docs/from code/gap) for Phase 4 confirmation.
 
-<tracking_requirement>
-**Track inference sources**:
-- **From existing docs**: Guidelines found in documentation files (e.g., `docs/*.md` or other .md files)
-- **Inferred from codebase**: Patterns observed in code (naming, structure, etc.)
-- **No documentation found**: Items created from general best practices
-
-Keep internal notes to distinguish these for user confirmation.
-</tracking_requirement>
-
-<content_structure>
-**Core coding rules**:
-- Type safety requirements
-- Naming conventions (variables, functions, files)
-- Architecture patterns to follow
-
-**Tech-stack-specific practices**:
-- Framework-specific best practices (e.g., React Hooks rules)
-- Language idioms (e.g., TypeScript `any` prohibition)
-- Library usage patterns
-
-**Test guidelines**:
-- When to write tests
-- Test naming conventions
-- Test structure patterns
-
-**Documentation references** (if applicable):
-- Reference existing documentation files when they contain relevant guidelines
-- Use this file as an index/summary when detailed docs exist elsewhere
-- **Important**: Only reference documents that actually exist (verified via Read/Glob)
-- Example: "For testing patterns, see `docs/testing.md`" (only if verified to exist)
-</content_structure>
-
-<template>
+**Template principles** (not prescribed structure - organize by discovered topics):
 ```markdown
 # Coding Guideline
 
-Project-specific coding standards and best practices.
+Project-specific patterns discovered from codebase analysis.
 
-## Type Safety
+## [Topic Name - e.g., Naming Conventions, Type Usage, Testing]
 
-- Avoid `any`; use `unknown` with documented justification if unavoidable
-- Prefer type guards over type assertions (`as`)
-- Ensure all function parameters and return values have explicit types
+- [Pattern]: [Description] (found in [N] files, e.g., src/components/*.tsx)
+- [Another pattern with evidence]
 
-## Naming Conventions
+## Documentation References
 
-- Variables: camelCase
-- Files: kebab-case for modules, PascalCase for components
-- Constants: UPPER_SNAKE_CASE for true constants
-
-## Architecture
-
-- Separate business logic from presentation layer
-- Maintain unidirectional dependencies
-- Follow existing directory structure
-
-## Testing
-
-- Write unit tests for new features
-- Follow `*.test.ts` naming convention
-- Test both happy paths and error cases
-
-<!-- Customize based on project needs -->
+[Only if verified to exist:] For [topic]: See `path/to/doc.md`
 ```
-</template>
 
-<file_operation>
-- **Existing file**: Read first, then update preserving structure
-- **New file**: Create using template above
-</file_operation>
+**CRITICAL**: ALL content from step_1 discoveries. If no pattern found: Document gap, don't invent generic rules. Cite evidence (file counts, paths).
+
+Apply <file_handling> pattern.
 
 </step_2>
 
@@ -235,241 +104,95 @@ Project-specific coding standards and best practices.
 <step_3 name="create_qa_guideline_draft">
 
 ### Action
-Create `.kimuson/guidelines/qa-guideline.md` with exploratory QA procedures for LLM.
+Create `.kimuson/guidelines/qa-guideline.md` from discovered configuration. Track sources for Phase 4.
 
-<tracking_requirement>
-Track inference sources (same as step_2) for user confirmation.
-</tracking_requirement>
+**Discovery targets**:
+- Startup commands: `package.json` scripts, README, docker-compose.yml, Makefile
+- App type/endpoints: Web (port config), API (routes), CLI (commands)
+- Verification targets: Code structure, test files, docs
 
-<content_structure>
-**Application startup**:
-- Commands to start the application (dev server, API server, etc.)
-- Expected startup time and success indicators
-- URLs and ports to access
-
-**Manual verification steps**:
-- What functionality to verify (login, data display, API endpoints, etc.)
-- How to verify (browser access, curl commands, CLI execution)
-- Expected behavior and success criteria
-
-**Error checking**:
-- Where to look for errors (browser console, server logs)
-- Common issues and how to identify them
-
-**Important**: Write for LLM exploratory testing, not automated test execution
-- Describe manual verification procedures
-- Specify what to observe and how to interact
-- Define expected vs. actual behavior
-</content_structure>
-
-<template>
+**Template principles**:
 ```markdown
 # QA Guideline
 
-Exploratory QA procedures for LLM to verify functionality manually.
+## Startup: [command from package.json/docs]
+**Expected**: [output/URL from config]
 
-## Web Application Verification
+## Verification: [Based on app type]
+1. [Feature - from code/tests/docs]
+2. [Verification method - browser/curl/CLI]
 
-**Start development server**:
-```bash
-pnpm dev
+## Success Criteria: [Project-specific behaviors]
 ```
 
-**Wait for**: Server logs "ready on http://localhost:3000" (typically 10-30 seconds)
+**CRITICAL**: Discover commands/URLs from config, don't assume. Document gaps if unclear.
 
-**Verification steps**:
-1. Access http://localhost:3000 in browser
-2. Verify home page loads without errors
-3. Test login functionality:
-   - Navigate to /login
-   - Enter test credentials (user@example.com / password123)
-   - Verify redirect to dashboard on success
-4. Check dashboard displays data correctly
-5. Verify no console errors in browser DevTools
-
-**Success criteria**:
-- All pages load successfully
-- Login flow works end-to-end
-- No JavaScript errors in console
-- No 404 or 500 errors in network tab
-
-**Cleanup**: Stop dev server after verification
-
-## API Verification (Alternative)
-
-**Start API server**:
-```bash
-pnpm start:api
-```
-
-**Wait for**: "API server listening on port 3000"
-
-**Verification steps**:
-1. Test health endpoint:
-```bash
-curl http://localhost:3000/health
-# Expected: {"status": "ok"}
-```
-
-2. Test authentication:
-```bash
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "test@example.com", "password": "test123"}'
-# Expected: 200 status with token
-```
-
-3. Test protected endpoint:
-```bash
-curl http://localhost:3000/api/users \
-  -H "Authorization: Bearer <token>"
-# Expected: 200 status with user list
-```
-
-**Success criteria**:
-- All endpoints return expected status codes
-- Response payloads match expected structure
-- No server errors in logs
-
-**Cleanup**: Stop API server after verification
-
-<!-- Customize based on project type and features -->
-```
-</template>
-
-<file_operation>
-- **Existing file**: Read first, then update preserving structure
-- **New file**: Create using template above
-</file_operation>
+Apply <file_handling> pattern.
 
 </step_3>
 
 ## Phase 3: Create `branch-rule.md`
 
-<step_4 name="analyze_existing_branches">
+<step_4 name="analyze_and_create_branch_rule">
 
 ### Action
-Investigate existing branch naming patterns.
+Analyze git history and create `.kimuson/guidelines/branch-rule.md`. Track sources for Phase 4.
 
-<commands>
 ```bash
-git branch -a --format='%(refname:short)' | grep -v '^origin$'
-git log --oneline --all --decorate | grep -oP '\((.*?)\)' | head -20
+git branch -a --format='%(refname:short)' | head -30
+git log --oneline --all --decorate -20
 ```
-</commands>
 
-<analysis>
-From command output, identify:
-- Common branch prefixes (feature/, fix/, etc.)
-- Temporary branch patterns (tmp, wip, etc.)
-- Description format (kebab-case, snake_case, etc.)
-</analysis>
+**Analysis**: Identify branch prefixes (feature/, fix/), temporary patterns (tmp, wip), description format (kebab/snake case)
 
-</step_4>
-
-<step_5 name="create_branch_rule_draft">
-
-### Action
-Create `.kimuson/guidelines/branch-rule.md` based on observed patterns.
-
-<tracking_requirement>
-Track inference sources (same as step_2) for user confirmation.
-</tracking_requirement>
-
-<template>
+**Template principles**:
 ```markdown
 # Branch Naming Rule
 
-## Naming Convention
-
-### Pattern
-
-Regular branches: `<type>/<description>`
-Temporary work branches: `tmp`, `wip`, etc.
-
-### Types
-
-- `feature/`: New feature development
-- `fix/`: Bug fixes
-- `refactor/`: Code refactoring
-- `chore/`: Build process or tooling changes
-
-### Examples
-
-- `feature/add-user-authentication`
-- `fix/resolve-memory-leak`
-- `tmp` (temporary work)
-
-<!-- Customize based on project needs -->
+**Pattern**: [from git history] (found in [N] branches)
+**Types**: [type1/, type2/] with counts
+**Examples**: [actual branch names from log]
 ```
-</template>
 
-<file_operation>
-- **Existing file**: Read first, then update preserving structure
-- **New file**: Create using template above
-</file_operation>
+**CRITICAL**: If no clear pattern (few/inconsistent branches), document gap for user input.
 
-</step_5>
+Apply <file_handling> pattern.
+
+</step_4>
 
 ## Phase 4: User Confirmation
 
-<step_6 name="request_user_confirmation">
+<step_5 name="request_user_confirmation">
 
 ### Action
-After creating all files, present **only inferred items** for user confirmation.
+Present discovered patterns and gaps for confirmation. Skip items from verified project docs. NEVER mention system context files (CLAUDE.md, AGENTS.md).
 
-<confirmation_strategy>
-**Focus on uncertainty only**:
-- List items inferred from codebase patterns (no explicit documentation)
-- List items created from general best practices (no project-specific info found)
-- **Skip items** referenced from existing docs (CLAUDE.md, CONTRIBUTING.md, etc.)
-
-**Message structure**:
-1. Brief summary: "Created 4 guideline files"
-2. **Inferred items requiring confirmation** (bulleted list, grouped by file)
-3. Ask: "Do these look correct for your project?"
-</confirmation_strategy>
-
-<message_template>
-**Example confirmation message**:
-
+**Message example**:
 ```
-セットアップ完了しました。以下の項目はドキュメントが見つからなかったため推測で作成しています。確認をお願いします:
+セットアップ完了しました。コードベース分析の結果:
 
-**coding-guideline.md**:
-- TypeScript の `any` 禁止ルール
-- テストファイル命名規則: `*.test.ts`
+**発見したパターン**:
+- ファイル命名: kebab-case (src/ 配下 47 ファイルで確認)
+- テストファイル: `*.test.ts` パターン (23 ファイル)
+- 起動コマンド: `npm run dev` (package.json より)
+- ブランチタイプ: feature/, fix/ (git log で 18 ブランチ確認)
 
-**qa-guideline.md**:
-- 開発サーバー起動コマンド: `pnpm dev`
-- アクセスURL: http://localhost:3000
+**パターンが見つからなかった項目**:
+- 変数命名規則 (一貫性なし - 好みを指定してください)
 
-**branch-rule.md**:
-- ブランチプレフィックス: `feature/`, `fix/`, `refactor/`
-
-これらで問題なければそのまま使えます。修正が必要な箇所があれば教えてください。
+パターンは正しいですか? 不明な項目への方針があれば教えてください。
 ```
 
-**If nothing was inferred** (all from existing docs):
-```
-セットアップ完了しました。既存のドキュメントから必要な情報を収集できたため、すぐに使えます。
-```
-</message_template>
+Apply user feedback if provided, or consider complete if "OK"/no feedback.
 
-<feedback_handling>
-- **If feedback provided**: Apply requested changes and confirm
-- **If no feedback or "OK"**: Consider setup complete
-</feedback_handling>
-
-</step_6>
+</step_5>
 
 </execution_process>
 
 <completion_criteria>
-**All of the following must be satisfied**:
-- [ ] `.kimuson/guidelines/coding-guideline.md` exists with project-specific coding standards
-- [ ] `.kimuson/guidelines/qa-guideline.md` exists with LLM-driven verification procedures
-- [ ] `.kimuson/guidelines/branch-rule.md` exists with branch naming conventions
-- [ ] References to existing docs are included (if applicable)
-- [ ] User has confirmed inferred items (or no inference was needed)
+All three guideline files exist with:
+- Discovered patterns (not generic advice) with evidence citations
+- Project-specific content (zero generic best practices)
+- No CLAUDE.md duplication (context files skipped)
+- User confirmation of patterns and input for gaps
 </completion_criteria>
