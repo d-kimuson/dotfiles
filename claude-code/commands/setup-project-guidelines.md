@@ -10,6 +10,7 @@ Set up project-specific guideline documents based on codebase analysis and exist
 1. `coding-guideline.md`: Coding standards discovered from project code
 2. `qa-guideline.md`: Verification procedures tailored to this project
 3. `branch-rule.md`: Branch naming conventions observed in repository
+4. `completion-notification.md`: Task completion notification settings (optional, defaults to disabled)
 </overview>
 
 <critical_principles>
@@ -160,16 +161,26 @@ Apply <file_handling> pattern.
 
 </step_4>
 
-## Phase 4: User Confirmation
+## Phase 4: Completion Report
 
-<step_5 name="request_user_confirmation">
+<step_5 name="report_completion">
 
 ### Action
-Present discovered patterns and gaps for confirmation. Skip items from verified project docs. NEVER mention system context files (CLAUDE.md, AGENTS.md).
+Report what was created and highlight items that may need user feedback. Do NOT use AskUserQuestion tool. Present results and let user provide feedback if needed.
 
-**Message example**:
+**Conservative defaults**:
+- Create all core files with discovered patterns
+- Do NOT create `completion-notification.md` (default: disabled)
+- For unclear patterns: Use the most common observed pattern, note uncertainty
+
+**Report format**:
 ```
-セットアップ完了しました。コードベース分析の結果:
+セットアップ完了しました。
+
+**作成したファイル**:
+- `.kimuson/guidelines/coding-guideline.md`
+- `.kimuson/guidelines/qa-guideline.md`
+- `.kimuson/guidelines/branch-rule.md`
 
 **発見したパターン**:
 - ファイル命名: kebab-case (src/ 配下 47 ファイルで確認)
@@ -177,22 +188,46 @@ Present discovered patterns and gaps for confirmation. Skip items from verified 
 - 起動コマンド: `npm run dev` (package.json より)
 - ブランチタイプ: feature/, fix/ (git log で 18 ブランチ確認)
 
-**パターンが見つからなかった項目**:
-- 変数命名規則 (一貫性なし - 好みを指定してください)
+**確認が必要な項目** (一旦保守的に設定):
+- 変数命名: camelCase を採用（一貫性なし、最多パターンを選択）
+- タスク完了通知: 無効（デフォルト）
 
-パターンは正しいですか? 不明な項目への方針があれば教えてください。
+必要に応じて修正指示をください。通知設定が必要な場合は以下の形式で教えてください:
+- ローカル作業完了時: slack:#channel
+- PR作成完了時: slack:#channel / github:@reviewer
 ```
 
-Apply user feedback if provided, or consider complete if "OK"/no feedback.
+**If user provides feedback**:
+- Apply corrections to existing files
+- If notification settings provided: Create `completion-notification.md`:
+  ```markdown
+  # Task Completion Notification
+
+  ## Local Work Completion
+  **Status**: [disabled | enabled]
+  **Method/Target**: [N/A | slack:#channel]
+
+  ## PR Creation Completion
+  **Status**: [disabled | enabled]
+  **Method/Target**: [N/A | slack:#channel | github:@user]
+  ```
 
 </step_5>
 
 </execution_process>
 
 <completion_criteria>
-All three guideline files exist with:
+Core guideline files (coding-guideline, qa-guideline, branch-rule) exist with:
 - Discovered patterns (not generic advice) with evidence citations
 - Project-specific content (zero generic best practices)
 - No CLAUDE.md duplication (context files skipped)
-- User confirmation of patterns and input for gaps
+- Unclear patterns: Conservative default chosen, noted in report
+
+Optional file (completion-notification):
+- Only created if user explicitly provides notification settings in feedback
+- Default: no file created (notification disabled)
 </completion_criteria>
+
+<important_notes>
+**Do NOT use AskUserQuestion tool**: This command targets users without interactive question UI. Always complete setup first with conservative defaults, then report results with clear feedback options.
+</important_notes>

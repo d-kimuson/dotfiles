@@ -24,6 +24,13 @@ Required guideline documents must exist under `.kimuson/guidelines/`:
 **If any are missing**: Inform the user that these guideline documents must exist before proceeding. Use `/setup-project-guidelines` command to create them.
 
 **If all exist**: Proceed with task orchestration.
+
+**3. Load completion notification settings** (optional):
+```
+Read(".kimuson/guidelines/completion-notification.md")
+```
+
+If this file doesn't exist, default behavior is no notification. Proceed without it.
 </setup>
 
 <role>
@@ -364,6 +371,13 @@ Report to user:
 
 Task document: `.kimuson/tasks/${task_id}/TASK.md`
 ```
+
+<completion_notification>
+**Notification** (if completion-notification.md was loaded):
+- Check "PR Creation Completion" section
+- If enabled, follow the Method/Target instructions in the guideline
+- If not loaded or disabled: Skip (default)
+</completion_notification>
 </execution_phases>
 
 <workflow_permissions>

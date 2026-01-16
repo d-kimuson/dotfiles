@@ -13,12 +13,19 @@ Plan and implement features by designing the overall structure and delegating de
 Skill(command: "github")
 ```
 
-**Load project coding guidelines**:
+**Load project guidelines**:
 ```
 Read(".kimuson/guidelines/coding-guideline.md")
 ```
 
 If the guideline document doesn't exist, inform the user to create it first using `/setup-project-guidelines`.
+
+**Load completion notification settings** (optional):
+```
+Read(".kimuson/guidelines/completion-notification.md")
+```
+
+If this file doesn't exist, default behavior is no notification. Proceed without it.
 </setup>
 
 <role>
@@ -299,6 +306,9 @@ Verify the implementation is complete:
 
 ## Phase 6: Completion Report
 
+<local_completion>
+### Step 6.1: Local Work Completion
+
 Report to user:
 
 ```
@@ -317,6 +327,12 @@ Report to user:
 Next steps:
 [Suggest commit/PR creation if not done, or other relevant next steps]
 ```
+
+**Notification** (if completion-notification.md was loaded):
+- Check "Local Work Completion" section
+- If enabled, follow the Method/Target instructions in the guideline
+- If not loaded or disabled: Skip (default)
+</local_completion>
 </workflow>
 
 <guidelines>
