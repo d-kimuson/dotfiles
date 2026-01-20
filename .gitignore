@@ -7,6 +7,9 @@
 .gitconfig-sms
 .gitconfig-local
 
+# Claude Code
+CLAUDE.local.md
+
 # gemini
 .claude/settings.local.json
 

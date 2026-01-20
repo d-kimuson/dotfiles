@@ -5,6 +5,11 @@
 - User communication: Japanese (日本語)
 - Documentation and code comments: Preserve existing language (do not translate)
 
+## Programming Style
+
+- Functional programming: Prefer immutable over mutable, ADTs + pure functions over classes
+- Test-driven development: When test environment exists, implement via unit tests first
+
 ## Key Skills
 
 MUST enable appropriate skills before starting implementation:

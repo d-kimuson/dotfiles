@@ -138,5 +138,12 @@ Each commit should tell a story. Split logically, not arbitrarily.
 タスクの完了条件としてPRのCI監視と結果を確認する必要がある場合は専用のスクリプトを実行することで待機とレポートを受け取ります。
 
 ```bash
-<skills-directory>/scripts/wait-pr-checks-and-report.sh <PR_NUMBER>
+<skills-directory>/scripts/wait-pr-checks-and-report.sh <PR_NUMBER> [--ignore <workflow_name>]...
+```
+
+VRT 承認待ちなど、手動承認が必要で永続的に pending になるワークフローがある場合は `--ignore` オプションで除外できます。
+
+```bash
+# 例: VRT と Manual Approval を無視
+<skills-directory>/scripts/wait-pr-checks-and-report.sh 123 --ignore 'Visual Regression' --ignore 'Manual Approval'
 ```
