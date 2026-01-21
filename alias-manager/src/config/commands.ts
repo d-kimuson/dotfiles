@@ -111,7 +111,7 @@ const kill_port = fn('kill-port', /* bash */`
     echo "required port number";
     return 1;
   fi
-  lsof -i :$1 | awk -F " " '{ print $2 }' | grep -v "PID" | xargs kill -9
+  lsof -ti tcp:$1 | xargs kill -9
 `)
 
 const install_compose = fn('install-compose', /* bash */`
