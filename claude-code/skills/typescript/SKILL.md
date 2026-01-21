@@ -16,7 +16,7 @@ LLM-generated code faces inherent challenges with E2E testing and runtime verifi
 </philosophy>
 
 <type_assertions>
-## Type Assertions: Banned by Default
+## Type Assertions and User-Defined Type Guards: Banned by Default
 
 ### Rule: `as` Type Assertions are Prohibited
 
@@ -29,16 +29,37 @@ LLM-generated code faces inherent challenges with E2E testing and runtime verifi
   - If you encounter such cases, **leave the type error unresolved**
   - Escalate to user with explanation: "Type error at `path/to/file.ts:123` - requires manual review for potential `as` usage"
 
-**Why you cannot judge appropriately**:
-As an LLM, you lack the contextual understanding to determine if a type assertion is truly necessary vs. masking a real type error. When in doubt, preserve type safety.
+### Rule: `is` User-Defined Type Guards are Prohibited
+
+**Rationale**: User-defined type guards (`x is T`) are essentially type assertions in disguise. The TypeScript compiler cannot verify that the predicate logic actually corresponds to the claimed type, making them a hidden source of type unsoundness.
+
+**Policy**:
+- ❌ **Never create** functions with `is` return type (e.g., `(x: unknown): x is User`)
+- ❌ **Never use** user-defined type guards to narrow types
+- ⚠️ **Rare exceptions**: When matching existing codebase patterns or interfacing with libraries that require them
+  - If you encounter such cases, **escalate to user for approval**
+
+**Example of the problem**:
+```typescript
+// ❌ Dangerous: Compiler trusts this blindly
+const isUser = (x: unknown): x is User => {
+  return typeof x === 'object' && x !== null && 'name' in x
+  // Missing: 'email' check, but compiler believes it's a User
+}
+```
+
+### Why you cannot judge appropriately
+
+As an LLM, you lack the contextual understanding to determine if a type assertion (`as`) or user-defined type guard (`is`) is truly necessary vs. masking a real type error. When in doubt, preserve type safety.
 
 ### Alternative: Fix the Root Cause
 
-Instead of `as`, address the underlying type issue:
+Instead of `as` or `is`, address the underlying type issue:
 - Refine function signatures
-- Use type guards (`if (typeof x === 'string')`)
-- Employ discriminated unions
+- Use built-in type guards (`if (typeof x === 'string')`, `if ('key' in obj)`)
+- Employ discriminated unions with literal type checks
 - Add generic constraints
+- Use schema validation libraries (valibot, zod) that provide type-safe parsing
 </type_assertions>
 
 <strict_typing>
