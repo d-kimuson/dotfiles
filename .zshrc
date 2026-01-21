@@ -149,3 +149,5 @@ function cc_litellm_deactivate() {
 if [ -f ~/.localrc ]; then
   source ~/.localrc
 fi
+
+if [ -e /home/kaito/.nix-profile/etc/profile.d/nix.sh ]; then . /home/kaito/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
