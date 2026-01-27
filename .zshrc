@@ -45,6 +45,7 @@ export STARSHIP_CONFIG=~/dotfiles/config/starship.toml
 export DOCKER_CONFIG=$HOME/.docker
 export PNPM_HOME="$HOME/Library/pnpm"
 export BUN_INSTALL="$HOME/.bun"
+export DIRENV_WARN_TIMEOUT=1m
 
 export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
@@ -149,5 +150,3 @@ function cc_litellm_deactivate() {
 if [ -f ~/.localrc ]; then
   source ~/.localrc
 fi
-
-if [ -e /home/kaito/.nix-profile/etc/profile.d/nix.sh ]; then . /home/kaito/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
