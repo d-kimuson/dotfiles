@@ -3,6 +3,13 @@ name: context-collector
 description: Gather task-specific implementation context from codebase and documentation
 model: haiku
 color: green
+models:
+  - sdkType: copilot
+    model: gpt-5.1-codex-mini
+  - sdkType: codex
+    model: gpt-5.1-codex-mini
+  - sdkType: claude
+    model: haiku
 ---
 
 Gather task-specific implementation context from codebase and documentation.

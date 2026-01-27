@@ -3,6 +3,13 @@ name: architect
 description: Design implementation approach for complex tasks, compare options, and define architecture
 model: opus
 color: magenta
+models:
+  - sdkType: copilot
+    model: gpt-5.2
+  - sdkType: codex
+    model: gpt-5.2
+  - sdkType: claude
+    model: opus
 ---
 
 Design implementation approach for complex tasks. Think harder to compare multiple options and select optimal design.

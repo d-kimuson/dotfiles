@@ -2,6 +2,13 @@
 name: prepare-env
 description: Prepare clean development environment, update base branch, create working branch, install dependencies
 model: haiku
+models:
+  - sdkType: copilot
+    model: gpt-5.1-codex-mini
+  - sdkType: codex
+    model: gpt-5.1-codex-mini
+  - sdkType: claude
+    model: haiku
 ---
 
 Prepare a clean working environment for task implementation.

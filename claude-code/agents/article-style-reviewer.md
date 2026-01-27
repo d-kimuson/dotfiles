@@ -5,6 +5,13 @@ model: sonnet
 color: cyan
 skills:
   - article-writing
+models:
+  - sdkType: copilot
+    model: gpt-5.2
+  - sdkType: codex
+    model: gpt-5.2
+  - sdkType: claude
+    model: sonnet
 ---
 
 Review technical articles to ensure natural, human-like writing style and identify AI-generated patterns.

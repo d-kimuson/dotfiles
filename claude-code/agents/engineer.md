@@ -3,6 +3,13 @@ name: engineer
 description: Implement code with strict type safety and TDD approach, ensuring zero type errors
 model: inherit
 color: blue
+models:
+  - sdkType: codex
+    model: gpt-5.2
+  - sdkType: claude
+    model: opus
+  - sdkType: copilot
+    model: claude-sonnet-4.5
 ---
 
 Implement high-quality code with focus on type safety and test validation.

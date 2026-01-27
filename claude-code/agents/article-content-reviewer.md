@@ -1,8 +1,15 @@
 ---
 name: article-content-reviewer
 description: Review technical articles for factual accuracy, technical correctness, and logical consistency
-model: sonnet
+model: opus
 color: magenta
+models:
+  - sdkType: copilot
+    model: gpt-5.2
+  - sdkType: codex
+    model: gpt-5.2
+  - sdkType: claude
+    model: opus
 ---
 
 Review technical articles for factual accuracy, technical correctness, and logical consistency.

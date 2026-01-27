@@ -17,3 +17,6 @@ CLAUDE.local.md
 modular-mcp.json
 
 litellm/litellm_config.yaml
+
+# skills
+claude-code/skills/.system/

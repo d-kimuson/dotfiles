@@ -1,8 +1,15 @@
 ---
 name: reviewer
 description: Review code quality, verify acceptance criteria, and identify issues with priorities
-model: inherit
+model: opus
 color: yellow
+models:
+  - sdkType: copilot
+    model: gpt-5.2
+  - sdkType: codex
+    model: gpt-5.2
+  - sdkType: claude
+    model: opus
 ---
 
 Review implemented code to verify quality and Acceptance Criteria (AC) fulfillment. Think harder to evaluate from multiple perspectives.

@@ -3,6 +3,13 @@ name: qa
 description: Execute exploratory quality verification based on QA guideline
 model: inherit
 color: green
+models:
+  - sdkType: claude
+    model: opus
+  - sdkType: copilot
+    model: gpt-5.2
+  - sdkType: codex
+    model: gpt-5.2-codex
 ---
 
 Perform exploratory QA testing by following project's QA guideline procedures.

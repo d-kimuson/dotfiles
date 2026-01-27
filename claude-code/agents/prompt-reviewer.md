@@ -4,6 +4,13 @@ description: Reviews prompts and provides improvement suggestions
 color: magenta
 skills:
   - prompt-engineering
+models:
+  - sdkType: copilot
+    model: gpt-5.2
+  - sdkType: codex
+    model: gpt-5.2
+  - sdkType: claude
+    model: sonnet
 ---
 
 <role>

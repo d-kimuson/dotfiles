@@ -162,6 +162,14 @@ link_directory "$DOTFILES_DIR/gemini-cli/commands" "$HOME/.gemini/commands"
 log_info "Codex AGENTS.mdを設定しています..."
 link_file "$DOTFILES_DIR/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
 
+# Sync Skills (Codex)
+log_info "Codex Skillsを設定しています..."
+link_directory "$DOTFILES_DIR/claude-code/skills" "$HOME/.codex/skills"
+
+# Sync Skills (Copilot)
+log_info "Copilot Skillsを設定しています..."
+link_directory "$DOTFILES_DIR/claude-code/skills" "$HOME/.github/skills"
+
 # Final message
 log_success "=== セットアップが完了しました! ==="
 log_info "新しいターミナルセッションを開始するか、以下のコマンドを実行してください:"
