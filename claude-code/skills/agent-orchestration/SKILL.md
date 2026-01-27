@@ -15,6 +15,88 @@ description: DO NOT invoke unless explicitly instructed. Core guidelines for orc
 **Key principle**: Delegate execution to subagents. Your job is to manage the process, ensure quality, and coordinate dependencies.
 </core_principle>
 
+<tool_selection>
+## Tool Selection: agent-task vs Task
+
+Two tools are available for subagent orchestration. **Prefer agent-task when applicable**.
+
+<agent_task_tool>
+### agent-task (MCP agent-bridge) - Preferred
+
+**When to use**: First choice for tasks matching available agent types.
+
+**Available agents**:
+- `architect`: Design implementation approach, compare options, define architecture
+- `engineer`: Implement code with strict type safety and TDD approach
+- `qa`: Execute exploratory quality verification and testing
+- `researcher`: Research information on the web, provide comprehensive insights
+- `reviewer`: Review code quality, verify acceptance criteria, identify issues
+- `translator`: Translate text with natural phrasing and cultural awareness
+- `writer`: Write clear, well-structured documents and content
+
+**Advantages**:
+- Higher quality output from specialized models (gpt-5.2, opus, gemini-3-pro-preview)
+- Multi-turn conversation capability
+- File reading and codebase exploration
+- Session resumption via `resume` parameter
+
+**Usage**:
+```
+agent-task(
+  agentType="engineer",
+  prompt="Implement feature X with TDD approach...",
+  runInBackground=false  # or true for async
+)
+```
+
+**Background execution**:
+```
+# Start task
+agent-task(agentType="reviewer", prompt="...", runInBackground=true)
+# Returns sessionId
+
+# Get result when ready
+agent-task-output(sessionId="<returned-session-id>")
+```
+</agent_task_tool>
+
+<task_tool>
+### Task (Built-in) - Fallback
+
+**When to use**: Tasks not covered by agent-task agent types.
+
+**Available subagent types**:
+- `Bash`: Command execution (git, npm, docker)
+- `Explore`: Fast codebase exploration
+- `Plan`: Software architecture planning
+- `general-purpose`: Complex multi-step tasks
+- Custom agents defined in `.claude/agents/`
+
+**Usage**: Same as before—specify `subagent_type` and `prompt`.
+</task_tool>
+
+<selection_guide>
+### Selection Guide
+
+| Task Type | Tool | Agent |
+|-----------|------|-------|
+| Architecture design | agent-task | architect |
+| Code implementation | agent-task | engineer |
+| Testing/QA | agent-task | qa |
+| Web research | agent-task | researcher |
+| Code review | agent-task | reviewer |
+| Documentation | agent-task | writer |
+| Translation | agent-task | translator |
+| Git operations | Task | Bash |
+| File search/explore | Task | Explore |
+| Custom workflows | Task | (custom agent) |
+
+**Decision flow**:
+1. Does task match an agent-task agent type? → Use agent-task
+2. Otherwise → Use Task with appropriate subagent_type
+</selection_guide>
+</tool_selection>
+
 <subagent_collaboration>
 ## Subagent Collaboration Principles
 
@@ -128,6 +210,8 @@ If same error/failure occurs **3 consecutive times**:
 **Parallel execution**:
 - Identify independent tasks that can run concurrently
 - Launch multiple subagents in parallel when tasks have no dependencies
+- Use `runInBackground=true` with agent-task for async execution
+- Retrieve results with `agent-task-output` when needed
 - Coordinate parallel sessions to maximize efficiency
 - Monitor all parallel sessions and aggregate results appropriately
 - Only serialize when dependencies require sequential execution
@@ -176,9 +260,12 @@ If same error/failure occurs **3 consecutive times**:
 - Is review necessary for this change?
 
 **NEVER bypass subagent delegation**:
-- Implementation work ALWAYS goes to engineer subagent
-- PR creation ALWAYS goes to pr-creator subagent
-- CI monitoring ALWAYS goes to pr-checker subagent
+- Implementation work ALWAYS goes to subagent (prefer agent-task engineer)
+- Code review ALWAYS goes to subagent (prefer agent-task reviewer)
+- Architecture design ALWAYS goes to subagent (prefer agent-task architect)
+- PR creation ALWAYS goes to pr-creator subagent (Task tool)
+- CI monitoring ALWAYS goes to pr-checker subagent (Task tool)
 - "Simple" or "Easy" tasks do NOT justify direct execution
+- When agent-task agent type matches the task, use it over Task tool
 </decision_autonomy>
 </best_practices>
