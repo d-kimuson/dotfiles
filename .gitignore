@@ -20,3 +20,6 @@ litellm/litellm_config.yaml
 
 # skills
 claude-code/skills/.system/
+
+# super-agent
+super-agent/config.json

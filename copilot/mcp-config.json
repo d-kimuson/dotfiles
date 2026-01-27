@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "modular-mcp": {
+      "type": "local",
+      "command": "npx",
+      "tools": [
+        "*"
+      ],
+      "args": [
+        "-y",
+        "@kimuson/modular-mcp@latest",
+        "~/dotfiles/modular-mcp.json"
+      ]
+    },
+    "super-agent": {
+      "type": "local",
+      "command": "node",
+      "tools": [
+        "*"
+      ],
+      "args": [
+        "~/repos/super-agent/dist/cli/index.mjs",
+        "mcp",
+        "serve"
+      ]
+    }
+  }
+}

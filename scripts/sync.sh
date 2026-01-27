@@ -138,37 +138,40 @@ log_info "Starship設定を確認しています..."
 link_file "$DOTFILES_DIR/config/starship.toml" "$HOME/.config/starship.toml"
 log_info "注意: .zshrcでSTARSHIP_CONFIG環境変数も設定されています"
 
-# Claude commands
-log_info "Claude commandsを設定しています..."
-link_directory "$DOTFILES_DIR/claude-code/commands" "$HOME/.claude/commands"
-
-# Claude Agents
-log_info "Claude Agentを設定しています..."
-link_directory "$DOTFILES_DIR/claude-code/agents" "$HOME/.claude/agents"
-
-# Claude Skills
-log_info "Claude Skillsを設定しています..."
-link_directory "$DOTFILES_DIR/claude-code/skills" "$HOME/.claude/skills"
-
-# Claude Memory
+# AI Context File 
 log_info "Claude Memory(CLAUDE.md)を設定しています..."
 link_file "$DOTFILES_DIR/claude-code/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 
-# Gemini Commands
-log_info "Gemini Commandsを設定しています..."
-link_directory "$DOTFILES_DIR/gemini-cli/commands" "$HOME/.gemini/commands"
-
-# Codex AGENTS.md
 log_info "Codex AGENTS.mdを設定しています..."
 link_file "$DOTFILES_DIR/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
 
-# Sync Skills (Codex)
+# Commands
+log_info "Claude commandsを設定しています..."
+link_directory "$DOTFILES_DIR/claude-code/commands" "$HOME/.claude/commands"
+log_info "Gemini Commandsを設定しています..."
+link_directory "$DOTFILES_DIR/gemini-cli/commands" "$HOME/.gemini/commands"
+
+# Agents
+log_info "Claude Agentを設定しています..."
+link_directory "$DOTFILES_DIR/claude-code/agents" "$HOME/.claude/agents"
+
+# Skills
+log_info "Claude Skillsを設定しています..."
+link_directory "$DOTFILES_DIR/claude-code/skills" "$HOME/.claude/skills"
+
 log_info "Codex Skillsを設定しています..."
 link_directory "$DOTFILES_DIR/claude-code/skills" "$HOME/.codex/skills"
 
-# Sync Skills (Copilot)
 log_info "Copilot Skillsを設定しています..."
 link_directory "$DOTFILES_DIR/claude-code/skills" "$HOME/.github/skills"
+
+# .super-agent
+log_info "Super Agentを設定しています..."
+link_directory "$DOTFILES_DIR/super-agent" "$HOME/.super-agent"
+
+# mcp
+log_info ".copilot/mcp-config.jsonを設定しています..."
+link_file "$DOTFILES_DIR/copilot/mcp-config.json" "$HOME/.copilot/mcp-config.json"
 
 # Final message
 log_success "=== セットアップが完了しました! ==="

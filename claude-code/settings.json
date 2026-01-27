@@ -11,6 +11,10 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:docs.anthropic.com)",
       "Bash(gemini:*)"
+    ],
+    "deny": [
+      "Task",
+      "TaskOutput"
     ]
   },
   "hooks": {
