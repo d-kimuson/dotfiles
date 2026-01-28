@@ -1,6 +1,8 @@
 ---
+description: 'When to use: GitHub Actions ワークフローの失敗を修正したいとき'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: Bash(gh run list:*), Bash(gh run view:*)
-description: Fix workflow issues on this branch.
 ---
 
 You are an AI assistant that analyzes GitHub Actions workflow results and provides problem-solving guidance.

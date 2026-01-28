@@ -1,5 +1,7 @@
 ---
-description: 'TypeScriptプロジェクトを初期化'
+description: 'When to use: TypeScript プロジェクトを新規に初期化したいとき'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: AskUserQuestion, Write, Edit, Bash(pnpm, git), Skill, Read
 ---
 

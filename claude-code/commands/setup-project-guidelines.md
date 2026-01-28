@@ -1,5 +1,7 @@
 ---
-description: 'プロジェクト固有のガイドラインドキュメントをセットアップする'
+description: 'When to use: プロジェクト固有のガイドラインドキュメントをセットアップしたいとき'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: Read(*), Glob(*), Write(.kimuson/guidelines/*), Bash(git)
 ---
 

@@ -1,5 +1,7 @@
 ---
-description: '問題の根本原因を調査・特定・修正する'
+description: 'When to use: 問題の根本原因を調査・特定・修正したいとき'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: Bash, Read(*), Edit(*), Write(*), Grep, Glob
 ---
 

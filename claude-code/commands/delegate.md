@@ -1,5 +1,7 @@
 ---
-description: 'Orchestrate development tasks with delegation to specialized agents'
+description: 'When to use: 開発タスクを専門エージェントに委任してフルオーケストレーションしたいとき'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: Bash(uuidgen, git, gh), Read, Write, Edit
 ---
 

@@ -1,5 +1,7 @@
 ---
-description: '箇条書きコンテンツから技術記事を執筆し、4並列でレビュー'
+description: 'When to use: 箇条書きコンテンツから技術記事を執筆したいとき'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: Skill, Task, Read, Write, Edit
 ---
 

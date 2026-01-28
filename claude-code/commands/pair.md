@@ -1,5 +1,7 @@
 ---
-description: 'Pair programming mode - collaborate directly on implementation'
+description: 'When to use: ペアプログラミングモードで直接実装に取り組みたいとき'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: Bash(git, gh), Read, Write, Edit, Grep, Glob
 ---
 

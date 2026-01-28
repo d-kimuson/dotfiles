@@ -1,135 +1,137 @@
 ---
-description: 'Manage Claude Code prompts (commands, agents, and documents). Built with prompt/context engineering practices.'
+description: 'When to use: Claude Code プロンプト（commands, agents, documents）を作成・編集したいとき'
+disable-model-invocation: true
+user-invocable: true
 ---
 
-**IMPORTANT**: Enable the `prompt-engineering` skill to access core prompt engineering guidelines.
+**重要**: コアとなるプロンプトエンジニアリングガイドラインにアクセスするため、`prompt-engineering` スキルを有効化してください。
 
 <task_overview>
-Create, update, or delete Claude Code prompts based on user instructions. This includes:
-- **Commands**: Invoked via `/command-name`
-- **Agents**: Invoked via `@agent-name` or Task tool
-- **Documents**: General prompt documents stored anywhere
-- **Context Files**: CLAUDE.md, AGENTS.md, GEMINI.md (always-loaded context)
+ユーザーの指示に基づいて Claude Code プロンプトを作成・更新・削除する。対象は以下:
+- **Commands**: `/command-name` で呼び出し
+- **Agents**: `@agent-name` または Task ツールで呼び出し
+- **Documents**: 任意の場所に格納される汎用プロンプトドキュメント
+- **Context Files**: CLAUDE.md, AGENTS.md, GEMINI.md（常時ロードコンテキスト）
 </task_overview>
 
 <decision_tree>
-## Choosing the Right Prompt Type
+## プロンプトタイプの選択
 
-Use this decision tree to determine which prompt type to create:
+適切なプロンプトタイプを決定するための決定木:
 
 ```
-┌─ User needs context loaded in EVERY session?
-│  ├─ YES → Create **Context File** (.claude/CLAUDE.md, .gemini/GEMINI.md, .claude/.codex/AGENTS.md)
-│  │  Use cases:
-│  │  - Project-wide context needed in 80% of tasks
-│  │  - Critical constraints and conventions
-│  │  - Navigation/index to detailed documentation
-│  │  WARNING: Minimize content - always loaded cost is high
+┌─ ユーザーは全セッションでコンテキストをロードする必要があるか？
+│  ├─ YES → **Context File** を作成（.claude/CLAUDE.md, .gemini/GEMINI.md, .claude/.codex/AGENTS.md）
+│  │  ユースケース:
+│  │  - タスクの80%で必要なプロジェクト全体のコンテキスト
+│  │  - 重要な制約と規約
+│  │  - 詳細ドキュメントへのナビゲーション/インデックス
+│  │  警告: 常時ロードのコストが高いため内容を最小限に
 │  │
-│  └─ NO (not needed in 80% of tasks) → Consider alternatives:
-│     - Task-specific → Include in command/agent prompts
-│     - Detailed guidelines → Create docs/ files, reference from context
-│     - Rarely used → Let LLM discover through exploration
+│  └─ NO（タスクの80%では不要） → 代替案を検討:
+│     - タスク固有 → command/agent プロンプトに含める
+│     - 詳細ガイドライン → docs/ ファイルを作成し、コンテキストから参照
+│     - めったに使わない → LLM が探索で発見させる
 │
-├─ User needs slash command invocation (e.g., /my-command)?
-│  └─ YES → Create **Command** (.claude/commands/<name>.md)
+├─ ユーザーはスラッシュコマンド呼び出し（例: /my-command）が必要か？
+│  └─ YES → **Command** を作成（.claude/commands/<name>.md）
 │
-├─ User needs specialized sub-agent with specific model/settings?
-│  └─ YES → Create **Agent** (.claude/agents/<name>.md)
-│     Use cases:
-│     - Different model than main session (e.g., haiku for speed)
-│     - Reusable specialized behavior (e.g., code review, PR creation)
-│     - Invoked programmatically by Claude via Task tool
+├─ ユーザーは特定のモデル/設定を持つ特化サブエージェントが必要か？
+│  └─ YES → **Agent** を作成（.claude/agents/<name>.md）
+│     ユースケース:
+│     - メインセッションと異なるモデル（例: 速度のため haiku）
+│     - 再利用可能な特化動作（例: コードレビュー、PR作成）
+│     - Task ツール経由で Claude がプログラム的に呼び出し
 │
-└─ User needs reusable instructions without special invocation?
-   └─ YES → Create **Document** (custom path, e.g., docs/prompts/<name>.md)
-      Use cases:
-      - Reference material for other prompts
-      - Checklists and guidelines
-      - Shared instruction templates
+└─ ユーザーは特別な呼び出しなしで再利用可能な指示が必要か？
+   └─ YES → **Document** を作成（カスタムパス、例: docs/prompts/<name>.md）
+      ユースケース:
+      - 他のプロンプトの参照資料
+      - チェックリストとガイドライン
+      - 共有指示テンプレート
 ```
 </decision_tree>
 
 <execution_workflow>
-## Execution Workflow
+## 実行ワークフロー
 
-### Step 1: Determine Prompt Type
-Based on user request, identify:
-- **Context File** (`.claude/CLAUDE.md`, etc.): Context loaded in every session
-- **Command** (`.claude/commands/`): User wants `/command-name` invocation
-- **Agent** (`.claude/agents/`): User wants `@agent-name` or Task tool usage
-- **Document** (custom path): User specifies location or general documentation
+### ステップ1: プロンプトタイプの決定
+ユーザーリクエストに基づき特定:
+- **Context File**（`.claude/CLAUDE.md` など）: 毎セッションロードされるコンテキスト
+- **Command**（`.claude/commands/`）: `/command-name` 呼び出しを希望
+- **Agent**（`.claude/agents/`）: `@agent-name` または Task ツール使用を希望
+- **Document**（カスタムパス）: 場所を指定または汎用ドキュメント
 
-**If Context File**: Apply extra scrutiny (see prompt-engineering skill for detailed guidelines)
+**Context File の場合**: 追加の精査を適用（詳細は prompt-engineering スキルを参照）
 
-### Step 2: Design with Principles
-Apply prompt-engineering skill guidelines.
+### ステップ2: 原則に基づく設計
+prompt-engineering スキルのガイドラインを適用。
 
-**For Agents requiring Skills**:
-- Use `skills` front matter field to auto-load required skills
-- ❌ Avoid: "**IMPORTANT**: Enable the `typescript` skill..." in body
-- ✅ Prefer: `skills: [typescript, react]` in front matter
-- Only use manual `Skill(...)` for conditional/dynamic skill loading
+**スキルを必要とするエージェントの場合**:
+- `skills` フロントマターフィールドを使用して必要なスキルを自動ロード
+- ❌ 避ける: 本文での「**重要**: `typescript` スキルを有効化...」
+- ✅ 推奨: フロントマターで `skills: [typescript, react]`
+- 条件付き/動的スキルロードの場合のみ手動 `Skill(...)` を使用
 
-**Think harder** about:
-- Single responsibility: What is the ONE thing this prompt does?
-- Caller independence: Can this be invoked by anyone without context?
-- Essential information only: What's truly needed vs. nice-to-have?
-- Responsibility boundaries: What belongs here vs. CLAUDE.md?
+**より深く考える**べきポイント:
+- 単一責任: このプロンプトがする一つのことは何か？
+- 呼び出し元からの独立: コンテキストなしで誰でも呼び出せるか？
+- 本質的な情報のみ: 本当に必要なもの vs あると良いもの？
+- 責任の境界: ここに属するもの vs CLAUDE.md に属するもの？
 
-**For Orchestrators** (commands/agents that invoke subagents):
-- **Invocation templates are ESSENTIAL**: Include complete Task tool usage templates showing how to invoke each subagent
-- **Why templates matter**: They ensure consistency, make the pattern explicit, and enable reproducible orchestration
-- **Responsibility split**: Keep subagents generic/reusable; task-specific context goes in orchestrator's template
-- See `<orchestration_patterns>` in prompt-engineering skill for detailed guidance
+**オーケストレーター用**（サブエージェントを呼び出す commands/agents）:
+- **呼び出しテンプレートは必須**: 各サブエージェントの呼び出し方を示す完全な Task ツール使用テンプレートを含める
+- **テンプレートが重要な理由**: 一貫性を確保し、パターンを明示し、再現可能なオーケストレーションを実現
+- **責任分割**: サブエージェントは汎用的・再利用可能に; タスク固有コンテキストはオーケストレーターのテンプレートに
+- 詳細は prompt-engineering スキルの `<orchestration_patterns>` を参照
 
-**For Context Files, think EXTRA HARD** (see prompt-engineering skill):
-- **80% rule**: Is EVERY piece of information needed in 80% of tasks?
-- **Index-first**: Can this be replaced with a pointer to detailed docs?
-- **Discoverability**: Can LLM find this through exploration instead?
-- **Command scrutiny**: Does LLM autonomously run this command in typical tasks?
-- **Extreme conciseness**: Can this be condensed further? Target <100 lines.
-- **Abstraction level**: Am I giving the map (good) or the territory (bad)?
+**Context Files の場合、特に慎重に考える**（prompt-engineering スキル参照）:
+- **80%ルール**: 全ての情報がタスクの80%で必要か？
+- **インデックス優先**: 詳細ドキュメントへのポインタで置き換えられるか？
+- **発見可能性**: LLM が探索で見つけられるか？
+- **コマンドの吟味**: LLM は典型タスクでこのコマンドを自律実行するか？
+- **極度の簡潔さ**: さらに凝縮できるか？目標100行未満。
+- **抽象度**: 地図（良い）を与えているか、領土（悪い）を与えているか？
 
-### Step 3: Write Concisely
-Follow prompt-engineering skill guidelines for conciseness and clarity.
+### ステップ3: 簡潔に記述
+簡潔さと明確さについて prompt-engineering スキルのガイドラインに従う。
 
-### Step 4: Initial Validation
-Run automated checklist from prompt-engineering skill.
+### ステップ4: 初期検証
+prompt-engineering スキルの自動チェックリストを実行。
 
-### Step 5: Parallel Review Sessions
-Launch 3 parallel `prompt-reviewer` agents to get diverse feedback.
+### ステップ5: 並列レビューセッション
+3つの並列 `prompt-reviewer` エージェントを起動して多様なフィードバックを取得。
 
-**IMPORTANT**: If the prompt is an orchestrator (invokes subagents), ensure reviewers check:
-- Presence of complete invocation templates (CRITICAL requirement)
-- Template quality and completeness
-- Proper responsibility split between orchestrator and subagents
+**重要**: プロンプトがオーケストレーター（サブエージェントを呼び出す）の場合、レビュアーに以下をチェックさせる:
+- 完全な呼び出しテンプレートの存在（必須要件）
+- テンプレートの品質と完全性
+- オーケストレーターとサブエージェント間の適切な責任分割
 
 ```
 Task(
   subagent_type="prompt-reviewer",
-  prompt="Review the following prompt:\n\n[prompt content]\n\nNote: This is an orchestrator prompt that invokes subagents. Verify invocation templates are complete and follow best practices.",
-  description="Review prompt (1/3)"
+  prompt="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。",
+  description="プロンプトレビュー (1/3)"
 )
 Task(
   subagent_type="prompt-reviewer",
-  prompt="Review the following prompt:\n\n[prompt content]\n\nNote: This is an orchestrator prompt that invokes subagents. Verify invocation templates are complete and follow best practices.",
-  description="Review prompt (2/3)"
+  prompt="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。",
+  description="プロンプトレビュー (2/3)"
 )
 Task(
   subagent_type="prompt-reviewer",
-  prompt="Review the following prompt:\n\n[prompt content]\n\nNote: This is an orchestrator prompt that invokes subagents. Verify invocation templates are complete and follow best practices.",
-  description="Review prompt (3/3)"
+  prompt="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。",
+  description="プロンプトレビュー (3/3)"
 )
 ```
 
-### Step 6: Aggregate and Apply Feedback
-- Collect feedback from all 3 review sessions
-- Identify common issues across reviews
-- Apply critical and moderate improvements
-- Consider minor suggestions based on context
-- Update the prompt file with improvements
+### ステップ6: フィードバックの集約と適用
+- 3つのレビューセッションからフィードバックを収集
+- レビュー間で共通の問題を特定
+- critical と moderate の改善を適用
+- コンテキストに基づいて minor の提案を検討
+- 改善でプロンプトファイルを更新
 
-### Step 7: Final Confirmation
-Confirm file is created/updated correctly and report completion to user.
+### ステップ7: 最終確認
+ファイルが正しく作成/更新されたことを確認し、完了をユーザーに報告。
 </execution_workflow>

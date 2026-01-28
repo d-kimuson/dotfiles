@@ -1,5 +1,7 @@
 ---
-description: 'Plan, design, and delegate implementation to subagents with QA/review'
+description: 'When to use: 設計・実装をサブエージェントに委任して QA/レビュー付きで進めたいとき'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: Bash(git, gh), Read, Write, Edit
 ---
 
