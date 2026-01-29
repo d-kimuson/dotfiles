@@ -1,5 +1,5 @@
 ---
-description: 'When to use: TypeScript プロジェクトを新規に初期化したいとき'
+description: 'TypeScript プロジェクトを新規に初期化したいとき'
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: AskUserQuestion, Write, Edit, Bash(pnpm, git), Skill, Read
@@ -11,7 +11,7 @@ Initialize a new TypeScript project with industry best practices for type safety
 
 ## Step 1: Load Required Skill
 
-Activate the `ts-project-initialize` skill to access setup documentation and best practices.
+Activate the `npm-pkg-config` skill to access setup documentation and best practices.
 
 ## Step 2: Gather Project Requirements
 
@@ -23,9 +23,9 @@ Ask the user about project configuration:
 
 ## Step 3: Execute Setup
 
-Follow the setup sequence and configuration decisions documented in the ts-project-initialize skill. The skill defines the required order, dependencies, and best practices.
+Follow the setup sequence and configuration decisions documented in the npm-pkg-config skill. The skill defines the required order, dependencies, and best practices.
 
-For each setup step, read the corresponding reference document from the skill directory (e.g., `claude-code/skills/ts-project-initialize/package.md`) and implement the documented approach.
+For each setup step, read the corresponding reference document from the skill directory (e.g., `${skills-directory}/package.md`) and implement the documented approach.
 
 ## Step 4: Verify Installation
 

@@ -1,6 +1,8 @@
 ---
 name: prompt-engineering
 description: Coding Agent プロンプトのためのプロンプトエンジニアリング・コンテキストエンジニアリングのベストプラクティス
+disable-model-invocation: false
+user-invocable: true
 ---
 
 Coding Agent プロンプト（commands, agents, skills, context files）を作成・編集する際のガイドライン。
@@ -12,8 +14,8 @@ Coding Agent プロンプト（commands, agents, skills, context files）を作�
 | タイプ | 配置場所 | 呼び出し方 | 用途 | リファレンス |
 |--------|----------|------------|------|--------------|
 | **Command** | `.claude/commands/<name>.md` | `/command-name` | ユーザー向け再利用可能タスク | `references/command.md` |
-| **Agent** | `.claude/agents/<name>.md` | `@agent-name` / Task tool | 特化型サブエージェント | `references/agent.md` |
-| **Skill** | `${.claude,.github}/skills/<name>/SKILL.md` | Skill tool / 自動 | 再利用可能な知識・ガイドライン | `references/skill.md` |
+| **Agent** | `.{.super-agent,.claude}/agents/<name>.md` | `@agent-name` / Task tool | 特化型サブエージェント | `references/agent.md` |
+| **Skill** | `{.super-agent|.claude|.codex|.github}/skills/<name>/SKILL.md` | Skill tool / 自動 | 再利用可能な知識・ガイドライン | `references/skill.md` |
 | **Context File** | `.claude/CLAUDE.md` 等 | 自動ロード | 常時必要なプロジェクトコンテキスト | `references/context-file.md` |
 | **Document** | 任意 | 手動参照 | スタンドアロンプロンプト | - |
 

@@ -1,12 +1,18 @@
 # Agents（エージェント）詳細リファレンス
 
 ## 概要
-Task ツールまたは `@agent-name` で呼び出される特化型サブエージェント。
+Taskツール(Claude Code標準)やagent-task(super-agent MCP)から呼び出される特化型サブエージェント。
 
 ## 構造
 - **配置場所**: `.claude/agents/<agent-name>.md`
-- **呼び出し方**: `@agent-name [指示]` または `Task(subagent_type="agent-name", ...)`
+- **呼び出し方**: `agent-task(agentType="agent-name", ...)`, `Task(subagent_type="agent-name", ...)`
 - **処理方法**: フロントマターは除外され、本文が指示として渡される
+
+## Task vs agent-task
+
+- 基本は super-agent を利用するためテンプレートには `agent-task(...)` の形で記載
+- `context: fork` 等の Claude Code 独自機能を利用する場合のみ Task でテンプレートも記載する
+- 利用できない場合のフォールバックは別途明示しているので、都度書かなくてOK
 
 ## フロントマター
 

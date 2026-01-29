@@ -1,8 +1,8 @@
 ---
-description: 'When to use: 箇条書きコンテンツから技術記事を執筆したいとき'
+description: '箇条書きコンテンツから技術記事を執筆したいとき'
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Skill, Task, Read, Write, Edit
+allowed-tools: Skill, agent-task, Read, Write, Edit
 ---
 
 **IMPORTANT**: Enable the `article-writing` skill to access writing guidelines.
@@ -42,9 +42,9 @@ Launch 4 parallel review sessions in a **single message**:
 
 **Style Reviews** (2 parallel sessions):
 ```
-Task(
-  subagent_type="article-style-reviewer",
-  prompt="""Review the following article for writing style and AI-like patterns.
+agent-task(
+  agent="article-style-reviewer",
+  message="""Review the following article for writing style and AI-like patterns.
 
 **IMPORTANT - Content Integrity Check**:
 Compare the article against the original bullet points below. Ensure that:
@@ -63,13 +63,12 @@ Article to review:
 {article_content}
 ---
 
-Provide feedback on both writing style AND content integrity.""",
-  description="Style review (1/2)"
+Provide feedback on both writing style AND content integrity."""
 )
 
-Task(
-  subagent_type="article-style-reviewer",
-  prompt="""Review the following article for writing style and AI-like patterns.
+agent-task(
+  agent="article-style-reviewer",
+  message="""Review the following article for writing style and AI-like patterns.
 
 **IMPORTANT - Content Integrity Check**:
 Compare the article against the original bullet points below. Ensure that:
@@ -88,16 +87,15 @@ Article to review:
 {article_content}
 ---
 
-Provide feedback on both writing style AND content integrity.""",
-  description="Style review (2/2)"
+Provide feedback on both writing style AND content integrity."""
 )
 ```
 
 **Content Reviews** (2 parallel sessions):
 ```
-Task(
-  subagent_type="article-content-reviewer",
-  prompt="""Review the following article for technical accuracy and logical consistency.
+agent-task(
+  agent="article-content-reviewer",
+  message="""Review the following article for technical accuracy and logical consistency.
 
 **IMPORTANT - Content Integrity Check**:
 Compare the article against the original bullet points below. Ensure that:
@@ -116,13 +114,12 @@ Article to review:
 {article_content}
 ---
 
-Provide feedback on both technical accuracy AND content integrity.""",
-  description="Content review (1/2)"
+Provide feedback on both technical accuracy AND content integrity."""
 )
 
-Task(
-  subagent_type="article-content-reviewer",
-  prompt="""Review the following article for technical accuracy and logical consistency.
+agent-task(
+  agent="article-content-reviewer",
+  message="""Review the following article for technical accuracy and logical consistency.
 
 **IMPORTANT - Content Integrity Check**:
 Compare the article against the original bullet points below. Ensure that:
@@ -141,8 +138,7 @@ Article to review:
 {article_content}
 ---
 
-Provide feedback on both technical accuracy AND content integrity.""",
-  description="Content review (2/2)"
+Provide feedback on both technical accuracy AND content integrity."""
 )
 ```
 

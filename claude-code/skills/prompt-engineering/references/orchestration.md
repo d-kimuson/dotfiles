@@ -19,9 +19,9 @@
 
 このテンプレートを使用:
 
-Task(
-  subagent_type="engineer",
-  prompt="""
+agent-task(
+  agent="engineer",
+  message="""
 以下の機能を実装してください:
 {feature_description}
 
@@ -32,8 +32,7 @@ Task(
 {acceptance_criteria}
 
 プロジェクト規約に従い、テストを含めてください。
-""",
-  description="Implement {feature_name}"
+"""
 )
 ```
 
@@ -77,9 +76,9 @@ Task(
 
 ### オーケストレーターのテンプレート
 ```markdown
-Task(
-  subagent_type="reviewer",
-  prompt="""
+agent-task(
+  agent="reviewer",
+  message="""
 認証機能の実装をレビューしてください。
 
 コンテキスト: HIPAA 下で PHI データを扱うヘルスケアアプリケーション。
@@ -93,8 +92,7 @@ Task(
 レビュー対象ファイル: src/auth/*.ts
 
 セキュリティとコンプライアンス問題に集中。
-""",
-  description="Review auth implementation"
+"""
 )
 ```
 

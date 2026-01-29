@@ -1,5 +1,5 @@
 ---
-description: 'When to use: Claude Code の意図しない動作の根本原因を分析したいとき'
+description: 'Claude Code の意図しない動作の根本原因を分析したいとき'
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read(*), Grep, Glob

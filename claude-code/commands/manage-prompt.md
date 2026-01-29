@@ -1,5 +1,5 @@
 ---
-description: 'When to use: Claude Code プロンプト（commands, agents, documents）を作成・編集したいとき'
+description: 'Claude Code プロンプト（commands, agents, documents）を作成・編集したいとき'
 disable-model-invocation: true
 user-invocable: true
 ---
@@ -9,7 +9,7 @@ user-invocable: true
 <task_overview>
 ユーザーの指示に基づいて Claude Code プロンプトを作成・更新・削除する。対象は以下:
 - **Commands**: `/command-name` で呼び出し
-- **Agents**: `@agent-name` または Task ツールで呼び出し
+- **Agents**: `@agent-name` または agent-task ツールで呼び出し
 - **Documents**: 任意の場所に格納される汎用プロンプトドキュメント
 - **Context Files**: CLAUDE.md, AGENTS.md, GEMINI.md（常時ロードコンテキスト）
 </task_overview>
@@ -41,7 +41,7 @@ user-invocable: true
 │     ユースケース:
 │     - メインセッションと異なるモデル（例: 速度のため haiku）
 │     - 再利用可能な特化動作（例: コードレビュー、PR作成）
-│     - Task ツール経由で Claude がプログラム的に呼び出し
+│     - agent-task ツール経由で Claude がプログラム的に呼び出し
 │
 └─ ユーザーは特別な呼び出しなしで再利用可能な指示が必要か？
    └─ YES → **Document** を作成（カスタムパス、例: docs/prompts/<name>.md）
@@ -59,7 +59,7 @@ user-invocable: true
 ユーザーリクエストに基づき特定:
 - **Context File**（`.claude/CLAUDE.md` など）: 毎セッションロードされるコンテキスト
 - **Command**（`.claude/commands/`）: `/command-name` 呼び出しを希望
-- **Agent**（`.claude/agents/`）: `@agent-name` または Task ツール使用を希望
+- **Agent**（`.claude/agents/`）: `@agent-name` または agent-task ツール使用を希望
 - **Document**（カスタムパス）: 場所を指定または汎用ドキュメント
 
 **Context File の場合**: 追加の精査を適用（詳細は prompt-engineering スキルを参照）
@@ -80,7 +80,7 @@ prompt-engineering スキルのガイドラインを適用。
 - 責任の境界: ここに属するもの vs CLAUDE.md に属するもの？
 
 **オーケストレーター用**（サブエージェントを呼び出す commands/agents）:
-- **呼び出しテンプレートは必須**: 各サブエージェントの呼び出し方を示す完全な Task ツール使用テンプレートを含める
+- **呼び出しテンプレートは必須**: 各サブエージェントの呼び出し方を示す完全な agent-task ツール使用テンプレートを含める
 - **テンプレートが重要な理由**: 一貫性を確保し、パターンを明示し、再現可能なオーケストレーションを実現
 - **責任分割**: サブエージェントは汎用的・再利用可能に; タスク固有コンテキストはオーケストレーターのテンプレートに
 - 詳細は prompt-engineering スキルの `<orchestration_patterns>` を参照
@@ -108,20 +108,17 @@ prompt-engineering スキルの自動チェックリストを実行。
 - オーケストレーターとサブエージェント間の適切な責任分割
 
 ```
-Task(
-  subagent_type="prompt-reviewer",
-  prompt="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。",
-  description="プロンプトレビュー (1/3)"
+agent-task(
+  agent="prompt-reviewer",
+  message="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。"
 )
-Task(
-  subagent_type="prompt-reviewer",
-  prompt="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。",
-  description="プロンプトレビュー (2/3)"
+agent-task(
+  agent="prompt-reviewer",
+  message="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。"
 )
-Task(
-  subagent_type="prompt-reviewer",
-  prompt="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。",
-  description="プロンプトレビュー (3/3)"
+agent-task(
+  agent="prompt-reviewer",
+  message="以下のプロンプトをレビューしてください:\n\n[プロンプト内容]\n\n注: これはサブエージェントを呼び出すオーケストレータープロンプトです。呼び出しテンプレートが完全でベストプラクティスに従っているか確認してください。"
 )
 ```
 

@@ -9,12 +9,23 @@
 - **処理方法**: フロントマターは除外され、本文が指示として渡される
 
 ### フロントマター
+
 ```yaml
 ---
-description: 'When to use: このコマンドを使うべき状況の説明（必須、80文字以下、リポジトリの主要言語）'
+description: 'このコマンドを使うべき状況の説明（必須、80文字以下、リポジトリの主要言語）'
 disable-model-invocation: true  # 必須: エージェントからの自動呼び出しを防止
 user-invocable: true            # 必須: ユーザーの / メニューに表示
-allowed-tools: Bash(git, gh), Read(*), Edit(*.ts), Grep  # 任意だが推奨
+# argument-hint: '[issue-number]'   # オートコンプリート時に表示されるヒント
+# allowed-tools: Read, Grep, Glob   # コマンド実行時に許可なしで使用できるツール（構文は references/permission-syntax.md 参照）
+# model: sonnet                     # コマンド実行時に使用するモデル
+# context: fork                     # fork でサブエージェントコンテキストで実行
+# agent: github                     # context: fork 時に使用するサブエージェントタイプ
+# hooks:                            # コマンドのライフサイクルにスコープされたフック
+#   PreToolUse:
+#     - matcher: "Bash"
+#       hooks:
+#         - type: command
+#           command: "./scripts/validate.sh"
 ---
 ```
 
@@ -28,8 +39,16 @@ allowed-tools: Bash(git, gh), Read(*), Edit(*.ts), Grep  # 任意だが推奨
 
 **Command は常にユーザー起点で呼び出される想定**。エージェントが自動で呼び出すべきものは Agent または Skill として定義する。
 
+### その他のフィールド解説
+
+| フィールド | 用途 |
+|----------|------|
+| `context: fork` | サブエージェントで分離実行。`agent` と併用してエージェントに委譲 |
+| `agent` | `context: fork` 時に使用するエージェント名 |
+| `hooks` | `PreToolUse`, `PostToolUse`, `Stop` をサポート。`references/hooks.md` 参照 |
+
 ### description フィールド
-- **中心内容**: 「When to use」- このコマンドをいつ使うべきか
+- **中心内容**: このコマンドをいつ使うべきか（「When to use:」などのプレフィックスは不要）
 - **言語**: プロジェクトの主要言語で記述
 - **長さ**: 80文字以下
 
@@ -80,7 +99,7 @@ allowed-tools: Bash(git, gh), Read(*), Edit(*.ts), Grep  # 任意だが推奨
 
 ```markdown
 ---
-description: 'When to use: コード変更のレビューが必要なとき'
+description: 'コード変更のレビューが必要なとき'
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Bash(git), Read(*), Grep

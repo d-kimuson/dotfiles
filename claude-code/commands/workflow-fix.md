@@ -1,5 +1,5 @@
 ---
-description: 'When to use: GitHub Actions ワークフローの失敗を修正したいとき'
+description: 'GitHub Actions ワークフローの失敗を修正したいとき'
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Bash(gh run list:*), Bash(gh run view:*)

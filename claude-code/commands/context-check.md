@@ -1,5 +1,5 @@
 ---
-description: 'When to use: システムプロンプトのコンテキストをツールなしで確認したいとき（デバッグ用）'
+description: 'システムプロンプトのコンテキストをツールなしで確認したいとき（デバッグ用）'
 disable-model-invocation: true
 user-invocable: true
 ---
