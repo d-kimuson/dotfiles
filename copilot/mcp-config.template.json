@@ -9,7 +9,7 @@
       "args": [
         "-y",
         "@kimuson/modular-mcp@latest",
-        "~/dotfiles/modular-mcp.json"
+        "$HOME/dotfiles/modular-mcp.json"
       ]
     },
     "super-agent": {
@@ -19,7 +19,7 @@
         "*"
       ],
       "args": [
-        "~/repos/super-agent/dist/cli/index.mjs",
+        "$HOME/repos/super-agent/dist/cli/index.mjs",
         "mcp",
         "serve"
       ]

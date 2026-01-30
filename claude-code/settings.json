@@ -11,6 +11,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:docs.anthropic.com)",
       "Bash(gemini:*)"
+    ],
+    "deny": [
+      "Glob"
     ]
   },
   "hooks": {
@@ -37,5 +40,6 @@
       }
     ]
   },
-  "language": "日本語"
+  "language": "日本語",
+  "model": "opus"
 }

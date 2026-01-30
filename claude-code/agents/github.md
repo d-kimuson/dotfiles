@@ -150,15 +150,29 @@ Each commit should tell a story. Split logically, not arbitrarily.
 PR の CI を監視し、完了後に結果を報告する。
 
 <ci_monitoring>
-### ポーリング手順
+### CI 監視の実行方法
 
+**重要**: 「監視を継続します」とレスポンスして終了してはならない。完了と判断するまで以下のサイクルを繰り返し実行する。
+
+**1回のサイクル**:
 ```bash
-gh pr checks "$PR_NUMBER" --json state,name,link,description
+sleep 60 && gh pr checks "$PR_NUMBER" --json state,name,link,description
 ```
 
-1. 上記コマンドで checks の状態を取得
-2. 全ての check が完了するまで 1分間隔で繰り返す
-3. 除外指定されたワークフローは監視対象から除外
+**サイクルの繰り返し**:
+- 上記コマンドを Bash tool で実行
+- 結果を確認し、完了かどうかを判断
+- 完了していなければ、再度同じコマンドを Bash tool で実行
+- これを完了まで繰り返す（最大30回）
+
+**完了の判断基準**:
+- 全ての check が SUCCESS/FAILURE/SKIPPED のいずれか → 完了
+- 一部が PENDING でも、それが手動承認待ち（VRT等）と判断できる → 完了として報告
+- 除外指定されたワークフローは判断対象から除外
+
+**禁止事項**:
+- 1回実行して「監視中です」「継続します」と返して終了すること
+- ループ全体を1つの Bash コマンドにまとめること（AI が毎回判断する必要があるため）
 
 **state 値**:
 - `PENDING`: 実行中または待機中

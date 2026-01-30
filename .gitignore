@@ -23,3 +23,6 @@ claude-code/skills/.system/
 
 # super-agent
 super-agent/config.json
+
+# copilot
+copilot/mcp-config.json
