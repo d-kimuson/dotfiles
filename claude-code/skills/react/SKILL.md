@@ -1,6 +1,8 @@
 ---
 name: react
 description: Must always be enabled when writing/reviewing React code.
+disable-model-invocation: false
+user-invocable: true
 ---
 
 <role>

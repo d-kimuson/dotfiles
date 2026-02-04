@@ -1,6 +1,8 @@
 ---
 name: typescript
 description: Must always be enabled when writing/reviewing TypeScript code.
+disable-model-invocation: false
+user-invocable: true
 ---
 
 <philosophy>

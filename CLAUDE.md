@@ -1,4 +1,4 @@
-# CLAUDE.md
+# CLAUDE.md (dotfiles)
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -8,28 +8,17 @@ This is a personal dotfiles repository that manages shell configurations, aliase
 
 ## Common Commands
 
-### Setup and Installation
-```bash
-# Initial setup (run after cloning)
-./scripts/sync.sh
-exec $SHELL -l
-mise use node@22 -g
-mise use python@latest -g
-./scripts/claude_code_mcp.sh
-```
-
 ### Alias Manager Development
+
 ```bash
 cd alias-manager
 pnpm i                    # Install dependencies
 pnpm build               # Build aliases to output/shell_aliases.sh
-pnpm dev                 # Watch mode for development
-pnpm test                # Run tests
-pnpm test:watch          # Run tests in watch mode
 pnpm typecheck           # TypeScript type checking
 ```
 
 ### Development Workflow
+
 - After modifying alias-manager code, run `pnpm build` to regenerate `output/shell_aliases.sh`
 - Changes to alias-manager must be built and committed as the setup script uses committed build artifacts
 - Use `./scripts/sync.sh` to update symlinks after adding new configuration files
@@ -75,5 +64,3 @@ pnpm typecheck           # TypeScript type checking
 - This repository includes custom Claude Code guidelines that prefer gemini CLI over WebSearch
 - The alias-manager requires manual building and committing of output files
 - Setup script creates symlinks - existing files must be manually removed
-- Settings file (`claude-code/settings.json`) cannot be symlinked and must be manually copied
-- MCP servers (context7, serena) are configured via the setup script

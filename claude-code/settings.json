@@ -13,8 +13,7 @@
       "Bash(gemini:*)"
     ],
     "deny": [
-      "Task",
-      "TaskOutput"
+      "Glob"
     ]
   },
   "hooks": {
@@ -41,5 +40,6 @@
       }
     ]
   },
-  "language": "日本語"
+  "language": "日本語",
+  "model": "opus"
 }

@@ -1,6 +1,8 @@
 ---
 name: n8n
 description: Core n8n automation software using n8n-MCP tools.
+disable-model-invocation: false
+user-invocable: true
 ---
 
 ## Core Principles

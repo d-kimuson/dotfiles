@@ -133,17 +133,30 @@ PR to wrong base branch causes serious issues. Verify carefully from reflog or a
 Each commit should tell a story. Split logically, not arbitrarily.
 </pr_principles>
 
-## PR の CI チェック
+## PR の CI 監視
 
-タスクの完了条件としてPRのCI監視と結果を確認する必要がある場合は専用のスクリプトを実行することで待機とレポートを受け取ります。
+PR の CI 監視と結果確認が必要な場合は `pr-manager` サブエージェントを使用する。
 
-```bash
-<skills-directory>/scripts/wait-pr-checks-and-report.sh <PR_NUMBER> [--ignore <workflow_name>]...
+```
+Task(
+  subagent_type="pr-manager",
+  prompt="PR #<PR_NUMBER> の CI を監視し、完了後に結果を報告してください。",
+  description="CI monitoring for PR #<PR_NUMBER>"
+)
 ```
 
-VRT 承認待ちなど、手動承認が必要で永続的に pending になるワークフローがある場合は `--ignore` オプションで除外できます。
+VRT 承認待ちなど手動承認が必要なワークフローがある場合は除外指定する:
 
-```bash
-# 例: VRT と Manual Approval を無視
-<skills-directory>/scripts/wait-pr-checks-and-report.sh 123 --ignore 'Visual Regression' --ignore 'Manual Approval'
+```
+Task(
+  subagent_type="pr-manager",
+  prompt="""
+PR #123 の CI を監視し、完了後に結果を報告してください。
+
+除外ワークフロー:
+- Visual Regression
+- Manual Approval
+""",
+  description="CI monitoring for PR #123"
+)
 ```

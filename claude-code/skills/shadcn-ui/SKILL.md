@@ -1,6 +1,8 @@
 ---
 name: shadcn-ui
 description: Must always be enabled when working with shadcn-ui.
+disable-model-invocation: false
+user-invocable: true
 ---
 
 <fundamental_concept>

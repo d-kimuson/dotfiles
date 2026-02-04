@@ -1,6 +1,8 @@
 ---
 name: article-writing
 description: 箇条書きコンテンツを技術記事に仕上げる際に使用する。自然な文体とスタイルで執筆するためのガイドライン。
+disable-model-invocation: false
+user-invocable: true
 ---
 
 ## Purpose

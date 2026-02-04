@@ -10,6 +10,6 @@ claude mcp remove super-agent -s user > /dev/null 2>&1
 set -e
 
 claude mcp add modular-mcp -s user -- npx -y @kimuson/modular-mcp@latest $(git rev-parse --show-toplevel)/modular-mcp.json
-claude mcp add super-agent -s user -- node ~/repos/super-agent/dist/cli/index.mjs mcp serve
+claude mcp add super-agent -s user -- node $HOME/repos/super-agent/dist/cli/index.mjs mcp serve
 
 # TODO: codex

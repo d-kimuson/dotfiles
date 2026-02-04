@@ -141,9 +141,17 @@ log_info "注意: .zshrcでSTARSHIP_CONFIG環境変数も設定されていま�
 # AI Context File 
 log_info "Claude Memory(CLAUDE.md)を設定しています..."
 link_file "$DOTFILES_DIR/claude-code/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+link_file "$DOTFILES_DIR/claude-code/CLAUDE.local.md" "$HOME/.claude/CLAUDE.local.md"
 
 log_info "Codex AGENTS.mdを設定しています..."
-link_file "$DOTFILES_DIR/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+link_file "$DOTFILES_DIR/prompts/AGENTS.md" "$HOME/.codex/AGENTS.md"
+
+log_info "Gemini AGENTS.mdを設定しています..."
+link_file "$DOTFILES_DIR/prompts/AGENTS.md" "$HOME/.gemini/AGENTS.md"
+
+log_info "Copilot AGENTS.mdを設定しています..."
+link_file "$DOTFILES_DIR/prompts/AGENTS.md" "$HOME/.github/AGENTS.md"
+link_file "$DOTFILES_DIR/prompts/AGENTS.md" "$HOME/.copilot/AGENTS.md"
 
 # Commands
 log_info "Claude commandsを設定しています..."
@@ -170,6 +178,14 @@ log_info "Super Agentを設定しています..."
 link_directory "$DOTFILES_DIR/super-agent" "$HOME/.super-agent"
 
 # mcp
+log_info "copilot/mcp-config.jsonを生成しています..."
+if [ -f "$DOTFILES_DIR/copilot/mcp-config.template.json" ]; then
+    sed "s|\$HOME|$HOME|g" "$DOTFILES_DIR/copilot/mcp-config.template.json" > "$DOTFILES_DIR/copilot/mcp-config.json"
+    log_success "mcp-config.json を生成しました"
+else
+    log_warning "mcp-config.template.json が見つかりません"
+fi
+
 log_info ".copilot/mcp-config.jsonを設定しています..."
 link_file "$DOTFILES_DIR/copilot/mcp-config.json" "$HOME/.copilot/mcp-config.json"
 

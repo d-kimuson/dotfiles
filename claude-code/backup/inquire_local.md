@@ -1,5 +1,7 @@
 ---
-description: '調査・設計・実装・レビューを委任 (環境準備・PR作成は手動)'
+description: 'When to use: 調査・設計・実装・レビューを委任したいとき（環境準備・PR作成は手動）'
+disable-model-invocation: true
+user-invocable: true
 allowed-tools: Bash(uuidgen), Read, Write, Edit
 ---
 

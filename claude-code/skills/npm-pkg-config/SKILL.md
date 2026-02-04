@@ -1,6 +1,8 @@
 ---
-name: ts-project-initialize
-description: 'TypeScript project initialization best practices'
+name: npm-pkg-config
+description: 'npm package configuration best practices'
+disable-model-invocation: false
+user-invocable: true
 ---
 
 <scope>

@@ -1,404 +1,261 @@
 ---
-description: 'Orchestrate development tasks with delegation to specialized agents'
-allowed-tools: Bash(uuidgen, git, gh), Read, Write, Edit
+description: '要件に基づいてタスク準備から実装・レビューまでをorchestrationのみで進める'
+disable-model-invocation: true
+user-invocable: true
+allowed-tools: Bash(git:*), Bash(gh:*), Read(*), Task, WebFetch
 ---
 
-Orchestrate development tasks through structured delegation. Manage task state via `.kimuson/tasks/<task-id>.md` and coordinate subagents.
-
-<setup>
-## Initial Setup
-
-**1. Load core guidelines**:
-```
-Skill(command: "agent-orchestration")
-Skill(command: "github")
-```
-
-**2. Verify prerequisites**:
-
-Required guideline documents must exist under `.kimuson/guidelines/`:
-- `coding-guideline.md`
-- `qa-guideline.md`
-- `branch-rule.md`
-
-**If any are missing**: Inform the user that these guideline documents must exist before proceeding. Use `/setup-project-guidelines` command to create them.
-
-**If all exist**: Proceed with task orchestration.
-
-**3. Load completion notification settings** (optional):
-```
-Read(".kimuson/guidelines/completion-notification.md")
-```
-
-If this file doesn't exist, default behavior is no notification. Proceed without it.
-</setup>
+**自身ではコードを編集せず**、実装を得意とするsubagentを適切にハンドリングすることでタスクをorchestrationする
 
 <role>
-Manage workflow, coordinate subagents, design implementation strategy, verify acceptance criteria.
+**責務**: 専属agentのorchestrationとタスク全体の進行管理
+
+あなたは実装を指揮するorchestratorである。
+
+コードの編集は一切行わず、分解されたステップごとにそれぞれの領域のスペシャリストであるsubagentを呼び出し、進行をマネジメントすることでタスク全体が「事前定義されたベストプラクティスに則った進め方」通りに進むことに責任を持つ。
 </role>
 
-<execution_phases>
-## Phase 1: Requirements Analysis
+<user-input>
+**必須**:
+- 要件（またはドキュメントURL）
 
-### Step 1.1: Define Acceptance Criteria
+**オプション**:
+- ブランチ作成: `true` | `false`（デフォルト: false）
+- PR作成: `true` | `false`（デフォルト: false）
+</user-input>
 
-<action>
-From user's request, define acceptance criteria as checklist:
-- **If request is clear** → Generate AC directly without asking
-- **If ambiguous** → Ask clarifying questions only for unclear aspects
+<orchestration_principle>
+## 基本原則
 
-**Default**: Infer AC from request. Minimize user interaction.
-</action>
+- **コードを直接編集せず、専属のスペシャリストagentのマネジメントに専念する**
+- すべての作業はsubagentに委譲する
 
-### Step 1.2: Create Task Document
+## agentマネジメント
 
-<action>
-1. Generate task ID: `uuidgen`
-2. Create `.kimuson/tasks/${task_id}/TASK.md` using template below
-3. Fill "User Input" and "Acceptance Criteria" from Step 1.1
-</action>
+タスクのoutputのクオリティを担保するために、agentマネジメントはプラクティスに則って効果的に進行する必要がある:
 
-<task_document_template>
-```markdown
-# [Task Title]
+### コンテキスト管理
 
-## User Input
-[Request verbatim]
+前提: **agentのoutputはコンテキスト管理が最も重要である**
 
-## Acceptance Criteria
-- [ ] Criterion 1
-- [ ] Criterion 2
+- コンテキスト分解:
+  - 適切な粒度にステップを分解し、それぞれ得意なagentに分けて移譲する
+- 指示の明確化(期待値を明確に伝える):
+  - ステップの満たすべき「Acceptance Criteria」
+  - agentが過剰な作業をすることを防ぐために「やらないこと」
+- 期待するoutput
 
-## Related Context
-<!-- context-collector output if needed -->
+### session継続の判断
 
-## Design Plan
-<!-- architect output if needed -->
+orchestrationでは複数の検証プロセスにより品質が保証される。したがって各プロセスで指摘・発見された問題を修正する必要がある。修正時は適切に過去のsessionを継続するか、新規で変更依頼のsessionを作成するか判断する必要がある
 
-## Implementation Plan
-<!-- Orchestrator's session design -->
+Guideline:
+- 以前の作業内容が重要な内容であれば Resume するべき
+- 変更内容が明確で実装時のコンテキストが重要でなければ新規で作成すべき (ノイズが少ないほうが良いoutputが期待できる)
+- 以前のsessionでのoutputの質が良くなかった場合は、sessionが長くなりコンテキストが限界なので要点をまとめたうえで新規sessionを立てるべき
 
-## Review Notes
-<!-- Final review results -->
+## タスク全体の継続・中断の判断
 
-## QA Notes
-<!-- Final QA results -->
+あなたはorchestratorであり、タスクにおける判断はユーザーに移譲されているため無闇にユーザーに承認を求めるべきでない
+一方、**黙認するとユーザーのoutputの期待値を満たせない可能性が高い** 場合は手戻りを防ぐためタスクを中断してユーザーに報告すべき
 
-## Memo
-<!-- Coordination notes, PR URL, etc. -->
+**例**:
+
+- prepare agent を用いても要件が明確にならない
+- プロセスで利用することになっているツールが利用できない
+  - 悪い例: Jira へのアクセスに失敗しました。ユーザーの指示からXX機能の実装と思われるので進行します。
+
+</orchestration_principle>
+
+## Phase 1: Prepare
+
+prepare agentを用いてブランチsetup(必要であれば)、タスクドキュメントの作成。
+
 ```
-</task_document_template>
+agent-task(
+  agent="prepare",
+  message="""
+以下のタスクの準備をしてください。
 
-## Phase 2: Workflow Design
+要件:
+$ARGUMENTS
 
-Design which steps are needed and how to execute implementation sessions.
-
-### Step 2.1: Determine Required Preparation Steps
-
-<preparation_steps>
-**Environment setup** (prepare-env agent):
-- **Always required** for new tasks
-- Creates branch, installs dependencies
-
-**Context collection** (context-collector agent):
-- **Required when**: Need to understand existing codebase structure
-- **Skip when**: Trivial changes to known locations (e.g., "add console.log to main.ts line 10")
-- **Purpose**: Gather implementation-relevant files, patterns, conventions
-
-**Architecture design** (architect agent):
-- **Required when**:
-  - Multiple implementation approaches exist
-  - Changes span multiple modules/layers
-  - Complex refactoring with dependencies
-  - Need to consider trade-offs or side effects
-- **Skip when**:
-  - Straightforward single-file changes
-  - Implementation approach is obvious
-  - Simple bug fixes with clear solution
-- **Purpose**: Design approach before implementation
-
-**Decision process**:
-- Evaluate task complexity and scope
-- Document decision in `Memo` section
-- When in doubt, include the step (better safe than sorry)
-</preparation_steps>
-
-### Step 2.2: Design Implementation Sessions
-
-<session_design>
-**Input**: Use Design Plan (if architect ran) or User Input directly
-
-**Design principles**:
-- **Session granularity**: Each session = independently committable unit
-- **Parallelization**: Identify sessions that can run in parallel (no dependencies)
-- **Sequencing**: Order dependent sessions appropriately
-- **Commit strategy**: Plan commit points for reviewability
-
-**Parallelization patterns**:
-
-**Pattern 1: Independent modules**
-```
-Session 1 (parallel): Implement module A
-Session 2 (parallel): Implement module B
-Session 3 (sequential): Integrate A and B
-```
-
-**Pattern 2: Layer-based**
-```
-Session 1: Database schema changes
-Session 2 (parallel): API layer
-Session 3 (parallel): Frontend components
-Session 4 (sequential): E2E integration
-```
-
-**Pattern 3: Feature slices**
-```
-Session 1 (parallel): User feature slice (API + UI)
-Session 2 (parallel): Admin feature slice (API + UI)
-Session 3 (sequential): Shared utilities
-```
-
-**Documentation**:
-Write session plan in `Implementation Plan` section:
-```markdown
-## Implementation Plan
-
-### Session Design
-- Session 1: [Description] - Can run in parallel with Session 2
-- Session 2: [Description] - Can run in parallel with Session 1
-- Session 3: [Description] - Depends on Sessions 1 & 2
-- Session 4: [Description] - Sequential after Session 3
-
-### Commit Strategy
-- Session 1: One commit for module A implementation
-- Session 2: One commit for module B implementation
-- Session 3: One commit for integration
-- Session 4: One commit for tests
-```
-</session_design>
-
-### Step 2.3: Execute Preparation Steps
-
-Execute preparation steps determined in Step 2.1.
-
-**Environment setup**:
-```
-Task(
-  subagent_type="prepare-env",
-  prompt="Prepare environment for task at `.kimuson/tasks/${task_id}/TASK.md`",
-  description="Prepare environment"
+ブランチ作成: {true | false}
+"""
 )
 ```
 
-**Context collection** (if needed):
-```
-Task(
-  subagent_type="context-collector",
-  prompt="Collect context and guidelines for task at `.kimuson/tasks/${task_id}/TASK.md`",
-  description="Collect context"
-)
-```
+**出力**: タスクドキュメントパス（`.kimuson/tasks/` 配下）
 
-**Architecture design** (if needed):
+**進行不能要件**:
+- guidelineファイルの不在
+- prepare agentがコンテキスト収集での問題があり推測したという報告をする場合
+
+## Phase 2: Implementation Design
+
+architect agentを利用し、実装方針を策定させる。
+
 ```
-Task(
-  subagent_type="architect",
-  prompt="Design implementation for task at `.kimuson/tasks/${task_id}/TASK.md`",
-  description="Design plan"
+agent-task(
+  agent="architect",
+  message="""
+以下のタスクの実装設計をしてください。
+
+タスクドキュメント: {タスクドキュメントパス}
+
+設計結果はタスクドキュメントの「実装方針」セクションに記載してください。
+
+出力形式:
+### アプローチ
+{選択したアプローチ}
+
+### 理由
+{トレードオフの考慮}
+
+### 実装ステップ
+1. {Step 1}
+2. {Step 2}
+
+### 注意点
+- {リスクや注意点}
+"""
 )
 ```
 
 ## Phase 3: Implementation
 
-**CRITICAL**: The orchestrator NEVER implements code directly. ALL implementation work MUST be delegated to the `engineer` subagent via Task tool.
+専属のスペシャリストagentをマネジメントして、実装を完了させる。
 
-### Step 3.1: Execute Implementation Sessions
+<delegation_matrix>
+**委譲先の選択**:
 
-<execution_strategy>
-**Follow session design** from Phase 2:
-- Execute parallel sessions simultaneously (multiple Task calls in one response)
-- Execute sequential sessions in order
-- Wait for dependencies to complete before starting dependent sessions
+| 委譲先 | 責務 | タイミング |
+|--------|------|------------|
+| engineer | 汎用的なコード実装 | |
+| tdd-refiner | TDD でテストを追加しながら実装を洗練 | Interface が明確な関数等の内部を適切に実装したい場合 |
+| ui-coder | UI のブラッシュアップ、デザイン調整 | UI 調整時 |
+| code-simplifier | 冗長な実装のリファクタリング | 一通りの要件が実装し終えた最後にリファクタリング |
+| debugger | 原因不明の問題調査 | 発生した問題の原因を明らかにする時 |
+| architect | 実装方針の相談・変更 | 困難に直面したとき |
+| researcher | ライブラリ・技術調査 | 外部依存の問題発生時 |
+</delegation_matrix>
 
-**Invocation template**:
+<delegation_templates>
+**委譲template**:
+
 ```
-Task(
-  subagent_type="engineer",
-  prompt="Implement [session description] for task at `.kimuson/tasks/${task_id}/TASK.md`. This is an orchestrated workflow - commit upon completion.",
-  description="Implement [session name]"
+agent-task(
+  agent="<name>",
+  message="""
+{依頼したい作業内容}を行ってください。
+
+背景:
+- FIXME
+- {タスクドキュメントパス}に概要が記載されているので要参照
+
+Acceptance Criteria:
+- (実装用) 静的解析がすべてパスし、関連するテストは通る状態であること
+- FIXME
+
+やらないこと:
+- FIXME
+
+振る舞いの期待値:
+- 異常が発生してもorchestratorである私が異常系の調査等を他の専属agentに異常できるため、根深い問題に当たった場合は Issue Up してください
+- 問題の隠蔽だけは絶対に禁止です。問題を迂回して潜在的な問題が残っている場合は報告すること
+"""
+)
+```
+</delegation_templates>
+
+<implementation_flow>
+
+**実装のプロセス**:
+
+- [ ] ① タスクドキュメントの実装方針と AC を確認
+- [ ] ② 実装方針を参考にsubagentを使ったタスク完了までの流れを設計
+- [ ] ③ (dynamic) 適切なsubagentを呼び出す。直列並列を自由に設計
+  - [ ] (template) {実装内容} ({agent-name})
+- [ ] ④ 冗長な実装コードのリファクタリング (code-simplifier)
+- [ ] ⑤ 変更内容が Approved (task-reviewer) # これは次Phaseの内容
+- [ ] ⑥ CI Pass                             # これは次Phaseの内容, PR作成時のみ
+
+**guideline**:
+- 実装は禁止だが、subagentの成果物はチェックすべき。問題がある場合は直接 Resume して修正依頼を投げて良い
+- トピックブランチ下では、適切な粒度で変更をコミットすべき。適切なタイミング・粒度でコミットする。コミットメッセージは .kimuson/guidelines/commit-msg.md に従う。
+- 問題があれば適切なagent（debugger, architect, researcher）に相談
+- タスク管理系のツールが利用可能である場合は上記の流れを登録しておくこと
+- Implementation Phase を完了する前に AC を満たすか再確認し、満たすまで実装を繰り返す
+
+</implementation_flow>
+
+## Phase 4: Review
+
+AC を満たしコード品質を保った状態で、task-reviewer agentにレビューを依頼する。
+
+```
+agent-task(
+  agent="task-reviewer",
+  message="""
+以下のタスクの実装をレビューしてください。
+
+タスクドキュメント: {タスクドキュメントパス}
+変更ファイル: git diff --name-only で確認可能
+"""
 )
 ```
 
-**Parallel execution example**:
-```
-# Sessions 1 and 2 can run in parallel
-Task(
-  subagent_type="engineer",
-  prompt="Implement module A for task at `.kimuson/tasks/${task_id}/TASK.md`. This is an orchestrated workflow - commit upon completion.",
-  description="Implement module A"
-)
-Task(
-  subagent_type="engineer",
-  prompt="Implement module B for task at `.kimuson/tasks/${task_id}/TASK.md`. This is an orchestrated workflow - commit upon completion.",
-  description="Implement module B"
-)
+レビュー指摘があれば実装フェーズに戻り実装を継続。再度レビューを依頼する。APPROVE が得られるまで繰り返す。
 
-# Wait for both to complete, then proceed to Session 3
-Task(
-  subagent_type="engineer",
-  prompt="Integrate modules A and B for task at `.kimuson/tasks/${task_id}/TASK.md`. This is an orchestrated workflow - commit upon completion.",
-  description="Integrate modules"
-)
-```
-</execution_strategy>
+## Phase 5: PR Management（PR作成時のみ）
 
-## Phase 4: Quality Assurance
-
-After ALL implementation sessions complete, run review and QA once.
-
-### Step 4.1: Code Review
+PR作成が要求された場合、github agentに PR 作成と CI 監視を依頼する。
 
 ```
-Task(
-  subagent_type="reviewer",
-  prompt="Review all changes for task at `.kimuson/tasks/${task_id}/TASK.md`",
-  description="Code review"
+agent-task(
+  agent="github",
+  message="""
+以下のタスクの Draft PR を作成し、CI 完了まで監視してください。
+
+タスクドキュメント: {タスクドキュメントパス}
+"""
 )
 ```
 
-### Step 4.2: QA Verification
+CI が失敗した場合は報告を受け、修正を適切なsubagentに委譲後、再度 Phase 3 からやり直す。
+
+## Phase 6: Notification
+
+すべての作業が完了したら、notifier agentに通知を依頼する。
 
 ```
-Task(
-  subagent_type="qa",
-  prompt="Execute QA verification for task at `.kimuson/tasks/${task_id}/TASK.md`",
-  description="QA verification"
+agent-task(
+  agent="notifier",
+  message="""
+タスク完了を通知してください。
+
+notification_type: {local | pr}
+task_summary: {タスクの概要}
+pr_number: {PR番号（pr の場合のみ）}
+"""
 )
 ```
 
-### Step 4.3: Handle Feedback
+- PR作成時: `notification_type: pr`
+- local作業のみ: `notification_type: local`
 
-<action>
-After review and QA complete:
-1. Read `Review Notes` and `QA Notes`
-2. **If issues found** (unchecked items):
-   - Define fix sessions in `Implementation Plan` (append to session list)
-   - Return to Phase 3 to implement fixes
-   - After fixes, repeat Phase 4 (review + QA)
-3. **If no issues**: Proceed to Phase 5
-</action>
+通知に失敗してもタスク自体は完了とする。結果を報告して終了。
 
-## Phase 5: PR Creation and CI Verification
+## Phase 7: Retrospective & Feature Suggestion
 
-### Step 5.1: Create Draft PR
+タスク完了後、2つの振り返りを並行して実施する:
 
-```
-Task(
-  subagent_type="pr-creator",
-  prompt="Create Draft PR for task at `.kimuson/tasks/${task_id}/TASK.md`. This is an orchestrated workflow.",
-  description="Create PR"
-)
-```
+1. **retrospective**: プロセス面の振り返り（Problem と改善提案）
+2. **feature-suggester**: アプリケーション面の振り返り（ネクストアクションの提案）
 
-### Step 5.2: Monitor CI
+- ユーザーへの質問等を待っているタイミングでは実施せず、完了したと判断したタイミングで行う
+- 両agentはコンテキストを fork するため、並行して呼び出してOK
 
-<ci_monitoring>
-After PR creation, monitor CI checks using github skill's script.
+---
 
-**Action**:
-1. Extract PR number from pr-creator output or task Memo
-2. Run CI monitoring script:
-```bash
-~/.claude/skills/github/scripts/wait-pr-checks-and-report.sh <pr-number>
-```
-Skill(command: "github")
-```
-3. Run CI monitoring script: wait-pr-checks-and-report.sh
-
-**Script behavior**:
-- Waits for all CI checks to complete (polls every 30 seconds)
-- Timeout: 15 minutes
-- Returns exit code 0 if all passed, 1 if any failed
-- Outputs detailed failure information to stdout
-
-**Capture output** and analyze results.
-</ci_monitoring>
-
-### Step 5.3: Handle CI Failures
-
-<action>
-**If CI failures exist**:
-1. Parse failure details from script output
-2. Define fix sessions in `Implementation Plan` with CI failure context
-3. Return to Phase 3 to implement fixes
-4. After fixes, push changes and repeat Step 5.2
-
-**If all passed** → Proceed to Phase 6
-</action>
-
-## Phase 6: Final Verification
-
-Read task document and verify:
-1. **Acceptance Criteria**: All checked?
-2. **Review Notes**: No unresolved issues?
-3. **QA Notes**: All verifications passed?
-4. **CI Status**: All checks passed?
-
-<decision>
-**If all verified** → Proceed to Phase 7
-
-**If any unsatisfied**:
-1. Identify unsatisfied criteria/checks
-2. Define fix sessions in `Implementation Plan`
-3. Return to Phase 3
-</decision>
-
-## Phase 7: Completion Report
-
-Report to user:
-
-```
-✅ Task complete
-
-**Task ID**: ${task_id}
-**PR URL**: [From Memo]
-**Implementation**: [Brief summary]
-
-**Acceptance Criteria**: All satisfied ✅
-**Review Status**: No issues ✅
-**QA Status**: All passed ✅
-**CI Status**: All passed ✅
-
-Task document: `.kimuson/tasks/${task_id}/TASK.md`
-```
-
-<completion_notification>
-**Notification** (if completion-notification.md was loaded):
-- Check "PR Creation Completion" section
-- If enabled, follow the Method/Target instructions in the guideline
-- If not loaded or disabled: Skip (default)
-</completion_notification>
-</execution_phases>
-
-<workflow_permissions>
-## Authorization Note
-
-By invoking `/delegate`, the user explicitly delegates the entire development workflow including commits and PR creation. Subagents (`engineer`, `pr-creator`) have authorization sections in their prompts that recognize orchestrated workflow context.
-
-Git operations (commits, pushes, PR creation) are expected deliverables of this workflow.
-</workflow_permissions>
-
-<important_notes>
-## Guidelines
-
-**Iterative workflow**: Phases can loop back based on feedback (review/QA/CI issues → Phase 3). Continue until Phase 6 verification succeeds.
-
-**Parallel efficiency**: Maximize parallel execution when sessions are independent. This reduces total orchestration time.
-
-**Preparation judgment**: Use judgment to determine necessary preparation steps. Avoid unnecessary context collection or architecture design for trivial tasks.
-
-**Error Handling**:
-- **If subagent fails**: Review error output, determine if recoverable, document in `Memo`, report to user with context
-- **If git operations fail**: Document in `Memo`, ask user to resolve or provide guidance
-- **If task document structure is invalid**: Report specific validation errors to user
-</important_notes>
+上記の原則・フローを遵守してタスクを進行してください。
