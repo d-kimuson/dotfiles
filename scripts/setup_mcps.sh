@@ -12,4 +12,5 @@ set -e
 claude mcp add modular-mcp -s user -- npx -y @kimuson/modular-mcp@latest $(git rev-parse --show-toplevel)/config/modular-mcp.json
 claude mcp add super-agent -s user -- node $HOME/repos/super-agent/dist/cli/index.mjs mcp serve
 
-# TODO: codex
+codex mcp add modular-mcp -- npx -y @kimuson/modular-mcp@latest $(git rev-parse --show-toplevel)/config/modular-mcp.json
+codex mcp add super-agent -- node $HOME/repos/super-agent/dist/cli/index.mjs mcp serve
