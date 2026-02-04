@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-bash -c "$(curl -fsLS https://raw.githubusercontent.com/d-kimuson/dotfiles/refs/heads/master/scripts/setup.sh)"
+bash -c "$(curl -fsLS https://raw.githubusercontent.com/d-kimuson/dotfiles/refs/heads/main/scripts/setup.sh)"
 ```
 
 ## 設定を更新した時
