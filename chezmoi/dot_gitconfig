@@ -1,0 +1,26 @@
+[user]
+    name = d-kimsuon
+    email = dev.kimuson@gmail.com
+[alias]
+    st = "status"
+[init]
+    defaultBranch = main
+[gpg]
+  format = ssh
+[merge]
+  ff = false
+[pull]
+  ff = only
+[fetch]
+  prune = true
+[hub]
+  protocol = ssh
+[core]
+  excludesFile = ~/.gitignore_global
+  editor = nano
+[color]
+  status = always
+[includeIf "gitdir:~/sms/"]
+  path = .gitconfig-sms
+[include]
+  path = .gitconfig-local

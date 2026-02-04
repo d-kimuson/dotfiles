@@ -1,0 +1,9 @@
+# Mac
+.DS_Store
+
+# memo file
+memo.local.*
+tmp.local.*
+
+# claude code
+**/.kimuson/**

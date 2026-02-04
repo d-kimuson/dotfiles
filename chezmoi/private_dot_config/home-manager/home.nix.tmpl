@@ -1,0 +1,53 @@
+{ config, pkgs, ... }:
+
+{
+  home.username = "{{ .chezmoi.username }}";
+  home.homeDirectory = "{{ .chezmoi.homeDir }}";
+  home.stateVersion = "25.11"; # Please read the comment before changing.
+
+  home.packages = [
+    # 開発環境で使うツール
+    pkgs.mise
+    pkgs.direnv
+    pkgs.starship
+    pkgs.colima
+    pkgs.docker
+    pkgs.docker-compose
+    pkgs.bun
+    pkgs.zsh
+
+    # AI
+    pkgs.claude-code
+    pkgs.codex
+    pkgs.github-copilot-cli
+
+    # 準標準
+    pkgs.jq
+    pkgs.lsof
+    pkgs.net-tools
+    pkgs.nano
+    pkgs.unzip
+    pkgs.wget
+
+    # 標準コマンドの代替(高速・多機能)
+    pkgs.fd
+    pkgs.eza
+    pkgs.lsd
+    pkgs.ripgrep
+    pkgs.bat
+    pkgs.colordiff
+
+    # 標準コマンドのGNU版統一
+    pkgs.coreutils-full
+    pkgs.diffutils
+    pkgs.findutils
+    pkgs.gnused
+    pkgs.gnugrep
+    pkgs.gawk
+    pkgs.gnutar
+  ];
+
+  nixpkgs.config.allowUnfree = true; # Allow unfree packages
+
+  programs.home-manager.enable = true; # Let Home Manager install and manage itself.
+}

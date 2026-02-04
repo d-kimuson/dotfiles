@@ -1,0 +1,3 @@
+bin/chezmoi
+config/modular-mcp.json
+shell/localrc.sh

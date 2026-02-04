@@ -1,0 +1,15 @@
+Host github github.com
+  HostName github.com
+  IdentityFile ~/.ssh/github
+  User git
+
+Host gitlab.com
+  HostName gitlab.com
+  User git
+  IdentityFile ~/.ssh/gitlab
+  IdentitiesOnly yes
+
+Host home-server
+  HostName 100.76.89.33
+  User kaito
+  IdentityFile ~/.ssh/github
