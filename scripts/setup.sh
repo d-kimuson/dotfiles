@@ -2,7 +2,14 @@
 
 set -euo pipefail
 
-CHEZMOI_DIR=$HOME/.local/share/chezmoi
+CWD=$(pwd)
+
+log_info() {
+  echo ""
+  echo "========================================"
+  echo "[INFO] $1"
+  echo "========================================"
+}
 
 install_if_not_exists() {
   local cmd="$1"
@@ -16,17 +23,17 @@ install_if_not_exists() {
   fi
 }
 
-# create chezmoi directory
-mkdir -p $CHEZMOI_DIR
-cd $CHEZMOI_DIR
+cd $HOME
+
+log_info "Starting dotfiles setup..."
 
 # install chezmoi and nix
 install_if_not_exists chezmoi 'sh -c "$(curl -fsLS get.chezmoi.io)"'
 install_if_not_exists nix 'sh <(curl -L https://nixos.org/nix/install) --yes --daemon'
 
 # initialize chezmoi
-./bin/chezmoi init --apply git@github.com:d-kimuson/dotfiles.git
-./bin/chezmoi apply
+$HOME/bin/chezmoi init --apply https://github.com/d-kimuson/dotfiles.git
+$HOME/bin/chezmoi apply
 
 # initialize home-manager
 nix run home-manager/master -- init --switch
@@ -34,4 +41,11 @@ nix run home-manager/master -- init --switch
 # switch home-manager
 home-manager switch
 
-# chsh -s $(which zsh)
+cd $CWD
+
+log_info "Setup completed!"
+echo ""
+echo "To apply the new shell configuration, run:"
+echo ""
+echo "    exec \$SHELL -l"
+echo ""
