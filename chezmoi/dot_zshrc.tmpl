@@ -3,15 +3,7 @@
 # ====================
 # Local Variables
 # ====================
-CHEZMOI_DIR=$HOME/.local/share/chezmoi
-
-# ====================
-# active other rc files
-# ====================
-source ${CHEZMOI_DIR}/shell/sharedrc.sh
-if [ -f ${CHEZMOI_DIR}/shell/localrc.sh ]; then
-  source ${CHEZMOI_DIR}/shell/localrc.sh
-fi
+export CHEZMOI_WORKING_TREE="{{ .chezmoi.workingTree }}"
 
 # ====================
 # Env Dependent
@@ -24,3 +16,11 @@ zstyle ':completion:*:*:git:*' script ~/.zsh/git-completion.bash
 fpath=(~/.zsh $fpath)
 autoload -Uz compinit && compinit
 {{- end }}
+
+# ====================
+# active other rc files
+# ====================
+source ${CHEZMOI_WORKING_TREE}/shell/sharedrc.sh
+if [ -f ${CHEZMOI_WORKING_TREE}/shell/localrc.sh ]; then
+  source ${CHEZMOI_WORKING_TREE}/shell/localrc.sh
+fi

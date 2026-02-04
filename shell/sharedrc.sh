@@ -1,23 +1,9 @@
 #!/usr/bin/env bash
 
 # ====================
-# Local Variables
-# ====================
-CHEZMOI_DIR=$HOME/.local/share/chezmoi
-
-# ====================
 # alias
 # ====================
-source ${CHEZMOI_DIR}/shell/alias.sh
-
-# ====================
-# SET PATH
-# ====================
-path=(
-  ${path}
-  ${HOME}/bin
-  $BUN_INSTALL/bin
-)
+source ${CHEZMOI_WORKING_TREE}/shell/alias.sh
 
 # ====================
 # Env variables
@@ -48,6 +34,11 @@ if [ -s "/Users/kaito/.bun/_bun" ]; then
 fi
 
 # ====================
-# home-manager を最優先
+# SET PATH
 # ====================
-export PATH="/Users/kaito/.nix-profile/bin:$PATH"
+path=(
+  ${HOME}/.nix-profile/bin # home-manager を最優先
+  ${path:#${HOME}/.nix-profile/bin}
+  ${HOME}/bin
+  $BUN_INSTALL/bin
+)
