@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# ====================
+# Local Variables
+# ====================
+CHEZMOI_DIR=$HOME/.local/share/chezmoi
+
+# ====================
+# alias
+# ====================
+source ${CHEZMOI_DIR}/shell/alias.sh
+
+# ====================
+# SET PATH
+# ====================
+path=(
+  ${path}
+  ${CHEZMOI_DIR}/bin
+  $BUN_INSTALL/bin
+)
+
+# ====================
+# Env variables
+# ====================
+export STARSHIP_CONFIG=${CHEZMOI_DIR}/config/starship.toml
+export DOCKER_CONFIG=$HOME/.docker
+export BUN_INSTALL="$HOME/.bun"
+export DIRENV_WARN_TIMEOUT=1m
+export LITELLM_PORT="8082"
+
+export CLAUDE_CODE_VERSION=2.1.19
+export CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=true
+
+export PNPM_HOME="$HOME/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+
+# ====================
+# Activate tools
+# ====================
+eval "$(mise activate --shims)"
+eval "$(starship init zsh)"
+eval "$(direnv hook zsh)"
+if [ -s "/Users/kaito/.bun/_bun" ]; then
+  source "/Users/kaito/.bun/_bun"
+fi

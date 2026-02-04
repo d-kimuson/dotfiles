@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-mise exec npm:@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION:-latest} -- claude "$@"

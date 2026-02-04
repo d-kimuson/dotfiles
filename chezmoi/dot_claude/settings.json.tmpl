@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(uuidgen)",
+      "Bash(pnpm i:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.anthropic.com)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "Notification": [
+      {{- if eq .chezmoi.os "darwin" }}
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
+          }
+        ]
+      }
+      {{- end }}
+    ],
+    "Stop": [
+      {{- if eq .chezmoi.os "darwin" }}
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /System/Library/Sounds/Glass.aiff"
+          }
+        ]
+      }
+      {{- end }}
+    ]
+  },
+  "language": "日本語",
+  "model": "opus"
+}

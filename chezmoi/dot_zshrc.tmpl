@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# ====================
+# Local Variables
+# ====================
+CHEZMOI_DIR=$HOME/.local/share/chezmoi
+
+# ====================
+# active other rc files
+# ====================
+source ${CHEZMOI_DIR}/shell/sharedrc.sh
+if [ -f ${CHEZMOI_DIR}/shell/localrc.sh ]; then
+  source ${CHEZMOI_DIR}/shell/localrc.sh
+fi
+
+# ====================
+# Env Dependent
+# ====================
+{{- if and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id") (eq .chezmoi.osRelease.id "ubuntu") }}
+export CFLAGS=-I/usr/include/openssl
+export LDFLAGS=-L/usr/lib
+
+zstyle ':completion:*:*:git:*' script ~/.zsh/git-completion.bash
+fpath=(~/.zsh $fpath)
+autoload -Uz compinit && compinit
+{{- end }}

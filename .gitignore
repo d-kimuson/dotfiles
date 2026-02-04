@@ -1,28 +1,3 @@
-.DS_Store
-.localrc
-*-e
-.vscode/configurationCache.log
-.vscode/dryrun.log
-
-.gitconfig-sms
-.gitconfig-local
-
-# Claude Code
-CLAUDE.local.md
-
-# gemini
-.claude/settings.local.json
-
-# modular-mcp
-modular-mcp.json
-
-litellm/litellm_config.yaml
-
-# skills
-claude-code/skills/.system/
-
-# super-agent
-super-agent/config.json
-
-# copilot
-copilot/mcp-config.json
+bin/chezmoi
+config/modular-mcp.json
+shell/localrc.sh
