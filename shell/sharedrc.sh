@@ -15,7 +15,7 @@ source ${CHEZMOI_DIR}/shell/alias.sh
 # ====================
 path=(
   ${path}
-  ${CHEZMOI_DIR}/bin
+  ${HOME}/bin
   $BUN_INSTALL/bin
 )
 
@@ -46,3 +46,8 @@ eval "$(direnv hook zsh)"
 if [ -s "/Users/kaito/.bun/_bun" ]; then
   source "/Users/kaito/.bun/_bun"
 fi
+
+# ====================
+# home-manager を最優先
+# ====================
+export PATH="/Users/kaito/.nix-profile/bin:$PATH"
