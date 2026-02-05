@@ -16,6 +16,7 @@ export LITELLM_PORT="8082"
 
 export CLAUDE_CODE_VERSION=2.1.19
 export CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=true
+export MCP_TIMEOUT=120000
 
 export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
