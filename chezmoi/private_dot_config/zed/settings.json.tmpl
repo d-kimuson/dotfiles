@@ -1,0 +1,124 @@
+{
+  // UI / テーマ
+  "theme": "One Dark",
+  "ui_font_size": 16,
+  "buffer_font_size": 17,
+  "buffer_font_family": "Bizin Gothic",
+  "buffer_font_features": {
+    "liga": true,
+    "calt": true
+  },
+
+  // エディタ基本設定
+  "tab_size": 2,
+  "hard_tabs": false,
+  "show_whitespaces": "boundary",
+  "cursor_blink": true,
+  "show_wrap_guides": true,
+  "wrap_guides": [80, 120],
+  "relative_line_numbers": false,
+  "vertical_scroll_margin": 3,
+
+  // ミニマップ（VSCode相当）
+  "scrollbar": {
+    "show": "auto"
+  },
+
+  // ファイルツリー
+  "project_panel": {
+    "auto_fold_dirs": false,
+    "folder_actions": {
+      "confirm_delete": true
+    }
+  },
+
+  // Git
+  "git": {
+    "git_gutter": "tracked_files",
+    "inline_blame": {
+      "enabled": true
+    }
+  },
+
+  // 自動保存（無効）
+  "autosave": "off",
+
+  // フォーマット on save（基本オフ、言語別で設定）
+  "format_on_save": "off",
+
+  // 補完
+  "show_completions_on_input": true,
+  "show_completion_documentation": true,
+
+  // ターミナル
+  "terminal": {
+    "font_size": 18,
+    "font_family": "Hack Nerd Font Mono",
+    "shell": {
+      "program": "zsh"
+    },
+    "working_directory": "current_project_directory"
+  },
+
+  // ファイル除外
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.svn",
+    "**/node_modules",
+    "**/target",
+    "**/.bloop",
+    "**/.metals",
+    "**/.ammonite"
+  ],
+
+  // 言語別設定
+  "languages": {
+    "Python": {
+      "tab_size": 4,
+      "format_on_save": "on"
+    },
+    "Makefile": {
+      "hard_tabs": true
+    },
+    "YAML": {
+      "tab_size": 2
+    },
+    "JSON": {
+      "tab_size": 2
+    },
+    "TypeScript": {
+      "tab_size": 2
+    },
+    "TSX": {
+      "tab_size": 2
+    },
+    "JavaScript": {
+      "tab_size": 2
+    }
+  },
+
+  // インデントガイド
+  "indent_guides": {
+    "enabled": true,
+    "coloring": "fixed"
+  },
+
+  // インラインヒント
+  "inlay_hints": {
+    "enabled": true
+  },
+
+  // Vim モード（お好みで有効化）
+  "vim_mode": false,
+
+  // Copilot / AI アシスタント
+  "features": {
+    "inline_completion_provider": "copilot"
+  },
+
+  // テレメトリ無効
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
+  }
+}

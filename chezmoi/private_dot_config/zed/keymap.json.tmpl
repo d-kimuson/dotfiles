@@ -1,0 +1,95 @@
+[
+  // グローバル
+  {
+    "bindings": {
+      // ターミナル切り替え (VSCode: ctrl+t)
+      "ctrl-t": "workspace::ToggleBottomDock",
+      // コマンドパレット
+      "cmd-shift-p": "command_palette::Toggle"
+    }
+  },
+  // エディタ
+  {
+    "context": "Editor",
+    "bindings": {
+      // 定義に移動 (VSCode: cmd+b)
+      "cmd-b": "editor::GoToDefinition",
+      // 定義をピーク (VSCode: cmd+d)
+      "cmd-d": "editor::GoToDefinitionSplit",
+      // 次の一致を選択に追加 (VSCode: cmd+,)
+      "cmd-,": "editor::SelectNext",
+      // 検索と置換 (VSCode: cmd+f で置換も開く)
+      "cmd-f": "buffer_search::Deploy",
+      // ドキュメントフォーマット (VSCode: ctrl+cmd+f)
+      "ctrl-cmd-f": "editor::Format",
+      // 行を上/下に移動
+      "alt-up": "editor::MoveLineUp",
+      "alt-down": "editor::MoveLineDown",
+      // 行を複製
+      "cmd-shift-d": "editor::DuplicateLineDown",
+      // 行削除
+      "cmd-shift-k": "editor::DeleteLine",
+      // すべての出現箇所を選択
+      "cmd-shift-l": "editor::SelectAllMatches",
+      // 括弧に移動
+      "ctrl-m": "editor::MoveToEnclosingBracket",
+      // コメント切り替え
+      "cmd-/": "editor::ToggleComments",
+      // マルチカーソル（上下）
+      "cmd-alt-up": "editor::AddSelectionAbove",
+      "cmd-alt-down": "editor::AddSelectionBelow",
+      // Peek Implementation (VSCode: shift+cmd+d)
+      "cmd-shift-i": "editor::GoToImplementation"
+    }
+  },
+  // プロジェクトパネル（ファイルツリー）
+  {
+    "context": "ProjectPanel",
+    "bindings": {
+      // サイドバー切り替え
+      "cmd-shift-e": "workspace::ToggleLeftDock"
+    }
+  },
+  // 検索
+  {
+    "context": "BufferSearchBar",
+    "bindings": {
+      // ESCで検索バーを閉じる
+      "escape": "buffer_search::Dismiss"
+    }
+  },
+  // ターミナル
+  {
+    "context": "Terminal",
+    "bindings": {
+      // ターミナル内でのコピー/ペースト
+      "cmd-c": "terminal::Copy",
+      "cmd-v": "terminal::Paste"
+    }
+  },
+  // Pane（タブ操作）
+  {
+    "context": "Pane",
+    "bindings": {
+      // タブ切り替え
+      "ctrl-tab": "pane::ActivateNextItem",
+      "ctrl-shift-tab": "pane::ActivatePrevItem",
+      // タブを閉じる
+      "cmd-w": "pane::CloseActiveItem"
+    }
+  },
+  // Workspace
+  {
+    "context": "Workspace",
+    "bindings": {
+      // ファイルを開く
+      "cmd-p": "file_finder::Toggle",
+      // 全体検索
+      "cmd-shift-f": "workspace::NewSearch",
+      // サイドバー切り替え
+      "cmd-shift-e": "workspace::ToggleLeftDock",
+      // 設定を開く
+      "cmd-,": "zed::OpenSettings"
+    }
+  }
+]
