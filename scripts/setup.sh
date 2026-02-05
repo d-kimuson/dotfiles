@@ -35,11 +35,8 @@ install_if_not_exists nix 'sh <(curl -L https://nixos.org/nix/install) --yes --d
 $HOME/bin/chezmoi init --apply https://github.com/d-kimuson/dotfiles.git
 $HOME/bin/chezmoi apply
 
-# initialize home-manager
-nix run home-manager/master -- init --switch
-
-# switch home-manager
-home-manager switch
+# setup home-manager
+nix run home-manager/master -- switch
 
 cd $CWD
 
