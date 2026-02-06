@@ -11,11 +11,23 @@ export CHEZMOI_WORKING_TREE="{{ .chezmoi.workingTree }}"
 {{- if and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id") (eq .chezmoi.osRelease.id "ubuntu") }}
 export CFLAGS=-I/usr/include/openssl
 export LDFLAGS=-L/usr/lib
-
-zstyle ':completion:*:*:git:*' script ~/.zsh/git-completion.bash
-fpath=(~/.zsh $fpath)
-autoload -Uz compinit && compinit
 {{- end }}
+
+# ====================
+# Zsh Completion
+# ====================
+fpath=(
+  ${HOME}/.nix-profile/share/zsh/site-functions
+  $fpath
+)
+autoload -Uz compinit && compinit
+
+# ====================
+# activate tools
+# ====================
+eval "$(mise activate zsh --shims)"
+eval "$(starship init zsh)"
+eval "$(direnv hook zsh)"
 
 # ====================
 # active other rc files

@@ -27,9 +27,6 @@ esac
 # ====================
 # Activate tools
 # ====================
-eval "$(mise activate --shims)"
-eval "$(starship init zsh)"
-eval "$(direnv hook zsh)"
 if [ -s "/Users/kaito/.bun/_bun" ]; then
   source "/Users/kaito/.bun/_bun"
 fi

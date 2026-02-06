@@ -54,3 +54,24 @@ Files with `.tmpl` extension use Go templates with chezmoi data (e.g., `{{ .chez
 1. `.zshrc` sources `shell/sharedrc.sh`
 2. `sharedrc.sh` sources `shell/alias.sh` and sets up PATH, environment variables, and tool activations (mise, starship, direnv)
 3. Optional `shell/localrc.sh` for machine-specific overrides (gitignored)
+
+## Editing Rules
+
+### Always edit chezmoi source files, never target files directly
+Do not edit `~/.zshrc`, `~/.config/*`, or any other managed dotfiles directly. Always edit the corresponding source files under `chezmoi/` and run `./scripts/reload.sh` to apply.
+
+### Prefer nixpkgs for adding dependencies
+When adding new dependencies, add them to `chezmoi/private_dot_config/home-manager/home.nix.tmpl` and manage via home-manager. Always check nixpkgs availability before resorting to npm global installs or manual downloads.
+
+```bash
+# Search for a package (first run is slow due to cache building)
+nix search nixpkgs <package-name>
+
+# Example: search for ripgrep
+nix search nixpkgs ripgrep
+# => legacyPackages.aarch64-darwin.ripgrep (15.1.0)
+
+# Add to home.nix.tmpl as: pkgs.ripgrep
+```
+
+Use the last segment of the attribute path as the package name (e.g., `legacyPackages.aarch64-darwin.ripgrep` → `pkgs.ripgrep`).
