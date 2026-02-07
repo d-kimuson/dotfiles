@@ -13,6 +13,8 @@ alias gpush="git push origin HEAD";
 alias gpushf="git push origin HEAD --force-with-lease";
 alias gunadd="git restore --staged";
 alias guncom="git rm -rf --cached";
+alias claude-auto="claude --dangerously-skip-permissions"
+alias codex-auto="codex --dangerously-bypass-approvals-and-sandbox"
 
 function c() {
   if [ -z "$1" ]; then
