@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, pkgsMaster, ... }:
 
 {
   home.username = "{{ .chezmoi.username }}";
@@ -14,6 +14,7 @@
     pkgs.docker
     pkgs.docker-compose
     pkgs.bun
+    pkgs.pnpm
     pkgs.zsh
     pkgs.zed-editor
 
@@ -22,9 +23,9 @@
     pkgs.nodePackages.typescript
 
     # AI
-    pkgs.claude-code
-    pkgs.codex
-    pkgs.github-copilot-cli
+    pkgsMaster.claude-code
+    pkgsMaster.codex
+    pkgsMaster.github-copilot-cli
 
     # 準標準
     pkgs.jq
