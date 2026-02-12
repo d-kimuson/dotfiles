@@ -13,7 +13,7 @@
   outputs =
     { nixpkgs, nixpkgs-master, home-manager, ... }:
     let
-      system = "x86_64-linux";
+      system = "{{ if eq .chezmoi.arch "arm64" }}aarch64{{ else }}x86_64{{ end }}-{{ .chezmoi.os }}";
       pkgs = nixpkgs.legacyPackages.${system};
       pkgsMaster = import nixpkgs-master {
         inherit system;
