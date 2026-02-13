@@ -2,7 +2,6 @@
 
 alias l="eza";
 alias tree="lsd --tree";
-alias reload="exec $SHELL -l";
 alias diffy="colordiff -y --left-column";
 alias diffx="colordiff -u";
 alias myip="ifconfig | grep 192 | cut -f 2 -d ' '";
@@ -15,6 +14,7 @@ alias gunadd="git restore --staged";
 alias guncom="git rm -rf --cached";
 alias claude-auto="claude --dangerously-skip-permissions"
 alias codex-auto="codex --dangerously-bypass-approvals-and-sandbox"
+alias dotfiles-apply="chezmoi apply && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh"
 
 function c() {
   if [ -z "$1" ]; then

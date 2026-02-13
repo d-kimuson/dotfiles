@@ -46,7 +46,7 @@ exec $SHELL -l
 ### 設定を反映したい
 
 ```bash
-./scripts/reload.sh
+dotfiles-apply
 ```
 
 chezmoi apply + home-manager switch + シェル再読み込みが実行される。
