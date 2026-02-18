@@ -38,6 +38,10 @@ MUST enable appropriate skills before starting implementation:
 - **期待するアウトプット**: 具体的な成果物と形式
 - **やらなくて良いこと**: スコープ外の作業を明示（重要）
 
+## Tool Usage
+
+- Glob tool does not reliably match dot-directories (e.g. `.kimuson/`). When searching inside dot-directories, use `**/.dir/...` pattern or fall back to `ls` via Bash.
+
 ---
 
 @~/.claude/CLAUDE.local.md

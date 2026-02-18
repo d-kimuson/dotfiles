@@ -23,10 +23,11 @@ models:
 <prerequisites>
 ## 必須ガイドラインの確認
 
-**最初に以下のファイルの存在を確認する**:
-- `.kimuson/guidelines/coding-guideline.md`
-- `.kimuson/guidelines/qa-guideline.md`
-- `.kimuson/guidelines/branch-rule.md`
+**最初に以下のファイルの存在を `ls` コマンドで確認する**（Glob はドットディレクトリで失敗するため使用しないこと）:
+
+```bash
+ls .kimuson/guidelines/coding-guideline.md .kimuson/guidelines/qa-guideline.md .kimuson/guidelines/branch-rule.md
+```
 
 **いずれかが存在しない場合**:
 - タスクを停止する

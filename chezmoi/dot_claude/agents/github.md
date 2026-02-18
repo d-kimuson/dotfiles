@@ -82,10 +82,12 @@ git push -u origin HEAD
 <pr_creation>
 ### 4. Create Pull Request
 
-**Check for PR template**:
+**Check for PR template** (REQUIRED - DO NOT SKIP):
 ```bash
 cat $(git rev-parse --show-toplevel)/.github/pull_request_template.md
 ```
+
+**Important**: The PR template defines the **structure and format** of the PR body, not just content requirements. Even if you already have sufficient information about the changes from the orchestrator or workflow context, you MUST still execute this command to check the template format. Never skip this step based on having enough content—the template ensures consistent PR formatting across the project.
 
 **Fill PR body**:
 
