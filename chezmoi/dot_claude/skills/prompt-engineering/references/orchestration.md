@@ -1,133 +1,133 @@
-# オーケストレーションパターン詳細リファレンス
+# Orchestration Pattern Detailed Reference
 
-サブエージェントを使ったオーケストレーションワークフローのプロンプト設計ガイド。
+Prompt design guide for orchestration workflows using subagents.
 
-## 呼び出しテンプレートの重要性
+## Importance of Invocation Templates
 
-**重要要件: オーケストレーターは明示的な呼び出しテンプレートを必ず提供すること**
+**Critical Requirement: Orchestrators must always provide explicit invocation templates**
 
-### テンプレートが不可欠な理由
-1. **一貫性**: 毎回同じ呼び出しパターン、変動を減少
-2. **再現性**: 将来のメンテナーが正確な呼び出し構造を確認可能
-3. **明確性**: オーケストレーション契約を暗黙ではなく明示的に
-4. **保守性**: サブエージェントの呼び出し方法の単一の信頼できる情報源
-5. **発見可能性**: 新規ユーザーがすぐにパターンを理解可能
+### Why Templates Are Essential
+1. **Consistency**: Same invocation pattern every time, reduces variation
+2. **Reproducibility**: Future maintainers can verify exact invocation structure
+3. **Clarity**: Makes orchestration contracts explicit rather than implicit
+4. **Maintainability**: Single source of truth for how to invoke subagents
+5. **Discoverability**: New users can understand patterns immediately
 
-### テンプレートの良い例
+### Good Template Example
 ```markdown
-## 実装エージェントの呼び出し
+## Invoking the Implementation Agent
 
-このテンプレートを使用:
+Use this template:
 
 agent-task(
   agent="engineer",
   message="""
-以下の機能を実装してください:
+Please implement the following feature:
 {feature_description}
 
-要件:
+Requirements:
 {requirements}
 
-受け入れ条件:
+Acceptance Criteria:
 {acceptance_criteria}
 
-プロジェクト規約に従い、テストを含めてください。
+Follow project conventions and include tests.
 """
 )
 ```
 
-## オーケストレーターとサブエージェント間の責任分割
+## Responsibility Division Between Orchestrator and Subagent
 
-**設計原則**: サブエージェントは単一目的だが多くのタスクで再利用可能。タスク固有のコンテキストはオーケストレーターのテンプレートに; 責任固有のプラクティスはサブエージェントに。
+**Design Principle**: Subagents are single-purpose but reusable across many tasks. Task-specific context goes in orchestrator templates; responsibility-specific practices go in subagents.
 
-### サブエージェントプロンプト（責任固有、再利用可能）
-- この責任に常に必要なコアプラクティス
-- ドメイン固有の知識と制約
-- このタイプのタスクの一般的なワークフロー
-- このドメインのエラーハンドリングパターン
-- この責任の品質基準
+### Subagent Prompt (Responsibility-Specific, Reusable)
+- Core practices always needed for this responsibility
+- Domain-specific knowledge and constraints
+- General workflow for this type of task
+- Error handling patterns for this domain
+- Quality standards for this responsibility
 
-### オーケストレーターの呼び出しテンプレート（タスク固有、コンテキスト依存）
-- 現在のタスクのコンテキストと背景
-- タスク固有のルールと制約
-- このタスクの特定の焦点領域または優先事項
-- 他のワークフローステップとの統合要件
-- 普遍的に適用できないプロジェクト固有の制約
+### Orchestrator Invocation Template (Task-Specific, Context-Dependent)
+- Context and background for the current task
+- Task-specific rules and constraints
+- Specific focus areas or priorities for this task
+- Integration requirements with other workflow steps
+- Project-specific constraints that don't apply universally
 
-## 具体例: コードレビューエージェント
+## Concrete Example: Code Review Agent
 
-### サブエージェントプロンプト（`.claude/agents/reviewer.md`）
+### Subagent Prompt (`.claude/agents/reviewer.md`)
 ```markdown
-コード変更の品質と正確性をレビューする。
+Review code changes for quality and correctness.
 
-チェック項目:
-- 型安全性と正確性
-- セキュリティ脆弱性
-- パフォーマンス問題
-- コードスタイルの一貫性
-- テストカバレッジの十分性
+Check for:
+- Type safety and correctness
+- Security vulnerabilities
+- Performance issues
+- Code style consistency
+- Test coverage adequacy
 
-レポート形式:
-- 重要度レベル（critical/moderate/minor）
-- ファイルパスと行番号
-- 具体的な推奨事項
-- 優先順序（critical を先に）
+Report format:
+- Severity level (critical/moderate/minor)
+- File path and line number
+- Specific recommendations
+- Priority order (critical first)
 ```
 
-### オーケストレーターのテンプレート
+### Orchestrator Template
 ```markdown
 agent-task(
   agent="reviewer",
   message="""
-認証機能の実装をレビューしてください。
+Please review the authentication feature implementation.
 
-コンテキスト: HIPAA 下で PHI データを扱うヘルスケアアプリケーション。
+Context: Healthcare application handling PHI data under HIPAA.
 
-このレビューの追加要件:
-- HIPAA 準拠は critical（違反は critical として報告）
-- すべてのデータベースクエリはパラメータ化ステートメントを使用
-- セッショントークンは15分以内に期限切れ
-- パスワードハッシュは cost factor ≥12 の bcrypt を使用
+Additional requirements for this review:
+- HIPAA compliance is critical (report violations as critical)
+- All database queries must use parameterized statements
+- Session tokens must expire within 15 minutes
+- Password hashing must use bcrypt with cost factor ≥12
 
-レビュー対象ファイル: src/auth/*.ts
+Files to review: src/auth/*.ts
 
-セキュリティとコンプライアンス問題に集中。
+Focus on security and compliance issues.
 """
 )
 ```
 
-## 責任分割のための設計質問
+## Design Questions for Responsibility Division
 
-### これはサブエージェントプロンプトに入れるべきか？
-- このプラクティスはこのタイプのタスクに常に必要か？
-- これはエージェントのコア責任を定義するか？
-- このエージェントは処理するあらゆるタスクでこの知識が必要か？
-- これはこの責任のためのドメイン固有の専門知識か？
+### Should this go in the subagent prompt?
+- Is this practice always needed for this type of task?
+- Does this define the agent's core responsibility?
+- Would the agent need this knowledge for any task it handles?
+- Is this domain-specific expertise for this responsibility?
 
-→ **YES なら**: サブエージェントプロンプトに含める
+→ **If YES**: Include in subagent prompt
 
-### これはオーケストレーターのテンプレートに入れるべきか？
-- これは現在のタスクまたはプロジェクト固有か？
-- ワークフローの前のステップに依存するか？
-- これは一時的な制約または優先事項か？
-- オーケストレーションフローからのコンテキストが必要か？
+### Should this go in the orchestrator template?
+- Is this specific to the current task or project?
+- Does it depend on previous steps in the workflow?
+- Is this a temporary constraint or priority?
+- Does it require context from the orchestration flow?
 
-→ **YES なら**: 呼び出しテンプレートに含める
+→ **If YES**: Include in invocation template
 
-### 例
-- ✅ サブエージェント: "型エラーと未使用変数をチェック"
-- ✅ オーケストレーター: "前のステップでリファクタした支払いモジュールに集中"
-- ✅ サブエージェント: "セキュリティ脆弱性を重要度レベル付きで報告"
-- ✅ オーケストレーター: "これはクレジットカードデータを扱う—PCI-DSS 準拠が critical"
+### Examples
+- ✅ Subagent: "Check for type errors and unused variables"
+- ✅ Orchestrator: "Focus on the payment module we refactored in the previous step"
+- ✅ Subagent: "Report security vulnerabilities with severity levels"
+- ✅ Orchestrator: "This handles credit card data—PCI-DSS compliance is critical"
 
-## 追加考慮事項
+## Additional Considerations
 
-### 失敗ハンドリング
-- オーケストレーターはサブエージェントの失敗を gracefully に処理
-- 重要タスクのリトライ戦略を定義
-- サブエージェントからの明確なエラー報告
+### Failure Handling
+- Orchestrators handle subagent failures gracefully
+- Define retry strategies for critical tasks
+- Clear error reporting from subagents
 
-### テンプレート保守
-- 呼び出しテンプレートを更新しやすいよう一箇所に保持
-- サブエージェントプロンプト変更時、すべてのオーケストレーターテンプレートをレビュー
-- 各サブエージェントの期待入出力を文書化
+### Template Maintenance
+- Keep invocation templates in one place for easy updates
+- Review all orchestrator templates when subagent prompts change
+- Document expected inputs and outputs for each subagent

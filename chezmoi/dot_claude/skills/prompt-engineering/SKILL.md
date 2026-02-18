@@ -1,67 +1,67 @@
 ---
 name: prompt-engineering
-description: Coding Agent プロンプトのためのプロンプトエンジニアリング・コンテキストエンジニアリングのベストプラクティス
+description: Best practices for prompt engineering and context engineering for Coding Agent prompts
 disable-model-invocation: false
 user-invocable: true
 ---
 
-Coding Agent プロンプト（commands, agents, skills, context files）を作成・編集する際のガイドライン。
+Guidelines for creating and editing Coding Agent prompts (commands, agents, skills, context files).
 
-**重要**: 対応するプロンプトタイプの詳細リファレンスを必ず Read してから作業を開始すること。
+**Important**: Always Read the detailed reference for the corresponding prompt type before starting work.
 
-## プロンプトタイプ早見表
+## Prompt Type Quick Reference
 
-| タイプ | 配置場所 | 呼び出し方 | 用途 | リファレンス |
-|--------|----------|------------|------|--------------|
-| **Command** | `.claude/commands/<name>.md` | `/command-name` | ユーザー向け再利用可能タスク | `references/command.md` |
-| **Agent** | `.{.super-agent,.claude}/agents/<name>.md` | `@agent-name` / Task tool | 特化型サブエージェント | `references/agent.md` |
-| **Skill** | `{.super-agent|.claude|.codex|.github}/skills/<name>/SKILL.md` | Skill tool / 自動 | 再利用可能な知識・ガイドライン | `references/skill.md` |
-| **Context File** | `.claude/CLAUDE.md` 等 | 自動ロード | 常時必要なプロジェクトコンテキスト | `references/context-file.md` |
-| **Document** | 任意 | 手動参照 | スタンドアロンプロンプト | - |
+| Type | Location | Invocation | Purpose | Reference |
+|------|----------|------------|---------|-----------|
+| **Command** | `.claude/commands/<name>.md` | `/command-name` | Reusable tasks for users | `references/command.md` |
+| **Agent** | `.{.super-agent,.claude}/agents/<name>.md` | `@agent-name` / Task tool | Specialized subagents | `references/agent.md` |
+| **Skill** | `{.super-agent|.claude|.codex|.github}/skills/<name>/SKILL.md` | Skill tool / automatic | Reusable knowledge and guidelines | `references/skill.md` |
+| **Context File** | `.claude/CLAUDE.md` etc. | Auto-loaded | Always-needed project context | `references/context-file.md` |
+| **Document** | Any | Manual reference | Standalone prompts | - |
 
-**その他のリファレンス**:
-- `references/orchestration.md` - サブエージェントを呼び出すオーケストレーター設計
-- `references/permission-syntax.md` - allowed-tools の権限構文
-- `references/hooks.md` - ライフサイクルフックの設定
+**Other references**:
+- `references/orchestration.md` - Orchestrator design for calling subagents
+- `references/permission-syntax.md` - Permission syntax for allowed-tools
+- `references/hooks.md` - Lifecycle hook configuration
 
-## コア原則
+## Core Principles
 
-### 1. 単一責任
-各プロンプトは一つの明確な目的を持つ。
-- ✅ 環境セットアップのみ / コード実装のみ
+### 1. Single Responsibility
+Each prompt has one clear purpose.
+- ✅ Environment setup only / Code implementation only
 
-### 2. 呼び出し元からの独立
-「オーケストレーター」「親タスク」への参照を避け、入出力契約に集中。
-- ✅ "提供されたコードを分析し、問題を特定..."
+### 2. Independence from Caller
+Avoid references to "orchestrator" or "parent task"; focus on input/output contracts.
+- ✅ "Analyze the provided code and identify issues..."
 
-### 3. 簡潔さ
-実行に必要な情報のみ。冗長な例、仮定パス、汎用パターンを削除。
+### 3. Conciseness
+Only information necessary for execution. Remove verbose examples, hypothetical paths, and generic patterns.
 
-### 4. ノイズ回避
-- 複数言語の例を避ける（主要言語を選択）
-- 仮定のファイルパスを避ける（CONTRIBUTING.md 等）
-- LLM が推論できる詳細手順を省略
+### 4. Noise Avoidance
+- Avoid examples in multiple languages (choose the primary language)
+- Avoid hypothetical file paths (CONTRIBUTING.md, etc.)
+- Omit detailed steps that the LLM can infer
 
-## フォーマットルール
+## Formatting Rules
 
-- **h1 見出し禁止**: `#` で始めない
-- **言語**: `description` はプロジェクトの主要言語、本文も主要言語で可
-- **XML タグ**: 複数セクションがある場合は構造化に活用
+- **No h1 headings**: Do not start with `#`
+- **Language**: `description` in the project's primary language; body can also be in primary language
+- **XML tags**: Use for structuring when there are multiple sections
 
-## オーケストレーション
+## Orchestration
 
-サブエージェントを呼び出す場合:
-1. **呼び出しテンプレート必須**: 完全な Task tool 使用例を含める
-2. **責任分割**: サブエージェントは汎用的に、タスク固有はテンプレートに
+When calling subagents:
+1. **Invocation template required**: Include complete Task tool usage example
+2. **Responsibility separation**: Subagents should be generic; task-specific details go in templates
 
-## Context File の特別ルール
+## Special Rules for Context Files
 
-常時ロードされるため、特に慎重に:
-- **80%ルール**: タスクの80%が必要とする情報のみ
-- **インデックス優先**: 詳細はポインタで参照
-- **コマンドの吟味**: LLM が自律実行するコマンドのみ
-- **目標100行未満**
+Be especially careful since they are always loaded:
+- **80% rule**: Only information needed by 80% of tasks
+- **Index-first**: Reference details via pointers
+- **Scrutinize commands**: Only commands the LLM will autonomously execute
+- **Target under 100 lines**
 
 ## Extended Thinking
 
-複雑な推論には "think harder"、非常に深い分析には "ultrathink" をプロンプトに含める。
+Include "think harder" in prompts for complex reasoning, "ultrathink" for very deep analysis.

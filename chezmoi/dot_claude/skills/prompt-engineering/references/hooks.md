@@ -1,43 +1,43 @@
-# Hooks（フック）詳細リファレンス
+# Hooks Detailed Reference
 
-## 概要
-ツール実行の前後やセッションのライフサイクルで実行されるカスタムコマンド。
-Agents や Skills のフロントマターでも、settings.json でも定義可能。
+## Overview
+Custom commands executed before/after tool execution or during session lifecycle.
+Can be defined in Agents or Skills frontmatter, or in settings.json.
 
-## 設定場所
+## Configuration Locations
 
-| 場所 | スコープ |
-|------|----------|
-| `~/.claude/settings.json` | ユーザー全体 |
-| `.claude/settings.json` | プロジェクト共有 |
-| `.claude/settings.local.json` | プロジェクトローカル |
-| Agent/Skill フロントマター | そのコンポーネントがアクティブな間のみ |
+| Location | Scope |
+|----------|-------|
+| `~/.claude/settings.json` | User-wide |
+| `.claude/settings.json` | Project shared |
+| `.claude/settings.local.json` | Project local |
+| Agent/Skill frontmatter | Only while that component is active |
 
-## イベントタイプ
+## Event Types
 
-### マッチャー使用イベント
+### Events Using Matchers
 
-| イベント | 実行タイミング | マッチャー対象 |
-|---------|---------------|----------------|
-| `PreToolUse` | ツール呼び出し前 | ツール名 |
-| `PostToolUse` | ツール呼び出し後 | ツール名 |
-| `PermissionRequest` | 許可ダイアログ表示時 | ツール名 |
-| `Notification` | 通知送信時 | 通知タイプ |
+| Event | Execution Timing | Matcher Target |
+|-------|------------------|----------------|
+| `PreToolUse` | Before tool invocation | Tool name |
+| `PostToolUse` | After tool invocation | Tool name |
+| `PermissionRequest` | When permission dialog is shown | Tool name |
+| `Notification` | When notification is sent | Notification type |
 
-### マッチャー不要イベント
+### Events Without Matchers
 
-| イベント | 実行タイミング |
-|---------|---------------|
-| `UserPromptSubmit` | ユーザープロンプト送信時（処理前） |
-| `Stop` | メインエージェント応答終了時 |
-| `SubagentStop` | サブエージェント応答終了時 |
-| `SessionStart` | セッション開始・再開時 |
-| `SessionEnd` | セッション終了時 |
-| `PreCompact` | コンパクト操作前 |
+| Event | Execution Timing |
+|-------|------------------|
+| `UserPromptSubmit` | When user prompt is submitted (before processing) |
+| `Stop` | When main agent response ends |
+| `SubagentStop` | When subagent response ends |
+| `SessionStart` | When session starts or resumes |
+| `SessionEnd` | When session ends |
+| `PreCompact` | Before compact operation |
 
-## 設定形式
+## Configuration Format
 
-### settings.json での設定
+### Configuration in settings.json
 
 ```json
 {
@@ -68,7 +68,7 @@ Agents や Skills のフロントマターでも、settings.json でも定義可
 }
 ```
 
-### Agent/Skill フロントマターでの設定
+### Configuration in Agent/Skill Frontmatter
 
 ```yaml
 hooks:
@@ -84,17 +84,17 @@ hooks:
           command: "./scripts/lint.sh"
 ```
 
-Agent/Skill で利用可能なイベント: `PreToolUse`, `PostToolUse`, `Stop`
+Events available for Agent/Skill: `PreToolUse`, `PostToolUse`, `Stop`
 
-## マッチャー構文
+## Matcher Syntax
 
-- 単純文字列: `Write` → Write ツールのみ
-- 正規表現: `Edit|Write`, `Notebook.*`
-- 全マッチ: `*` または空文字列 `""`
+- Simple string: `Write` → Write tool only
+- Regular expression: `Edit|Write`, `Notebook.*`
+- Match all: `*` or empty string `""`
 
-## フック入力（stdin JSON）
+## Hook Input (stdin JSON)
 
-全イベント共通フィールド:
+Common fields for all events:
 
 ```json
 {
@@ -106,7 +106,7 @@ Agent/Skill で利用可能なイベント: `PreToolUse`, `PostToolUse`, `Stop`
 }
 ```
 
-### PreToolUse / PostToolUse 追加フィールド
+### Additional Fields for PreToolUse / PostToolUse
 
 ```json
 {
@@ -116,36 +116,36 @@ Agent/Skill で利用可能なイベント: `PreToolUse`, `PostToolUse`, `Stop`
 }
 ```
 
-PostToolUse は追加で `tool_response` を含む。
+PostToolUse additionally includes `tool_response`.
 
-## 終了コード
+## Exit Codes
 
-| コード | 動作 |
-|--------|------|
-| `0` | 成功。stdout を処理（JSON または テキスト） |
-| `2` | ブロック。stderr をエラーメッセージとして使用 |
-| その他 | 非ブロッキングエラー。stderr を表示して続行 |
+| Code | Behavior |
+|------|----------|
+| `0` | Success. Process stdout (JSON or text) |
+| `2` | Block. Use stderr as error message |
+| Other | Non-blocking error. Display stderr and continue |
 
-### 終了コード 2 の動作（イベント別）
+### Exit Code 2 Behavior (by Event)
 
-| イベント | 動作 |
-|---------|------|
-| `PreToolUse` | ツール呼び出しをブロック、stderr を Claude に表示 |
-| `PermissionRequest` | 許可を拒否、stderr を Claude に表示 |
-| `PostToolUse` | stderr を Claude に表示（ツールは実行済み） |
-| `UserPromptSubmit` | プロンプト処理をブロック、stderr をユーザーに表示 |
-| `Stop` / `SubagentStop` | 停止をブロック、stderr を Claude に表示 |
+| Event | Behavior |
+|-------|----------|
+| `PreToolUse` | Block tool invocation, display stderr to Claude |
+| `PermissionRequest` | Deny permission, display stderr to Claude |
+| `PostToolUse` | Display stderr to Claude (tool already executed) |
+| `UserPromptSubmit` | Block prompt processing, display stderr to user |
+| `Stop` / `SubagentStop` | Block stop, display stderr to Claude |
 
-## 環境変数
+## Environment Variables
 
-| 変数 | 説明 |
-|------|------|
-| `CLAUDE_PROJECT_DIR` | プロジェクトルートへの絶対パス |
-| `CLAUDE_ENV_FILE` | SessionStart のみ。環境変数を永続化するファイルパス |
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_PROJECT_DIR` | Absolute path to project root |
+| `CLAUDE_ENV_FILE` | SessionStart only. File path for persisting environment variables |
 
-## よく使うパターン
+## Common Patterns
 
-### 読み取り専用クエリの強制
+### Enforcing Read-only Queries
 
 ```json
 {
@@ -172,13 +172,13 @@ INPUT=$(cat)
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
 if echo "$COMMAND" | grep -iE '\b(INSERT|UPDATE|DELETE|DROP)\b' > /dev/null; then
-  echo "ブロック: SELECT クエリのみ許可" >&2
+  echo "Blocked: Only SELECT queries are allowed" >&2
   exit 2
 fi
 exit 0
 ```
 
-### ファイル編集後の自動リント
+### Auto-lint After File Edits
 
 ```json
 {

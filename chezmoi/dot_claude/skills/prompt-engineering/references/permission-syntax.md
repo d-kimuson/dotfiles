@@ -1,53 +1,53 @@
-### 権限ルール構文
+### Permission Rule Syntax
 
-権限ルールは `Tool` または `Tool(specifier)` の形式に従います。構文を理解することで、意図したものと正確に一致するルールを作成するのに役立ちます。
+Permission rules follow the format `Tool` or `Tool(specifier)`. Understanding the syntax helps create rules that match exactly what you intend.
 
-#### ルール評価順序
+#### Rule Evaluation Order
 
-同じツール使用に複数のルールが一致する可能性がある場合、ルールは次の順序で評価されます：
+When multiple rules may match the same tool use, rules are evaluated in this order:
 
-1. **Deny** ルールが最初にチェックされます
-2. **Ask** ルールが 2 番目にチェックされます
-3. **Allow** ルールが最後にチェックされます
+1. **Deny** rules are checked first
+2. **Ask** rules are checked second
+3. **Allow** rules are checked last
 
-最初に一致するルールが動作を決定します。これは、両方が同じコマンドに一致する場合でも、deny ルールが常に allow ルールより優先されることを意味します。
+The first matching rule determines the behavior. This means a deny rule always takes precedence over an allow rule, even if both match the same command.
 
-#### ツールのすべての使用に一致
+#### Matching All Uses of a Tool
 
-ツールのすべての使用に一致させるには、括弧なしでツール名を使用します：
+To match all uses of a tool, use the tool name without parentheses:
 
-| ルール        | 効果                        |
-| :--------- | :------------------------ |
-| `Bash`     | **すべての** Bash コマンドに一致     |
-| `WebFetch` | **すべての** web フェッチリクエストに一致 |
-| `Read`     | **すべての**ファイル読み取りに一致       |
+| Rule       | Effect                                |
+| :--------- | :------------------------------------ |
+| `Bash`     | Matches **all** Bash commands         |
+| `WebFetch` | Matches **all** web fetch requests    |
+| `Read`     | Matches **all** file reads            |
 
 <Warning>
-  `Bash(*)` は**すべての** Bash コマンドに一致しません。`*` ワイルドカードは specifier コンテキスト内でのみ一致します。ツールのすべての使用を許可または拒否するには、ツール名のみを使用します：`Bash(*)` ではなく `Bash`。
+  `Bash(*)` does **not** match all Bash commands. The `*` wildcard only matches within the specifier context. To allow or deny all uses of a tool, use just the tool name: `Bash`, not `Bash(*)`.
 </Warning>
 
-#### 細かい制御のための specifier の使用
+#### Using Specifiers for Fine-Grained Control
 
-括弧内に specifier を追加して、特定のツール使用に一致させます：
+Add a specifier in parentheses to match specific tool uses:
 
-| ルール                            | 効果                             |
-| :----------------------------- | :----------------------------- |
-| `Bash(npm run build)`          | 正確なコマンド `npm run build` に一致    |
-| `Read(./.env)`                 | 現在のディレクトリの `.env` ファイルの読み取りに一致 |
-| `WebFetch(domain:example.com)` | example.com へのフェッチリクエストに一致     |
+| Rule                           | Effect                                         |
+| :----------------------------- | :--------------------------------------------- |
+| `Bash(npm run build)`          | Matches exact command `npm run build`          |
+| `Read(./.env)`                 | Matches reading `.env` file in current directory |
+| `WebFetch(domain:example.com)` | Matches fetch requests to example.com          |
 
-#### ワイルドカードパターン
+#### Wildcard Patterns
 
-Bash ルールには 2 つのワイルドカード構文が利用可能です：
+Two wildcard syntaxes are available for Bash rules:
 
-| ワイルドカード | 位置          | 動作                                                           | 例                                               |
-| :------ | :---------- | :----------------------------------------------------------- | :---------------------------------------------- |
-| `:*`    | パターンの末尾のみ   | **プレフィックスマッチング**（単語境界付き）。プレフィックスの後にスペースまたは文字列の終わりが続く必要があります。 | `Bash(ls:*)` は `ls -la` に一致しますが、`lsof` には一致しません |
-| `*`     | パターン内の任意の場所 | **グロブマッチング**（単語境界なし）。その位置の任意の文字シーケンスに一致します。                  | `Bash(ls*)` は `ls -la` と `lsof` の両方に一致          |
+| Wildcard | Position              | Behavior                                                              | Example                                               |
+| :------- | :-------------------- | :-------------------------------------------------------------------- | :---------------------------------------------------- |
+| `:*`     | End of pattern only   | **Prefix matching** (with word boundary). Prefix must be followed by space or end of string. | `Bash(ls:*)` matches `ls -la` but not `lsof` |
+| `*`      | Anywhere in pattern   | **Glob matching** (no word boundary). Matches any character sequence at that position. | `Bash(ls*)` matches both `ls -la` and `lsof` |
 
-**`:*` を使用したプレフィックスマッチング**
+**Prefix Matching with `:*`**
 
-`:*` サフィックスは、指定されたプレフィックスで始まるコマンドに一致します。これは複数単語のコマンドで機能します。次の構成は npm と git commit コマンドを許可し、git push と rm -rf をブロックします：
+The `:*` suffix matches commands starting with the specified prefix. This works with multi-word commands. The following configuration allows npm and git commit commands while blocking git push and rm -rf:
 
 ```json  theme={null}
 {
@@ -65,9 +65,9 @@ Bash ルールには 2 つのワイルドカード構文が利用可能です：
 }
 ```
 
-**`*` を使用したグロブマッチング**
+**Glob Matching with `*`**
 
-`*` ワイルドカードはパターンの開始、中央、または末尾に表示できます。次の構成は main をターゲットとするすべての git コマンド（`git checkout main`、`git merge main` など）とすべてのバージョンチェックコマンド（`node --version`、`npm --version` など）を許可します：
+The `*` wildcard can appear at the start, middle, or end of patterns. The following configuration allows all git commands targeting main (`git checkout main`, `git merge main`, etc.) and all version check commands (`node --version`, `npm --version`, etc.):
 
 ```json  theme={null}
 {
@@ -81,7 +81,7 @@ Bash ルールには 2 つのワイルドカード構文が利用可能です：
 ```
 
 <Warning>
-  コマンド引数を制限しようとする Bash 権限パターンは脆弱です。たとえば、`Bash(curl http://github.com/:*)` は curl を GitHub URL に制限することを意図していますが、`curl -X GET http://github.com/...`（URL の前のフラグ）、`curl https://github.com/...`（異なるプロトコル）、またはシェル変数を使用するコマンドには一致しません。引数制約パターンをセキュリティ境界として信頼しないでください。[Bash 権限制限](/ja/iam#tool-specific-permission-rules)で代替案を参照してください。
+  Bash permission patterns that attempt to restrict command arguments are fragile. For example, `Bash(curl http://github.com/:*)` is intended to restrict curl to GitHub URLs, but won't match `curl -X GET http://github.com/...` (flags before URL), `curl https://github.com/...` (different protocol), or commands using shell variables. Do not rely on argument constraint patterns as a security boundary. See [Bash Permission Limitations](/iam#tool-specific-permission-rules) for alternatives.
 </Warning>
 
-ツール固有の権限パターンの詳細情報（Read、Edit、WebFetch、MCP、Task ルール、および Bash 権限制限を含む）については、[ツール固有の権限ルール](/ja/iam#tool-specific-permission-rules)を参照してください。
+For more information on tool-specific permission patterns (including Read, Edit, WebFetch, MCP, Task rules, and Bash permission limitations), see [Tool-Specific Permission Rules](/iam#tool-specific-permission-rules).

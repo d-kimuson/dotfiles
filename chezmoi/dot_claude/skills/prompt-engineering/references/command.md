@@ -1,26 +1,26 @@
-## Commands（コマンド）詳細リファレンス
+## Commands Detailed Reference
 
-### 概要
-`/command-name [args]` でユーザーが呼び出す再利用可能な指示プリセット。
+### Overview
+Reusable instruction presets invoked by users with `/command-name [args]`.
 
-### 構造
-- **配置場所**: `.claude/commands/<command-name>.md`
-- **呼び出し方**: `/command-name [追加指示]`
-- **処理方法**: フロントマターは除外され、本文が指示として渡される
+### Structure
+- **Location**: `.claude/commands/<command-name>.md`
+- **Invocation**: `/command-name [additional instructions]`
+- **Processing**: Frontmatter is excluded, and the body is passed as instructions
 
-### フロントマター
+### Frontmatter
 
 ```yaml
 ---
-description: 'このコマンドを使うべき状況の説明（必須、80文字以下、リポジトリの主要言語）'
-disable-model-invocation: true  # 必須: エージェントからの自動呼び出しを防止
-user-invocable: true            # 必須: ユーザーの / メニューに表示
-# argument-hint: '[issue-number]'   # オートコンプリート時に表示されるヒント
-# allowed-tools: Read, Grep, Glob   # コマンド実行時に許可なしで使用できるツール（構文は references/permission-syntax.md 参照）
-# model: sonnet                     # コマンド実行時に使用するモデル
-# context: fork                     # fork でサブエージェントコンテキストで実行
-# agent: github                     # context: fork 時に使用するサブエージェントタイプ
-# hooks:                            # コマンドのライフサイクルにスコープされたフック
+description: 'Description of when to use this command (required, 80 characters or less, in the repository's primary language)'
+disable-model-invocation: true  # Required: Prevents automatic invocation by agents
+user-invocable: true            # Required: Shows in user's / menu
+# argument-hint: '[issue-number]'   # Hint shown in autocomplete
+# allowed-tools: Read, Grep, Glob   # Tools allowed without permission during command execution (see references/permission-syntax.md for syntax)
+# model: sonnet                     # Model to use during command execution
+# context: fork                     # fork executes in sub-agent context
+# agent: github                     # Sub-agent type to use when context: fork
+# hooks:                            # Hooks scoped to the command lifecycle
 #   PreToolUse:
 #     - matcher: "Bash"
 #       hooks:
@@ -29,91 +29,91 @@ user-invocable: true            # 必須: ユーザーの / メニューに表�
 ---
 ```
 
-### 必須フロントマターフィールド
+### Required Frontmatter Fields
 
-| フィールド | 値 | 説明 |
-|----------|-----|------|
-| `description` | 文字列 | コマンドの用途説明（80文字以下） |
-| `disable-model-invocation` | `true` | エージェントからの自動呼び出しを防止 |
-| `user-invocable` | `true` | `/` メニューにコマンドを表示 |
+| Field | Value | Description |
+|-------|-------|-------------|
+| `description` | string | Description of command purpose (80 characters or less) |
+| `disable-model-invocation` | `true` | Prevents automatic invocation by agents |
+| `user-invocable` | `true` | Shows command in `/` menu |
 
-**Command は常にユーザー起点で呼び出される想定**。エージェントが自動で呼び出すべきものは Agent または Skill として定義する。
+**Commands are designed to always be user-initiated**. Things that agents should invoke automatically should be defined as Agents or Skills.
 
-### その他のフィールド解説
+### Other Field Descriptions
 
-| フィールド | 用途 |
-|----------|------|
-| `context: fork` | サブエージェントで分離実行。`agent` と併用してエージェントに委譲 |
-| `agent` | `context: fork` 時に使用するエージェント名 |
-| `hooks` | `PreToolUse`, `PostToolUse`, `Stop` をサポート。`references/hooks.md` 参照 |
+| Field | Purpose |
+|-------|---------|
+| `context: fork` | Isolated execution in sub-agent. Use with `agent` to delegate to an agent |
+| `agent` | Agent name to use when `context: fork` |
+| `hooks` | Supports `PreToolUse`, `PostToolUse`, `Stop`. See `references/hooks.md` |
 
-### description フィールド
-- **中心内容**: このコマンドをいつ使うべきか（「When to use:」などのプレフィックスは不要）
-- **言語**: プロジェクトの主要言語で記述
-- **長さ**: 80文字以下
+### description Field
+- **Core content**: When to use this command (no "When to use:" prefix needed)
+- **Language**: Written in the project's primary language
+- **Length**: 80 characters or less
 
-### allowed-tools フィールド
-権限構文の詳細は `references/permission-syntax.md` を参照。
+### allowed-tools Field
+See `references/permission-syntax.md` for permission syntax details.
 
-**デフォルト許可ツール（省略可）**: `TodoWrite`, `Task`, `Glob`, `Grep`, `Read`
+**Default allowed tools (can be omitted)**: `TodoWrite`, `Task`, `Glob`, `Grep`, `Read`
 
-### 変数置換
+### Variable Substitution
 
-コマンド本文では以下の変数が利用可能:
+The following variables are available in the command body:
 
-| 変数 | 説明 |
-|------|------|
-| `$ARGUMENTS` | コマンド呼び出し時に渡された引数。`/fix-issue 123` → `$ARGUMENTS` は `123` |
+| Variable | Description |
+|----------|-------------|
+| `$ARGUMENTS` | Arguments passed when invoking the command. `/fix-issue 123` → `$ARGUMENTS` is `123` |
 
-`$ARGUMENTS` が本文に存在しない場合、引数は末尾に `ARGUMENTS: <value>` として自動追加される。
+If `$ARGUMENTS` is not present in the body, arguments are automatically appended as `ARGUMENTS: <value>` at the end.
 
-### 対象読者
-- `description` → ユーザー（プロジェクト言語）
-- 本文 → LLM ワーカー
+### Target Audience
+- `description` → Users (project language)
+- Body → LLM worker
 
-### 設計原則
+### Design Principles
 
-### 単一責任
-コマンドは一つの明確なタスクを実行すべき。
-- ✅ `/format` - コードフォーマット
-- ✅ `/test` - テスト実行
+### Single Responsibility
+Commands should execute one clear task.
+- ✅ `/format` - Code formatting
+- ✅ `/test` - Test execution
 
-### 簡潔さ
-- 実行に必要な情報のみを含める
-- 冗長な説明を削除
-- LLM が推論できることは省略
+### Conciseness
+- Include only information necessary for execution
+- Remove verbose explanations
+- Omit what the LLM can infer
 
-### Command と Skill の使い分け
+### Choosing Between Command and Skill
 
-| 観点 | Command | Skill |
-|------|---------|-------|
-| 呼び出し元 | ユーザー（`/` で明示的） | エージェント（自動判断）＋ユーザー |
-| `disable-model-invocation` | `true`（必須） | `false`（必須） |
-| 用途 | タスク実行 | 知識・ガイドライン付与 |
+| Aspect | Command | Skill |
+|--------|---------|-------|
+| Invoker | User (explicit with `/`) | Agent (automatic judgment) + User |
+| `disable-model-invocation` | `true` (required) | `false` (required) |
+| Purpose | Task execution | Knowledge/guideline provision |
 
-**判断基準**: ユーザーが明示的に呼び出すタスク → Command、エージェントが状況に応じて有効化する知識 → Skill
+**Decision criteria**: Task explicitly invoked by user → Command, Knowledge activated by agent based on situation → Skill
 
-### 良い例
+### Good Example
 
-**ファイル名**: `.claude/commands/review-changes.md`
+**Filename**: `.claude/commands/review-changes.md`
 
 ```markdown
 ---
-description: 'コード変更のレビューが必要なとき'
+description: 'When you need to review code changes'
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Bash(git), Read(*), Grep
 ---
 
-現在のブランチの変更をレビューする。
+Review changes on the current branch.
 
-チェック項目:
-- 型安全性
-- セキュリティ問題
-- パフォーマンス懸念
-- テストカバレッジ
+Check items:
+- Type safety
+- Security issues
+- Performance concerns
+- Test coverage
 
-出力形式:
-- 重要度別に問題をリスト
-- 具体的な改善提案を含める
+Output format:
+- List issues by severity
+- Include specific improvement suggestions
 ```

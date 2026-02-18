@@ -1,42 +1,42 @@
-# Context Files（コンテキストファイル）詳細リファレンス
+# Context Files Detailed Reference
 
-## 概要
-CLAUDE.md, GEMINI.md, AGENTS.md など、毎セッション自動ロードされるプロジェクト全体またはグローバルなコンテキスト。
+## Overview
+Project-wide or global context that is automatically loaded every session, such as CLAUDE.md, GEMINI.md, AGENTS.md, etc.
 
-## ファイル構造
-- **配置場所**:
-  - プロジェクト: `.claude/CLAUDE.md`, `.gemini/GEMINI.md`, `.claude/AGENTS.md`
-  - グローバル: `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.claude/AGENTS.md`
-- **処理方法**: 内容全体が毎セッションのベースコンテキストに注入される
-- **フロントマターなし**: 内容を直接記述
+## File Structure
+- **Location**:
+  - Project: `.claude/CLAUDE.md`, `.gemini/GEMINI.md`, `.claude/AGENTS.md`
+  - Global: `~/.claude/CLAUDE.md`, `~/.gemini/GEMINI.md`, `~/.claude/AGENTS.md`
+- **Processing**: Entire content is injected into the base context every session
+- **No frontmatter**: Write content directly
 
-## 重要な特性
-- **常時ロード**: タスクに関係なく毎セッション読み込まれる
-- **最大コスト**: 毎インタラクションでコンテキストトークンを消費
-- **最小コンテンツ**: タスクの80%が必要とするものだけを含める
+## Key Characteristics
+- **Always loaded**: Loaded every session regardless of the task
+- **Maximum cost**: Consumes context tokens on every interaction
+- **Minimal content**: Include only what 80% of tasks need
 
-> **注意**: これらはガイドラインであり、絶対的なルールではない。プロジェクトの固有事情によっては例外が正当化される場合もある。判断を用いつつ、不確かな場合はミニマリズムをデフォルトとする。
+> **Note**: These are guidelines, not absolute rules. Exceptions may be justified depending on project-specific circumstances. Use judgment, and default to minimalism when uncertain.
 
-## コンテンツ原則
+## Content Principles
 
-### 1. インデックス優先
-詳細ドキュメントへのポインタ、網羅的な内容ではない。
-- ✅ "コーディング規約: docs/coding-style.md"
-- 直接内容を記述するのは: 発見不可能、全タスクに影響、極めて簡潔（1-2行）の場合のみ
+### 1. Index First
+Pointers to detailed documentation, not comprehensive content.
+- ✅ "Coding conventions: docs/coding-style.md"
+- Write content directly only when: undiscoverable, affects all tasks, and extremely concise (1-2 lines)
 
-### 2. 80%ルール
-タスクの80%が必要とする情報のみ。
-- ✅ リポジトリ構造、主要規約、重要な制約
+### 2. 80% Rule
+Only information that 80% of tasks need.
+- ✅ Repository structure, key conventions, important constraints
 
-### 3. 抽象的・ナビゲーション的
-情報を見つけるための素材、詳細の羅列ではない。
-- ✅ "データベース: alembic ファイルは db/migrations/"
+### 3. Abstract and Navigational
+Material for finding information, not detailed listings.
+- ✅ "Database: alembic files are in db/migrations/"
 
-### 4. コマンドの吟味
-LLM が典型的なタスクで自律実行するコマンドのみ。
-- ✅ `pnpm build`, `pnpm test`（LLM が実行）
+### 4. Scrutinize Commands
+Only commands that the LLM will autonomously execute during typical tasks.
+- ✅ `pnpm build`, `pnpm test` (executed by LLM)
 
-## 良い例
+## Good Example
 ```markdown
 # CLAUDE.md (my-project)
 

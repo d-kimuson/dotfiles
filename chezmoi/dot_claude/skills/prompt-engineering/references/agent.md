@@ -1,42 +1,42 @@
-# Agents（エージェント）詳細リファレンス
+# Agents Detailed Reference
 
-## 概要
-Taskツール(Claude Code標準)やagent-task(super-agent MCP)から呼び出される特化型サブエージェント。
+## Overview
+Specialized sub-agents invoked from the Task tool (Claude Code standard) or agent-task (super-agent MCP).
 
-## 構造
-- **配置場所**: `.claude/agents/<agent-name>.md`
-- **呼び出し方**: `agent-task(agentType="agent-name", ...)`, `Task(subagent_type="agent-name", ...)`
-- **処理方法**: フロントマターは除外され、本文が指示として渡される
+## Structure
+- **Location**: `.claude/agents/<agent-name>.md`
+- **Invocation**: `agent-task(agentType="agent-name", ...)`, `Task(subagent_type="agent-name", ...)`
+- **Processing**: Frontmatter is excluded, and the body is passed as instructions
 
 ## Task vs agent-task
 
-- 基本は super-agent を利用するためテンプレートには `agent-task(...)` の形で記載
-- `context: fork` 等の Claude Code 独自機能を利用する場合のみ Task でテンプレートも記載する
-- 利用できない場合のフォールバックは別途明示しているので、都度書かなくてOK
+- Since super-agent is primarily used, templates should use the `agent-task(...)` format
+- Use Task (with template) only when using Claude Code-specific features like `context: fork`
+- Fallback for unavailable cases is specified separately, so no need to write it each time
 
-## フロントマター
+## Frontmatter
 
-`name` と `description` は必須。その他は任意（必要に応じてコメント解除して使用）。
+`name` and `description` are required. Others are optional (uncomment as needed).
 
 ```yaml
 ---
-name: agent-name  # ファイル名（.md除く）と一致させる
-description: 'エージェントの簡潔な説明'
-model: sonnet     # Claude Code 用: haiku | sonnet | opus | inherit
-color: cyan       # 表示色: red | blue | green | yellow | magenta | orange | pink | cyan
-# skills:         # エージェント起動時に自動ロードするスキル
+name: agent-name  # Must match filename (without .md)
+description: 'Brief description of the agent'
+model: sonnet     # For Claude Code: haiku | sonnet | opus | inherit
+color: cyan       # Display color: red | blue | green | yellow | magenta | orange | pink | cyan
+# skills:         # Skills to auto-load when agent starts
 #   - typescript
 #   - react
-# tools: Read, Grep, Glob, Bash  # 使用可能なツール（省略時は全ツール継承）
-# disallowedTools: Write, Edit   # 拒否するツール（継承から削除）
+# tools: Read, Grep, Glob, Bash  # Available tools (inherits all tools if omitted)
+# disallowedTools: Write, Edit   # Tools to deny (removes from inheritance)
 # permissionMode: default        # default | acceptEdits | dontAsk | bypassPermissions | plan
-# hooks:                         # エージェントにスコープされたライフサイクルフック
+# hooks:                         # Lifecycle hooks scoped to the agent
 #   PostToolUse:
 #     - matcher: "Edit|Write"
 #       hooks:
 #         - type: command
 #           command: "./scripts/run-linter.sh"
-models:           # super-agent 用: 複数プロバイダー対応
+models:           # For super-agent: multi-provider support
   - sdkType: claude
     model: sonnet
   - sdkType: codex
@@ -46,36 +46,36 @@ models:           # super-agent 用: 複数プロバイダー対応
 ---
 ```
 
-## 追加フィールド解説
+## Additional Field Descriptions
 
-| フィールド | 説明 |
-|----------|------|
-| `tools` | 使用可能なツールを制限（省略時は全ツール継承） |
-| `disallowedTools` | 継承または指定リストから特定ツールを拒否 |
-| `permissionMode` | 権限プロンプトの処理方法を制御 |
-| `hooks` | `PreToolUse`, `PostToolUse`, `Stop` をサポート。`references/hooks.md` 参照 |
+| Field | Description |
+|-------|-------------|
+| `tools` | Restricts available tools (inherits all tools if omitted) |
+| `disallowedTools` | Denies specific tools from inheritance or specified list |
+| `permissionMode` | Controls how permission prompts are handled |
+| `hooks` | Supports `PreToolUse`, `PostToolUse`, `Stop`. See `references/hooks.md` |
 
-### permissionMode 値
+### permissionMode Values
 
-| 値 | 動作 |
-|----|------|
-| `default` | プロンプト付きの標準権限チェック |
-| `acceptEdits` | ファイル編集を自動受け入れ |
-| `dontAsk` | 権限プロンプトを自動拒否（明示的に許可されたツールは機能） |
-| `bypassPermissions` | すべての権限チェックをスキップ（注意して使用） |
-| `plan` | プランモード（読み取り専用探索） |
+| Value | Behavior |
+|-------|----------|
+| `default` | Standard permission check with prompts |
+| `acceptEdits` | Auto-accept file edits |
+| `dontAsk` | Auto-deny permission prompts (explicitly allowed tools still work) |
+| `bypassPermissions` | Skip all permission checks (use with caution) |
+| `plan` | Plan mode (read-only exploration) |
 
-## model フィールド（Claude Code 用）
+## model Field (For Claude Code)
 
-Claude Code でのモデル選択:
-- **haiku**: 速度重視、簡易タスク
-- **sonnet**: バランス型、標準タスク
-- **opus**: 複雑な推論、高品質な出力が必要なタスク
-- **inherit**: 呼び出し元のモデルを継承
+Model selection in Claude Code:
+- **haiku**: Speed-focused, simple tasks
+- **sonnet**: Balanced, standard tasks
+- **opus**: Complex reasoning, tasks requiring high-quality output
+- **inherit**: Inherits the caller's model
 
-## models フィールド（super-agent 用）
+## models Field (For super-agent)
 
-複数の AI プロバイダーをフォールバック付きで指定。配列形式で `sdkType` と `model` を指定。
+Specify multiple AI providers with fallback. Use array format with `sdkType` and `model`.
 
 ```yaml
 models:
@@ -87,11 +87,11 @@ models:
     model: gpt-5.2
 ```
 
-### 選択ルール
+### Selection Rules
 
-利用できない場合にフォールバックされるため、**codex, copilot, claude の3つを必ず指定**。
+Since fallback occurs when unavailable, **always specify all three: codex, copilot, and claude**.
 
-**設計や相談など難易度の高くコンテキストサイズが膨らみづらいタスク**:
+**High-difficulty tasks like design and consultation with minimal context growth**:
 ```yaml
 models:
   - sdkType: copilot
@@ -102,7 +102,7 @@ models:
     model: opus
 ```
 
-**簡易だがコンテキストサイズを多く必要とするタスク**（コンテキスト収集など）:
+**Simple tasks requiring large context size** (such as context collection):
 ```yaml
 models:
   - sdkType: copilot
@@ -113,7 +113,7 @@ models:
     model: gpt-5.2-mini
 ```
 
-**文章系タスク**（記事執筆、プロンプト記載など）:
+**Writing tasks** (article writing, prompt composition, etc.):
 ```yaml
 models:
   - sdkType: claude
@@ -124,43 +124,43 @@ models:
     model: gpt-5.2
 ```
 
-**選択の指針**:
-- **Claude の得意**: 柔軟性と文章力
-- **OpenAI Model の得意**: 純粋な賢さ
-- **料金体系**: Copilot が安い（Opus だけ例外）。同じモデルが利用できるなら Copilot CLI 優先
+**Selection Guidelines**:
+- **Claude's strength**: Flexibility and writing ability
+- **OpenAI Model's strength**: Pure intelligence
+- **Pricing**: Copilot is cheaper (except for Opus). Prefer Copilot CLI when the same model is available
 
-## skills フィールド
-- ここにリストしたスキルはエージェント呼び出し時に自動ロードされる
-- 本文での手動 `Skill(...)` 呼び出しや「X スキルを有効化」指示は不要
-- エージェントが**常に**必要とするスキルに使用（条件付きは除く）
-- 動的・条件付きのスキルロードにはプロンプト本文で `Skill(...)` ツールを使用
+## skills Field
+- Skills listed here are auto-loaded when the agent is invoked
+- No need for manual `Skill(...)` calls or "enable X skill" instructions in the body
+- Use for skills the agent **always** needs (not conditional ones)
+- For dynamic/conditional skill loading, use `Skill(...)` tool in the prompt body
 
-## 対象読者
-呼び出し側（オーケストレーター LLM）と実行側（サブエージェント LLM）の両方が LLM。
+## Target Audience
+Both the caller (orchestrator LLM) and executor (sub-agent LLM) are LLMs.
 
-## 設計原則
+## Design Principles
 
-### 単一責任
-- 各エージェントは一つの明確に定義された責任を持つ
-- 複数の関心事を混在させない
-- ✅ エージェント A: 環境セットアップのみ
-- ✅ エージェント B: コード実装のみ
+### Single Responsibility
+- Each agent has one clearly defined responsibility
+- Do not mix multiple concerns
+- ✅ Agent A: Environment setup only
+- ✅ Agent B: Code implementation only
 
-### 呼び出し元からの独立
-- オーケストレーターの関心事（いつ呼び出すか、出力をどうするか）は含めない
-- 能力の付与と入出力契約に集中
-- ✅ "提供されたコードを分析し、問題を特定..."
-- ✅ "指示に基づき、実装アプローチを設計..."
+### Independence from Caller
+- Do not include orchestrator concerns (when to call, what to do with output)
+- Focus on capability provision and input/output contract
+- ✅ "Analyze the provided code and identify issues..."
+- ✅ "Design implementation approach based on instructions..."
 
-### ドメイン内で汎用的に
-- タスク固有にしすぎない
-- ✅ `name: engineer`（オーケストレーターが具体的なタスクを指定）
+### Generic Within Domain
+- Do not make too task-specific
+- ✅ `name: engineer` (orchestrator specifies the concrete task)
 
-## 良い例
+## Good Example
 ```markdown
 ---
 name: reviewer
-description: 'コード変更をレビューし、問題を特定'
+description: 'Review code changes and identify issues'
 model: sonnet
 color: yellow
 skills:
@@ -174,18 +174,18 @@ models:
     model: gpt-5.2
 ---
 
-コード変更の品質と正確性をレビューする。
+Review code changes for quality and correctness.
 
-チェック項目:
-- 型安全性と正確性
-- セキュリティ脆弱性
-- パフォーマンス問題
-- コードスタイルの一貫性
-- テストカバレッジの十分性
+Check items:
+- Type safety and correctness
+- Security vulnerabilities
+- Performance issues
+- Code style consistency
+- Test coverage adequacy
 
-レポート形式:
-- 重要度レベル（critical/moderate/minor）
-- ファイルパスと行番号
-- 具体的な推奨事項
-- 優先順序（critical を先に）
+Report format:
+- Severity level (critical/moderate/minor)
+- File path and line number
+- Specific recommendations
+- Priority order (critical first)
 ```
