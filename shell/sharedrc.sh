@@ -24,6 +24,11 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
+# home-manager session variables (e.g. PKG_CONFIG_PATH)
+if [ -s "${HOME}/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
+  source "${HOME}/.nix-profile/etc/profile.d/hm-session-vars.sh"
+fi
+
 # ====================
 # Activate tools
 # ====================
