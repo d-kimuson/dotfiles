@@ -60,8 +60,4 @@ Be especially careful since they are always loaded:
 - **80% rule**: Only information needed by 80% of tasks
 - **Index-first**: Reference details via pointers
 - **Scrutinize commands**: Only commands the LLM will autonomously execute
-- **Target under 100 lines**
-
-## Extended Thinking
-
-Include "think harder" in prompts for complex reasoning, "ultrathink" for very deep analysis.
+- **Target under 200 lines**
