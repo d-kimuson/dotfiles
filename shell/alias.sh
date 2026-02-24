@@ -13,6 +13,7 @@ alias gpushf="git push origin HEAD --force-with-lease";
 alias gunadd="git restore --staged";
 alias guncom="git rm -rf --cached";
 alias claude-auto="claude --dangerously-skip-permissions"
+alias claude-auto-general-task="claude --dangerously-skip-permissions --system-prompt 'あなたは様々なタスクをこなす汎用エージェントです。'"
 alias codex-auto="codex --dangerously-bypass-approvals-and-sandbox"
 alias dotfiles-apply="chezmoi apply && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh"
 
