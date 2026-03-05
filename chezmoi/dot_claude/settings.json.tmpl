@@ -13,6 +13,7 @@
     ],
     "deny": []
   },
+  "model": "opus",
   "hooks": {
     "Notification": [
       {{- if eq .chezmoi.os "darwin" }}
@@ -42,5 +43,5 @@
     ]
   },
   "language": "日本語",
-  "model": "opus"
+  "skipDangerousModePermissionPrompt": true
 }
