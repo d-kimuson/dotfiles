@@ -17,6 +17,9 @@ alias claude-auto-general-task="claude --dangerously-skip-permissions --system-p
 alias codex-auto="codex --dangerously-bypass-approvals-and-sandbox"
 alias dotfiles-apply="chezmoi apply && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh"
 
+alias reload="chezmoi apply && home-manager switch && source ${CHEZMOI_WORKING_TREE}/shell/sharedrc.sh";
+alias reload-force="chezmoi apply && home-manager switch && exec $SHELL -l"
+
 function c() {
   if [ -z "$1" ]; then
     echo "required file path";
