@@ -32,13 +32,7 @@ bash -c "$(curl -fsLS https://raw.githubusercontent.com/d-kimuson/dotfiles/refs/
 
 ### Apply Configuration Changes
 ```bash
-./scripts/reload.sh   # Runs chezmoi apply + home-manager switch + shell reload
-```
-
-### Individual Commands
-```bash
-chezmoi apply         # Apply chezmoi-managed dotfiles
-home-manager switch   # Apply Nix home-manager configuration
+dotfiles-apply   # Runs chezmoi apply + home-manager switch + shell reload
 ```
 
 ## Key Concepts

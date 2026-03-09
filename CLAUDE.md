@@ -32,13 +32,7 @@ bash -c "$(curl -fsLS https://raw.githubusercontent.com/d-kimuson/dotfiles/refs/
 
 ### Apply Configuration Changes
 ```bash
-./scripts/reload.sh   # Runs chezmoi apply + home-manager switch + shell reload
-```
-
-### Individual Commands
-```bash
-chezmoi apply         # Apply chezmoi-managed dotfiles
-home-manager switch   # Apply Nix home-manager configuration
+dotfiles-apply   # Runs chezmoi apply + home-manager switch + shell reload
 ```
 
 ## Key Concepts
@@ -58,7 +52,7 @@ Files with `.tmpl` extension use Go templates with chezmoi data (e.g., `{{ .chez
 ## Editing Rules
 
 ### Always edit chezmoi source files, never target files directly
-Do not edit `~/.zshrc`, `~/.config/*`, or any other managed dotfiles directly. Always edit the corresponding source files under `chezmoi/` and run `./scripts/reload.sh` to apply.
+Do not edit `~/.zshrc`, `~/.config/*`, or any other managed dotfiles directly. Always edit the corresponding source files under `chezmoi/` and run `dotfiles-apply` to apply.
 
 ### Prefer nixpkgs for adding dependencies
 When adding new dependencies, add them to `chezmoi/private_dot_config/home-manager/home.nix.tmpl` and manage via home-manager. Always check nixpkgs availability before resorting to npm global installs or manual downloads.
