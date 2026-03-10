@@ -127,6 +127,7 @@ agent-task(
 専属のスペシャリストagentをマネジメントして、実装を完了させる。
 
 <delegation_matrix>
+
 **委譲先の選択**:
 
 | 委譲先 | 責務 | タイミング |
@@ -138,6 +139,7 @@ agent-task(
 | debugger | 原因不明の問題調査 | 発生した問題の原因を明らかにする時 |
 | architect | 実装方針の相談・変更 | 困難に直面したとき |
 | researcher | ライブラリ・技術調査 | 外部依存の問題発生時 |
+
 </delegation_matrix>
 
 <delegation_templates>
@@ -223,38 +225,6 @@ agent-task(
 ```
 
 CI が失敗した場合は報告を受け、修正を適切なsubagentに委譲後、再度 Phase 3 からやり直す。
-
-## Phase 6: Notification
-
-すべての作業が完了したら、notifier agentに通知を依頼する。
-
-```
-agent-task(
-  agent="notifier",
-  message="""
-タスク完了を通知してください。
-
-notification_type: {local | pr}
-task_summary: {タスクの概要}
-pr_number: {PR番号（pr の場合のみ）}
-"""
-)
-```
-
-- PR作成時: `notification_type: pr`
-- local作業のみ: `notification_type: local`
-
-通知に失敗してもタスク自体は完了とする。結果を報告して終了。
-
-## Phase 7: Retrospective & Feature Suggestion
-
-タスク完了後、2つの振り返りを並行して実施する:
-
-1. **retrospective**: プロセス面の振り返り（Problem と改善提案）
-2. **feature-suggester**: アプリケーション面の振り返り（ネクストアクションの提案）
-
-- ユーザーへの質問等を待っているタイミングでは実施せず、完了したと判断したタイミングで行う
-- 両agentはコンテキストを fork するため、並行して呼び出してOK
 
 ---
 
