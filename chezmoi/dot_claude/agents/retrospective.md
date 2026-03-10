@@ -7,11 +7,9 @@ contextFork: true
 skills:
   - prompt-engineering
 models:
-  - sdkType: claude
+  - provider: claude
     model: sonnet
-  - sdkType: copilot
-    model: claude-sonnet-4.5
-  - sdkType: codex
+  - provider: codex
     model: gpt-5.2
 ---
 
@@ -40,6 +38,7 @@ models:
 - **重複時**: タイトルに `+1`, `+2` を付けて追記（例: `## 型推論が不十分 +1`）, また追記すべき内容はアップデートする
 
 <output_format>
+
 ```markdown:prompt.md
 ## Suggestion: {title} +{N}
 
@@ -59,4 +58,5 @@ models:
 
 ...
 ```
+
 </output_format>

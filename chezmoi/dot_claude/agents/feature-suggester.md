@@ -5,11 +5,9 @@ model: sonnet
 color: green
 contextFork: true
 models:
-  - sdkType: claude
+  - provider: claude
     model: sonnet
-  - sdkType: copilot
-    model: claude-sonnet-4.5
-  - sdkType: codex
+  - provider: codex
     model: gpt-5.2
 ---
 
@@ -34,6 +32,7 @@ models:
 - **重複時**: タイトルに `+1`, `+2` を付けて追記（例: `## エラーハンドリング強化 +1`）, また追記すべき内容はアップデートする
 
 <output_format>
+
 ```markdown:feature.md
 ## Suggestion: {title} +{N}
 
@@ -55,4 +54,5 @@ models:
 
 (High / Medium / Low と理由)
 ```
+
 </output_format>

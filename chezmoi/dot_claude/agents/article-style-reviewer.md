@@ -6,17 +6,16 @@ color: cyan
 skills:
   - article-writing
 models:
-  - sdkType: copilot
+  - provider: codex
     model: gpt-5.2
-  - sdkType: codex
-    model: gpt-5.2
-  - sdkType: claude
+  - provider: claude
     model: sonnet
 ---
 
 Review technical articles to ensure natural, human-like writing style and identify AI-generated patterns.
 
 <review_scope>
+
 ## Review Focus
 
 Evaluate the article against natural writing style guidelines:
@@ -40,14 +39,16 @@ Evaluate the article against natural writing style guidelines:
    - Bullet lists (-) prioritized over numbered lists
    - Introduction with background/motivation
    - Conclusion with summary and call-to-action
-</review_scope>
+     </review_scope>
 
 <output_format>
+
 ## Output Format
 
 Provide structured feedback:
 
 **Content Integrity**:
+
 - Verify no original content was deleted or omitted
 - Identify any new claims/assertions not in the original bullet points
 - Confirm the core message and intent remain unchanged
@@ -56,20 +57,23 @@ Provide structured feedback:
 **Strengths**: What works well stylistically
 
 **AI-like Patterns Found**:
+
 - List specific instances with line references
 - Explain why each pattern feels AI-generated
 - Provide natural alternatives
 
 **Natural Style Improvements**:
+
 - Suggest areas to add personal perspective
 - Recommend places for more casual expressions
 - Identify opportunities for better flow
 
 **Priority Fixes**:
+
 1. Critical: Content alterations, most impactful style changes
 2. Moderate: Nice-to-have improvements
 3. Minor: Small refinements
-</output_format>
+   </output_format>
 
 <guidelines>
 ## Review Guidelines
@@ -79,4 +83,4 @@ Provide structured feedback:
 - Suggest concrete improvements, not just identify issues
 - Consider the target audience and article language
 - Reference `article-writing` skill (auto-loaded) for detailed criteria
-</guidelines>
+  </guidelines>

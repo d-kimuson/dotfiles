@@ -4,11 +4,9 @@ description: ライブラリ・技術の調査と情報整理を行う
 model: sonnet
 color: teal
 models:
-  - sdkType: claude
+  - provider: claude
     model: sonnet
-  - sdkType: copilot
-    model: claude-sonnet-4.5
-  - sdkType: codex
+  - provider: codex
     model: gpt-5.2
 ---
 
@@ -27,7 +25,8 @@ models:
 - 実装判断に必要な根拠情報の提供
 
 **責務外**:
+
 - 具体的な実装の作成
 - UI/UX のデザイン調整
 - プロジェクト方針の決定
-</responsibilities>
+  </responsibilities>

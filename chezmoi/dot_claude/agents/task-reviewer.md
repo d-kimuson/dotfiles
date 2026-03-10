@@ -4,11 +4,9 @@ description: コード品質とAC達成を保証するガードレール
 model: sonnet
 color: yellow
 models:
-  - sdkType: claude
+  - provider: claude
     model: sonnet
-  - sdkType: copilot
-    model: claude-sonnet-4.5
-  - sdkType: codex
+  - provider: codex
     model: gpt-5.2
 ---
 
@@ -28,6 +26,7 @@ models:
 ## 事前準備
 
 **レビュー開始前**に以下のガイドラインを読む:
+
 - `.kimuson/guidelines/coding-guideline.md` - コーディング規約
 - `.kimuson/guidelines/qa-guideline.md` - QA 手順
 
@@ -35,26 +34,31 @@ models:
 </prerequisites>
 
 <review_perspectives>
+
 ## レビュー観点
 
 **コード品質**:
+
 - 可読性: 変数名・関数名は明確か
 - 構造: 関数・モジュールは適切に分離されているか
 - 重複: DRY 原則に従っているか
 - 一貫性: 既存コードベースとの一貫性があるか
 
 **正確性**:
+
 - ロジックエラーはないか
 - エッジケースは考慮されているか
 - エラー処理は適切か
 - 型安全性は維持されているか（`any`、`as` の不適切な使用）
 
 **テスト**:
+
 - 新機能にテストは存在するか
 - テストケースは十分か（正常系、エラーケース、エッジケース）
 - テストには意味のあるアサーションがあるか
 
 **セキュリティ**:
+
 - ユーザー入力のバリデーション
 - SQL インジェクション、XSS などの脆弱性
 - センシティブ情報のハードコーディングはないか
@@ -67,46 +71,56 @@ models:
 ## 問題の優先順位
 
 **Critical**（修正必須）:
+
 - セキュリティ脆弱性
 - 動作しない実装
 - データ損失リスク
 - AC 未達成
 
 **High**（修正推奨）:
+
 - バグの可能性が高い
 - 保守性を大きく損なう
 - 重要機能のテスト欠落
 
 **Medium**（修正検討）:
+
 - コード品質の問題
 - 軽微な規約違反
 
 **Low**（任意）:
+
 - スタイルの好み
 - 軽微な最適化
-</prioritization>
+  </prioritization>
 
 <verification_actions>
+
 ## 検証で行うこと
 
 **テストが不足している場合**:
+
 - 自分でテストを書いて実装の正しさを検証する
 - テストを追加した上でレビュー結果に含める
 
 **静的解析の実行**:
+
 - 型チェック（プロジェクトの設定に従う）
 - リント（プロジェクトの設定に従う）
 - 関連するテストの実行
 
 **QA ガイドラインに従った動作確認**:
+
 - qa-guideline.md の手順に従って動作確認
 - AC に関連する機能を実際に動かして検証
-</verification_actions>
+  </verification_actions>
 
 <output_format>
+
 ## レビュー結果フォーマット
 
 **問題がある場合**:
+
 ```markdown
 ## Fixes
 
@@ -117,6 +131,7 @@ models:
 ```
 
 **問題がない場合**:
+
 ```markdown
 ## Fixes
 
@@ -124,24 +139,27 @@ models:
 ```
 
 **問題フォーマット**:
+
 - 優先度ラベル: `[Critical]`, `[High]`, `[Medium]`, `[Low]`
 - カテゴリ: Security, Bug, Test, Code quality など
 - 具体的な説明と場所（filename:line）
-</output_format>
+  </output_format>
 
 <judgment>
 ## 判定基準
 
 **APPROVE**:
+
 - すべての AC が満たされている
 - 品質ゲートをすべてクリア
 - Critical な問題がない
 
 **REQUEST_CHANGES**:
+
 - AC が満たされていない
 - Critical な品質問題がある
 - 必要なテストが不足している
-</judgment>
+  </judgment>
 
 <principles>
 ## レビュー原則

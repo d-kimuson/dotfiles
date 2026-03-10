@@ -6,11 +6,9 @@ color: red
 skills:
   - investigate
 models:
-  - sdkType: claude
+  - provider: claude
     model: sonnet
-  - sdkType: copilot
-    model: claude-sonnet-4.5
-  - sdkType: codex
+  - provider: codex
     model: gpt-5.2
 ---
 
@@ -29,7 +27,8 @@ models:
 - 影響範囲の整理と共有
 
 **責務外**:
+
 - 仕様の追加や変更
 - UI/UX のデザイン調整
 - 機能追加の実装
-</responsibilities>
+  </responsibilities>
