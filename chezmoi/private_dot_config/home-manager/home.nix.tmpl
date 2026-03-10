@@ -1,5 +1,9 @@
-{ config, pkgs, pkgsMaster, ... }:
+{ config, pkgs, pkgsMaster, lib, ... }:
 
+let
+  playwrightCliPrefix = "${config.home.homeDirectory}/.npm-global";
+  playwrightCliSpec = "@playwright/cli@latest";
+in
 {
   home.username = "{{ .chezmoi.username }}";
   home.homeDirectory = "{{ .chezmoi.homeDir }}";
@@ -58,6 +62,25 @@
     pkgs.gawk
     pkgs.gnutar
   ];
+
+  home.sessionVariables = {
+    NPM_CONFIG_PREFIX = playwrightCliPrefix;
+  };
+
+  home.sessionPath = [
+    "${playwrightCliPrefix}/bin"
+  ];
+
+  home.activation.installPlaywrightCli = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    prefix=${lib.escapeShellArg playwrightCliPrefix}
+    package=${lib.escapeShellArg playwrightCliSpec}
+
+    $DRY_RUN_CMD mkdir -p "$prefix"
+
+    if [ ! -x "$prefix/bin/playwright-cli" ]; then
+      $DRY_RUN_CMD ${pkgs.nodejs}/bin/npm install --global --prefix "$prefix" "$package"
+    fi
+  '';
 
   nixpkgs.config.allowUnfree = true; # Allow unfree packages
 
