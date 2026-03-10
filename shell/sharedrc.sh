@@ -44,4 +44,5 @@ path=(
   ${path:#${HOME}/.nix-profile/bin}
   ${HOME}/bin
   $BUN_INSTALL/bin
+  ${HOME}/.npm-global/bin
 )

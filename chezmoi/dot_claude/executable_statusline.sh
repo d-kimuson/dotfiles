@@ -55,6 +55,9 @@ get_token() {
   fi
 }
 
+USAGE_LOCK_FILE="/tmp/claude-statusline-usage.lock"
+USAGE_BACKOFF=300  # 5 min backoff on failure
+
 fetch_usage() {
   local token
   token=$(get_token)
@@ -64,9 +67,16 @@ fetch_usage() {
     -H "Authorization: Bearer $token" \
     -H "anthropic-beta: oauth-2025-04-20" \
     -H "Content-Type: application/json" \
-    "https://api.anthropic.com/api/oauth/usage" 2>/dev/null) || return 1
-  echo "$response" | jq -e '.five_hour' >/dev/null 2>&1 || return 1
-  echo "$response" > "$USAGE_CACHE"
+    "https://api.anthropic.com/api/oauth/usage" 2>/dev/null)
+  if echo "$response" | jq -e '.five_hour' >/dev/null 2>&1; then
+    echo "$response" > "$USAGE_CACHE"
+    rm -f "$USAGE_LOCK_FILE"
+    return 0
+  else
+    # Record failure time for backoff
+    date +%s > "$USAGE_LOCK_FILE"
+    return 1
+  fi
 }
 
 needs_refresh=1
@@ -74,6 +84,12 @@ if [ -s "$USAGE_CACHE" ]; then
   cache_mtime=$(stat -f%m "$USAGE_CACHE" 2>/dev/null || stat -c%Y "$USAGE_CACHE" 2>/dev/null || echo 0)
   cache_age=$(( $(date +%s) - cache_mtime ))
   [ "$cache_age" -lt "$USAGE_CACHE_AGE" ] && needs_refresh=0
+fi
+# Respect backoff on previous failure
+if [ "$needs_refresh" -eq 1 ] && [ -f "$USAGE_LOCK_FILE" ]; then
+  lock_time=$(cat "$USAGE_LOCK_FILE" 2>/dev/null || echo 0)
+  lock_age=$(( $(date +%s) - lock_time ))
+  [ "$lock_age" -lt "$USAGE_BACKOFF" ] && needs_refresh=0
 fi
 [ "$needs_refresh" -eq 1 ] && fetch_usage 2>/dev/null
 
