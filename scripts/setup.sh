@@ -38,6 +38,11 @@ $HOME/bin/chezmoi apply
 # setup home-manager
 nix run home-manager/master -- switch
 
+# nix profile で直接管理するパッケージ
+# home-manager 経由だと nixpkgs 更新時にソースビルドが走り得るため、
+# ビルドが重いパッケージは nix profile で分離し、任意のタイミングで更新する
+nix profile add nixpkgs#zed-editor
+
 cd $CWD
 
 log_info "Setup completed!"
