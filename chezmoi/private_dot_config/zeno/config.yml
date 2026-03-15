@@ -1,0 +1,81 @@
+snippets:
+  # basic
+  - name: l
+    keyword: l
+    snippet: eza
+
+  - name: tree
+    keyword: tree
+    snippet: lsd --tree
+
+  - name: diffy
+    keyword: diffy
+    snippet: colordiff -y --left-column
+
+  - name: diffx
+    keyword: diffx
+    snippet: colordiff -u
+
+  - name: myip
+    keyword: myip
+    snippet: ifconfig | grep 192 | cut -f 2 -d ' '
+
+  # docker
+  - name: docker
+    keyword: d
+    snippet: docker
+
+  - name: docker compose
+    keyword: dcmp
+    snippet: docker compose
+
+  # git
+  - name: git
+    keyword: g
+    snippet: git
+
+  - name: git push
+    keyword: gpush
+    snippet: git push origin HEAD
+
+  - name: git push force
+    keyword: gpushf
+    snippet: git push origin HEAD --force-with-lease
+
+  - name: git pull rebase
+    keyword: gpull
+    snippet: git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)
+
+  - name: git unstage
+    keyword: gunadd
+    snippet: git restore --staged
+
+  - name: git untrack
+    keyword: guncom
+    snippet: git rm -rf --cached
+
+  # claude
+  - name: claude auto
+    keyword: claude-auto
+    snippet: claude --dangerously-skip-permissions
+
+  - name: claude auto general task
+    keyword: claude-auto-general-task
+    snippet: claude --dangerously-skip-permissions --system-prompt 'あなたは様々なタスクをこなす汎用エージェントです。'
+
+  - name: codex auto
+    keyword: codex-auto
+    snippet: codex --dangerously-bypass-approvals-and-sandbox
+
+  # dotfiles
+  - name: dotfiles apply
+    keyword: dotfiles-apply
+    snippet: chezmoi apply && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh
+
+  - name: reload
+    keyword: reload
+    snippet: chezmoi apply && home-manager switch && source ${CHEZMOI_WORKING_TREE}/shell/sharedrc.sh
+
+  - name: reload force
+    keyword: reload-force
+    snippet: chezmoi apply && home-manager switch && exec $SHELL -l

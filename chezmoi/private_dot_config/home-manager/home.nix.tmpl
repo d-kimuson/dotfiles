@@ -20,6 +20,7 @@ in
     pkgs.bun
     pkgs.pnpm
     pkgs.zsh
+    pkgs.deno # required by zeno.zsh
     # zed-editor: ビルドが重いため nix profile で分離管理 (see scripts/setup.sh)
 
     # Language Servers
@@ -70,6 +71,13 @@ in
   home.sessionPath = [
     "${playwrightCliPrefix}/bin"
   ];
+
+  home.activation.installZenoZsh = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    zenoDir="${config.home.homeDirectory}/.zsh/zeno"
+    if [ ! -d "$zenoDir" ]; then
+      $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/yuki-yano/zeno.zsh.git "$zenoDir"
+    fi
+  '';
 
   home.activation.installPlaywrightCli = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     prefix=${lib.escapeShellArg playwrightCliPrefix}
