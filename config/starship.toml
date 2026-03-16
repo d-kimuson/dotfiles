@@ -24,5 +24,10 @@ success_symbol = '[➜](bold green)' # The 'success_symbol' segment is being set
 [package]
 disabled = true
 
+[command_duration]
+min_time = 30_000
+show_notifications = true
+min_time_to_notify = 30_000
+
 [python]
 disabled = true
