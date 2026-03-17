@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-node ./internal/src/beads/main.ts
+node $HOME/.local/share/chezmoi/internal/src/beads/main.ts

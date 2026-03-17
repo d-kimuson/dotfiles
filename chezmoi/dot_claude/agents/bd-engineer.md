@@ -6,3 +6,7 @@ color: green
 skills:
   - beads
 ---
+
+## Required Skills
+
+**重要**: beads skill が読み込まれていない場合は必ず読み込んでから作業してください
