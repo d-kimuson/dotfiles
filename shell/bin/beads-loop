@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+node ./internal/src/beads/main.ts

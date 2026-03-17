@@ -45,4 +45,5 @@ path=(
   ${HOME}/bin
   $BUN_INSTALL/bin
   ${HOME}/.npm-global/bin
+  ${HOME}/.local/share/chezmoi/shell/bin
 )
