@@ -19,12 +19,14 @@
         inherit system;
         config.allowUnfree = true;
       };
+      beads = pkgsMaster.callPackage ./packages/beads.nix {};
     in
     {
       homeConfigurations."{{ .chezmoi.username }}" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         extraSpecialArgs = {
           pkgsMaster = pkgsMaster;
+          inherit beads;
         };
 
         # Specify your home configuration modules here, for example,

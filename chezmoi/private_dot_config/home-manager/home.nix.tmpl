@@ -1,4 +1,4 @@
-{ config, pkgs, pkgsMaster, lib, ... }:
+{ config, pkgs, pkgsMaster, beads, lib, ... }:
 
 let
   playwrightCliPrefix = "${config.home.homeDirectory}/.npm-global";
@@ -31,7 +31,7 @@ in
     pkgsMaster.claude-code
     pkgsMaster.codex
     pkgsMaster.github-copilot-cli
-    pkgsMaster.beads
+    beads
 
     # Git
     pkgs.gh
