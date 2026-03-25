@@ -29,11 +29,11 @@ update_beads() {
   src_hash=$(nix hash convert --hash-algo sha256 --to sri "$src_hash")
 
   # Update version and source hash
-  sed -i '' "s|version = \"${current_version}\"|version = \"${latest_version}\"|" "$pkg_file"
-  sed -i '' "s|hash = \".*\"|hash = \"${src_hash}\"|" "$pkg_file"
+  sed -i "s|version = \"${current_version}\"|version = \"${latest_version}\"|" "$pkg_file"
+  sed -i "s|hash = \".*\"|hash = \"${src_hash}\"|" "$pkg_file"
 
   # Determine vendorHash by building with empty hash and extracting from error
-  sed -i '' 's|vendorHash = ".*"|vendorHash = ""|' "$pkg_file"
+  sed -i 's|vendorHash = ".*"|vendorHash = ""|' "$pkg_file"
 
   echo "beads: computing vendorHash (this may take a moment)..."
   local build_output
@@ -50,7 +50,7 @@ update_beads() {
     return 1
   fi
 
-  sed -i '' "s|vendorHash = \".*\"|vendorHash = \"${vendor_hash}\"|" "$pkg_file"
+  sed -i "s|vendorHash = \".*\"|vendorHash = \"${vendor_hash}\"|" "$pkg_file"
   echo "beads: updated to v${latest_version}"
 }
 
