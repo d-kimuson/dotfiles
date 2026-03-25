@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "freee-mcp": {
+      "command": "npx",
+      "args": ["-y", "freee-mcp"]
+    },
+    "pencil": {
+      "type": "stdio",
+      "command": "/Applications/Pencil.app/Contents/Resources/app.asar.unpacked/out/mcp-server-darwin-arm64",
+      "args": ["--app", "desktop"]
+    },
+    "atlassian": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp",
+      "headers": {
+        "Authorization": "Basic ${ATLASSIAN_BASE64_TOKEN}"
+      }
+    },
+    "obsidian": {
+      "command": "${HOME}/ObsidianLocalVault/仕事用(Local)/.obsidian/plugins/mcp-tools/bin/mcp-server",
+      "args": [],
+      "env": {
+        "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}"
+      }
+    }
+  }
+}
