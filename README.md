@@ -51,10 +51,24 @@ dotfiles-apply
 
 chezmoi apply + home-manager switch + シェル再読み込みが実行される。
 
+### nix 管理のツールをアップデートしたい
+
+```bash
+./scripts/update.sh
+```
+
 ### 環境固有の設定を追加したい
 
 shell/localrc.sh を追加し、環境変数等追加したい設定を記載
 
 ```bash:shell/localrc.sh
 export TERM=xterm-256color
+```
+
+### MCP 設定の配布
+
+```bash
+internal-cli mcp generate --target claude-code
+internal-cli mcp generate --target claude-desktop
+internal-cli mcp generate --target codex
 ```
