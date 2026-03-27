@@ -209,13 +209,13 @@ const generateForTarget = async (
   }
 }
 
-export type GenerateOptions = {
+export type DeliverOptions = {
   readonly targets: readonly Target[]
   readonly dryRun: boolean
 }
 
-export const generateMcpConfig = async (
-  options: GenerateOptions
+export const deliverMcpConfig = async (
+  options: DeliverOptions
 ): Promise<void> => {
   if (options.dryRun) {
     console.log("[dry-run mode]")
@@ -229,7 +229,7 @@ export const generateMcpConfig = async (
   const serverNames = Object.keys(servers)
 
   if (serverNames.length === 0) {
-    console.log("No servers to generate (all skipped).")
+    console.log("No servers to deliver (all skipped).")
     return
   }
 

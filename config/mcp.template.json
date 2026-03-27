@@ -18,7 +18,7 @@
     },
     "obsidian": {
       "type": "stdio",
-      "command": "${HOME}/ObsidianStorage/LiveSync/LiveSync/.obsidian/plugins/mcp-tools/bin/mcp-server",
+      "command": "${OBSIDIAN_VAULT_PATH}/.obsidian/plugins/mcp-tools/bin/mcp-server",
       "args": [],
       "env": {
         "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}"
