@@ -1,7 +1,11 @@
+import { execFile } from "node:child_process"
 import { readFile, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import path from "node:path"
+import { promisify } from "node:util"
 import { parse as parseTOML, stringify as stringifyTOML } from "smol-toml"
+
+const execFileAsync = promisify(execFile)
 
 const TEMPLATE_PATH = path.join(
   homedir(),
@@ -253,6 +257,52 @@ const mergeTomlMcpServers = async (
   console.log(`  Merged servers: ${Object.keys(servers).join(", ")}`)
 }
 
+/**
+ * Convert HTTP servers with headers to mcp-remote stdio for claude-desktop,
+ * which does not support the `headers` field natively.
+ */
+const toDesktopEntry = (entry: McpServerEntry): McpServerEntry => {
+  const headers = entry["headers"]
+  if (typeof headers !== "object" || headers === null) return entry
+
+  const url = entry["url"]
+  if (typeof url !== "string") return entry
+
+  const headerArgs = Object.entries(headers as Record<string, string>).flatMap(
+    ([key, value]) => ["--header", `${key}:${value}`]
+  )
+
+  return {
+    command: "npx",
+    args: ["-y", "mcp-remote", url, ...headerArgs],
+  }
+}
+
+const resolveNpxPath = async (): Promise<string> => {
+  const { stdout } = await execFileAsync("which", ["npx"])
+  return stdout.trim()
+}
+
+const replaceNpxCommand = (
+  entry: McpServerEntry,
+  npxPath: string
+): McpServerEntry => {
+  if (entry["command"] !== "npx") return entry
+  return { ...entry, command: npxPath }
+}
+
+const toDesktopServers = async (
+  servers: Readonly<Record<string, McpServerEntry>>
+): Promise<Readonly<Record<string, McpServerEntry>>> => {
+  const npxPath = await resolveNpxPath()
+  return Object.fromEntries(
+    Object.entries(servers).map(([name, entry]) => [
+      name,
+      replaceNpxCommand(toDesktopEntry(entry), npxPath),
+    ])
+  )
+}
+
 const generateForTarget = async (
   target: Target,
   servers: Readonly<Record<string, McpServerEntry>>,
@@ -263,8 +313,14 @@ const generateForTarget = async (
 
   switch (target) {
     case "claude-code":
-    case "claude-desktop":
       await mergeJsonMcpServers(configPath, servers, dryRun)
+      break
+    case "claude-desktop":
+      await mergeJsonMcpServers(
+        configPath,
+        await toDesktopServers(servers),
+        dryRun
+      )
       break
     case "codex":
       await mergeTomlMcpServers(configPath, servers, dryRun)

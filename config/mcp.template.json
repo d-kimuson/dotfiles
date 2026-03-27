@@ -24,7 +24,6 @@
       }
     },
     "esa": {
-      "description": "Use when you need to access esa.io (documents for team development like PRD, Operations, ...etc)",
       "type": "stdio",
       "command": "npx",
       "args": [
