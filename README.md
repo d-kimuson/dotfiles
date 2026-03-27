@@ -65,10 +65,9 @@ shell/localrc.sh を追加し、環境変数等追加したい設定を記載
 export TERM=xterm-256color
 ```
 
-### MCP 設定の配布
+### 同期で管理できない設定ファイルの配布
 
 ```bash
-internal-cli mcp generate --target claude-code
-internal-cli mcp generate --target claude-desktop
-internal-cli mcp generate --target codex
+internal-cli mcp deliver
+internal-cli merge-config
 ```
