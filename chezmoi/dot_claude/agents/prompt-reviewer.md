@@ -8,7 +8,7 @@ models:
   - provider: claude
     model: sonnet
   - provider: codex
-    model: gpt-5.2
+    model: gpt-5.4
 ---
 
 <role>

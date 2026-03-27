@@ -25,13 +25,18 @@ pnpm add -D @types/node @types/react @types/react-dom
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
 
     // TypeChecking
     "exactOptionalPropertyTypes": false,
     "allowJs": true,
 
     // transpile
-    "noEmit": true
+    "noEmit": true,
+    "erasableSyntaxOnly": true,
+    "target": "es2024",
+    "lib": ["dom", "dom.iterable", "esnext"],
   },
   "include": ["src"]
 }

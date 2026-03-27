@@ -7,7 +7,7 @@ models:
   - provider: claude
     model: sonnet
   - provider: codex
-    model: gpt-5.2
+    model: gpt-5.4
 ---
 
 Execute browser operations exactly as instructed and report the resulting page state.

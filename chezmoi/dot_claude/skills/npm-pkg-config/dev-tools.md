@@ -14,3 +14,10 @@ pnpm lefthook install
   }
 }
 ```
+
+## gatecheck
+
+```bash
+pnpm add -D gatecheck
+pnpm gatecheck setup --non-interactive
+```

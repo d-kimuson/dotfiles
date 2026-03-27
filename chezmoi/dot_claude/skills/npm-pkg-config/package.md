@@ -46,9 +46,7 @@ save-exact=true
 ## pnpm-workspace.yaml
 
 ```yaml
-catalogMode: strict
-
-cleanupUnusedCatalogs: true
+catalogMode: manual
 
 minimumReleaseAge: 7200
 ```

@@ -9,7 +9,7 @@
 ## セットアップ
 
 ```bash
-pnpm add -D oxlint oxlint-tsgolint oxfmt
+pnpm add -D oxlint oxlint-tsgolint oxfmt npm-run-all2
 ```
 
 ## package.json
@@ -17,11 +17,11 @@ pnpm add -D oxlint oxlint-tsgolint oxfmt
 ```json:package.json
 {
   "scripts": {
-    "lint": "pnpm /^lint:.*/",
-    "lint:oxlint": "oxlint --type-aware --type-check --ignore-path .gitignore --report-unused-disable-directives --tsconfig ./tsconfig.json",
+    "lint": "run-p lint:*",
+    "lint:oxlint": "oxlint --ignore-path .gitignore",
     "lint:oxfmt": "pnpm fix:oxfmt --check",
-    "fix": "pnpm /^fix:.*/",
-    "fix:oxlint": "pnpm lint:oxlint --fix --fix-suggestions --fix-dangerously",
+    "fix": "run-p lint:*",
+    "fix:oxlint": "pnpm lint:oxlint --fix",
     "fix:oxfmt": "oxfmt --ignore-path .gitignore --no-error-on-unmatched-pattern"
   }
 }
@@ -248,15 +248,15 @@ pnpm add -D oxlint oxlint-tsgolint oxfmt
     "typescript/consistent-type-definitions": ["error", "type"], // 型定義は type を使用（interface より優先）
 
     /* Custom Restrictions */
-    "no-console": "error", // console 禁止 (logger を設定する場合)
-    "node/no-process-env": "error", // process.env への直接アクセスを禁止 (腐敗防止層を用意する場合)
-    "no-restricted-globals": [ // new Date の利用を禁止(依存性注入されたファクトリーを使用する場合)
-      "error",
-      {
-        "name": "Date",
-        "message": "Use injected Clock/DateFactory instead of global Date."
-      }
-    ] // グローバル Date の使用を禁止（依存性注入されたファクトリーを使用）
+    // "no-console": "error", // console 禁止 (logger を設定する場合)
+    // "node/no-process-env": "error", // process.env への直接アクセスを禁止 (腐敗防止層を用意する場合)
+    // "no-restricted-globals": [ // new Date の利用を禁止(依存性注入されたファクトリーを使用する場合)
+    //   "error",
+    //   {
+    //     "name": "Date",
+    //     "message": "Use injected Clock/DateFactory instead of global Date."
+    //   }
+    // ] // グローバル Date の使用を禁止（依存性注入されたファクトリーを使用）
   },
   "overrides": [
     {
@@ -368,7 +368,14 @@ pnpm add -D oxlint oxlint-tsgolint oxfmt
     "**/*.generated.*",
     "**/generated/**",
     "**/*.tsbuildinfo"
-  ]
+  ],
+  "options": {
+    "typeCheck": false,
+    "typeAware": true,
+    "reportUnusedDisableDirectives": "deny",
+    "maxWarnings": 10,
+    "denyWarnings": false
+  }
 }
 ```
 
@@ -423,26 +430,6 @@ pre-commit:
   },
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "explicit"
-  }
-}
-```
-
-## Claude Code
-
-```json:.claude/settings.json
-{
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path' | xargs -IFILE sh -c 'pnpm fix:oxlint FILE; pnpm fix:oxfmt FILE'"
-          }
-        ]
-      }
-    ]
   }
 }
 ```

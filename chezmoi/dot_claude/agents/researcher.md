@@ -7,7 +7,7 @@ models:
   - provider: claude
     model: sonnet
   - provider: codex
-    model: gpt-5.2
+    model: gpt-5.4
 ---
 
 ライブラリ・技術の調査と情報整理を行う。

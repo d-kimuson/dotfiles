@@ -16,7 +16,7 @@ Guidelines for creating and editing Coding Agent prompts (commands, agents, skil
 | **Command** | `.claude/commands/<name>.md` | `/command-name` | Reusable tasks for users | `references/command.md` |
 | **Agent** | `.{.super-agent,.claude}/agents/<name>.md` | `@agent-name` / Task tool | Specialized subagents | `references/agent.md` |
 | **Skill** | `{.super-agent|.claude|.codex|.github}/skills/<name>/SKILL.md` | Skill tool / automatic | Reusable knowledge and guidelines | `references/skill.md` |
-| **Context File** | `.claude/CLAUDE.md` etc. | Auto-loaded | Always-needed project context | `references/context-file.md` |
+| **Context File** | `CLAUDE.md`, `AGENTS.md` etc. | Auto-loaded | Always-needed project context | `references/context-file.md` |
 | **Document** | Any | Manual reference | Standalone prompts | - |
 
 **Other references**:
@@ -45,7 +45,7 @@ Only information necessary for execution. Remove verbose examples, hypothetical 
 ## Formatting Rules
 
 - **No h1 headings**: Do not start with `#`
-- **Language**: `description` in the project's primary language; body can also be in primary language
+- **Language**: Always write prompt body in English for context efficiency — prompts are consumed by the LLM, and English maximizes token efficiency and instruction clarity. Use the project's primary language only for `description` (user-facing metadata).
 - **XML tags**: Use for structuring when there are multiple sections
 
 ## Orchestration

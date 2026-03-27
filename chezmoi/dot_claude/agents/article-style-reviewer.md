@@ -7,7 +7,7 @@ skills:
   - article-writing
 models:
   - provider: codex
-    model: gpt-5.2
+    model: gpt-5.4
   - provider: claude
     model: sonnet
 ---
