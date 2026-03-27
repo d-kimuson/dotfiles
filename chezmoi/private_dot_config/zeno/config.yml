@@ -70,7 +70,7 @@ snippets:
   # dotfiles
   - name: dotfiles apply
     keyword: dotfiles-apply
-    snippet: chezmoi apply && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh
+    snippet: chezmoi apply && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh && internal-cli merge-config
 
   - name: reload
     keyword: reload

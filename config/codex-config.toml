@@ -1,8 +1,7 @@
 model = "gpt-5.4"
 model_reasoning_effort = "medium"
+web_search = "live"
 
 [features]
 child_agents_md = true
 skills = true
-web_search_cached = true
-web_search_request = true

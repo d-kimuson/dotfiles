@@ -1,4 +1,5 @@
 config/modular-mcp.json
+config/mcp.template.local.json
 shell/localrc.sh
 .claude/settings.local.json
 .playwright-cli

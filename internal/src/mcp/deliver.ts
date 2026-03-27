@@ -8,6 +8,11 @@ const TEMPLATE_PATH = path.join(
   ".local/share/chezmoi/config/mcp.template.json"
 )
 
+const TEMPLATE_LOCAL_PATH = path.join(
+  homedir(),
+  ".local/share/chezmoi/config/mcp.template.local.json"
+)
+
 type Target = "claude-code" | "claude-desktop" | "codex"
 
 type McpServerEntry = Readonly<Record<string, unknown>>
@@ -73,10 +78,7 @@ const expandEnvVarsDeep = (obj: unknown): ExpandResult => {
   return { ok: true, value: expand(obj) }
 }
 
-const readTemplate = async (): Promise<
-  Readonly<Record<string, McpServerEntry>>
-> => {
-  const content = await readFile(TEMPLATE_PATH, "utf-8")
+const parseMcpTemplate = (content: string): McpTemplate => {
   const parsed: unknown = JSON.parse(content)
   if (
     typeof parsed !== "object" ||
@@ -85,7 +87,12 @@ const readTemplate = async (): Promise<
   ) {
     throw new Error("Template must have mcpServers field")
   }
-  const template = parsed as McpTemplate
+  return parsed as McpTemplate
+}
+
+const resolveServers = (
+  template: McpTemplate
+): Record<string, McpServerEntry> => {
   const resolved: Record<string, McpServerEntry> = {}
 
   for (const [name, entry] of Object.entries(template.mcpServers)) {
@@ -97,6 +104,46 @@ const readTemplate = async (): Promise<
       continue
     }
     resolved[name] = result.value as McpServerEntry
+  }
+
+  return resolved
+}
+
+const getDisabledMcps = (): ReadonlySet<string> => {
+  const raw = process.env["DISABLE_MCPS"] ?? ""
+  return new Set(
+    raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0)
+  )
+}
+
+const readTemplate = async (): Promise<
+  Readonly<Record<string, McpServerEntry>>
+> => {
+  const content = await readFile(TEMPLATE_PATH, "utf-8")
+  const template = parseMcpTemplate(content)
+  const resolved = resolveServers(template)
+
+  // Merge local template if it exists
+  try {
+    const localContent = await readFile(TEMPLATE_LOCAL_PATH, "utf-8")
+    const localTemplate = parseMcpTemplate(localContent)
+    const localResolved = resolveServers(localTemplate)
+    Object.assign(resolved, localResolved)
+    console.log(`Local template: ${TEMPLATE_LOCAL_PATH}`)
+  } catch {
+    // Local template does not exist, skip silently
+  }
+
+  // Remove disabled servers
+  const disabled = getDisabledMcps()
+  for (const name of disabled) {
+    if (name in resolved) {
+      delete resolved[name]
+      console.log(`  ⊘ Disabled by DISABLE_MCPS: ${name}`)
+    }
   }
 
   return resolved
@@ -153,6 +200,24 @@ const readTomlFile = async (
   }
 }
 
+/** Convert a Claude Code/Desktop MCP entry to Codex TOML format */
+const toCodexEntry = (entry: McpServerEntry): Record<string, unknown> => {
+  const result: Record<string, unknown> = {}
+
+  // Copy fields that are shared as-is
+  for (const key of ["command", "args", "env", "url"] as const) {
+    if (key in entry) result[key] = entry[key]
+  }
+
+  // headers → http_headers
+  if ("headers" in entry && typeof entry["headers"] === "object") {
+    result["http_headers"] = entry["headers"]
+  }
+
+  // type is not used in Codex config
+  return result
+}
+
 const mergeTomlMcpServers = async (
   filePath: string,
   servers: Readonly<Record<string, McpServerEntry>>,
@@ -165,17 +230,15 @@ const mergeTomlMcpServers = async (
       ? (existing["mcp_servers"] as Record<string, unknown>)
       : {}
 
-  const added: string[] = []
   for (const [name, config] of Object.entries(servers)) {
-    if (name in existingMcpServers) {
-      console.log(`  Skipped (already exists): ${name}`)
-      continue
+    existingMcpServers[name] = {
+      ...(typeof existingMcpServers[name] === "object" &&
+      existingMcpServers[name] !== null
+        ? (existingMcpServers[name] as Record<string, unknown>)
+        : {}),
+      ...toCodexEntry(config),
     }
-    existingMcpServers[name] = config
-    added.push(name)
   }
-
-  if (added.length === 0) return
 
   const merged = { ...existing, mcp_servers: existingMcpServers }
   const output = stringifyTOML(merged) + "\n"
@@ -187,7 +250,7 @@ const mergeTomlMcpServers = async (
     await writeFile(filePath, output, "utf-8")
     console.log(`  Updated: ${filePath}`)
   }
-  console.log(`  Added servers: ${added.join(", ")}`)
+  console.log(`  Merged servers: ${Object.keys(servers).join(", ")}`)
 }
 
 const generateForTarget = async (
