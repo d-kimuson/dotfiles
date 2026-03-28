@@ -9,7 +9,7 @@ if command -v nix &>/dev/null; then
 fi
 
 ARCH="$(uname -m)"
-NIX_VERSION="2.34.4"
+NIX_VERSION="${NIX_VERSION:-2.34.4}"
 
 mkdir -p /etc/nix
 cat > /etc/nix/nix.conf <<'EOF'
