@@ -34,5 +34,9 @@ bash "$TMP_DIR"/nix-*-linux/install --no-daemon
 
 export PATH="$HOME/.nix-profile/bin:$PATH"
 
+echo "[+] Installing direnv..."
+nix profile install nixpkgs#direnv
+
 echo "[+] Done!"
 nix --version
+direnv --version
