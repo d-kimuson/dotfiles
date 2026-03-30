@@ -258,29 +258,27 @@ const mergeTomlMcpServers = async (
 }
 
 /**
- * Convert HTTP servers with headers to mcp-remote stdio for claude-desktop,
- * which does not support the `headers` field natively.
+ * Convert HTTP servers to mcp-remote stdio for claude-desktop,
+ * which does not support the HTTP transport natively.
  */
 const toDesktopEntry = (entry: McpServerEntry): McpServerEntry => {
-  const headers = entry["headers"]
-  if (typeof headers !== "object" || headers === null) return entry
+  if (entry["type"] !== "http") return entry
 
   const url = entry["url"]
   if (typeof url !== "string") return entry
 
-  const headerArgs = Object.entries(headers as Record<string, string>).flatMap(
-    ([key, value]) => ["--header", `${key}:${value}`]
-  )
+  const headers = entry["headers"]
+  const headerArgs =
+    typeof headers === "object" && headers !== null
+      ? Object.entries(headers as Record<string, string>).flatMap(
+          ([key, value]) => ["--header", `${key}:${value}`]
+        )
+      : []
 
   return {
     command: "npx",
     args: ["-y", "mcp-remote", url, ...headerArgs],
   }
-}
-
-const resolveNpxPath = async (): Promise<string> => {
-  const { stdout } = await execFileAsync("which", ["npx"])
-  return stdout.trim()
 }
 
 const replaceNpxCommand = (
@@ -294,7 +292,7 @@ const replaceNpxCommand = (
 const toDesktopServers = async (
   servers: Readonly<Record<string, McpServerEntry>>
 ): Promise<Readonly<Record<string, McpServerEntry>>> => {
-  const npxPath = await resolveNpxPath()
+  const npxPath = `${homedir()}/.local/share/mise/shims/npx` // Node.js からの which node だと shims が見つかってくれないのでハードコード
   return Object.fromEntries(
     Object.entries(servers).map(([name, entry]) => [
       name,
