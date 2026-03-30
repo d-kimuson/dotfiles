@@ -5,24 +5,31 @@
   makeWrapper,
   dolt,
   go_1_26,
+  icu,
+  pkg-config,
   versionCheckHook,
 }:
 
 buildGoModule.override { go = go_1_26; } rec {
   pname = "beads";
-  version = "0.62.0";
+  version = "0.63.3";
 
   src = fetchFromGitHub {
     owner = "steveyegge";
     repo = "beads";
     rev = "v${version}";
-    hash = "sha256-AqpdisbN6sFU2135/+B+FxJUUVknifzT7Gijc3dl2KQ=";
+    hash = "sha256-1AcsSDQXLcPLwIvV3dJ2DXYpeR2PAQCgUodclDMwg/s=";
   };
 
-  vendorHash = "sha256-XGksP4YO2M7nY7g1/ZIN/sprEZLk7i+cdow9uBBcsDo=";
+  vendorHash = "sha256-GYPfvsI8eNJbdzrbO7YnMkN2Yt6KZNB7w/2SJD2WdFY=";
 
   nativeBuildInputs = [
     makeWrapper
+    pkg-config
+  ];
+
+  buildInputs = [
+    icu
   ];
 
   subPackages = [ "cmd/bd" ];
