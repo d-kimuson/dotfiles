@@ -39,7 +39,7 @@ Parse the following from arguments (defaults shown):
 
 ## Core Principles
 
-- **No code editing**: Delegate all implementation to subagents. Your job is orchestration, context management, and quality assurance.
+- **NEVER edit code yourself**: Delegate ALL code changes to subagents — no exceptions, regardless of change size. Even single-line fixes, import reordering, or dead code removal MUST be delegated. Your only tools are orchestration and communication. Efficiency is NOT a valid reason to skip delegation.
 - **Read files identified by agents**: Ask agents to return key file lists. Read those files after agents complete to build context.
 - **Use TodoWrite**: Track all progress throughout.
 - **Checkpoints (colab mode)**: Confirm with the user before major transitions — especially before implementation begins. Rework is expensive; alignment is cheap.
@@ -240,7 +240,7 @@ Out of scope: Do not review files unrelated to this feature.
 2. Consolidate findings and identify highest severity issues
 3. **colab**: Present findings to user and ask how to proceed (fix now, fix later, or proceed as-is)
 4. **auto**: Fix critical/high issues, proceed with the rest
-5. Address issues based on decision
+5. **Fixing issues = return to Phase 6**: When issues require code changes, delegate fixes to the implementation agent — preferably by resuming the previous session via `SendMessage` so the agent retains full context. NEVER edit code yourself to address review/QA findings.
 
 ---
 
@@ -251,6 +251,7 @@ Out of scope: Do not review files unrelated to this feature.
 **Actions**:
 - Launch `qa-engineer` agent with the task scope and context
 - QA scope is determined by the agent, but provide specific areas to check if you have concerns from the orchestration perspective
+- If QA finds issues requiring code changes, delegate fixes to the implementation agent (resume the Phase 6 session). NEVER fix code yourself.
 
 ---
 
@@ -258,9 +259,9 @@ Out of scope: Do not review files unrelated to this feature.
 
 **Goal**: Create PR and ensure CI passes
 
-Delegate PR creation and CI monitoring to `github` agent.
+**MUST delegate** PR creation and CI monitoring to `github` agent. Do NOT run `gh` commands directly. While `gh pr create` is a single command, the `github` agent holds knowledge of PR conventions, labeling rules, and CI monitoring workflows that you do not. Skipping delegation to save time risks producing PRs that violate project conventions.
 
-If CI fails, receive the report and delegate fixes to appropriate subagents. Iterate until CI passes.
+If CI fails, receive the report and delegate fixes to the implementation agent (resume the Phase 6 session). Iterate until CI passes.
 
 ---
 
