@@ -1,21 +1,7 @@
-import { execFile } from "node:child_process"
-import { readFile, writeFile } from "node:fs/promises"
+import { access, readFile, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import path from "node:path"
-import { promisify } from "node:util"
 import { parse as parseTOML, stringify as stringifyTOML } from "smol-toml"
-
-const execFileAsync = promisify(execFile)
-
-const TEMPLATE_PATH = path.join(
-  homedir(),
-  ".local/share/chezmoi/config/mcp.template.json"
-)
-
-const TEMPLATE_LOCAL_PATH = path.join(
-  homedir(),
-  ".local/share/chezmoi/config/mcp.template.local.json"
-)
 
 type Target = "claude-code" | "claude-desktop" | "codex"
 
@@ -29,13 +15,37 @@ type ExpandResult =
   | { readonly ok: true; readonly value: unknown }
   | { readonly ok: false; readonly missing: readonly string[] }
 
-const TARGET_CONFIG_PATHS: Readonly<Record<Target, string>> = {
-  "claude-code": path.join(homedir(), ".claude.json"),
-  "claude-desktop": path.join(
+const getTemplatePath = (): string => {
+  return path.join(homedir(), ".local/share/chezmoi/config/mcp.template.json")
+}
+
+const getTemplateLocalPath = (): string => {
+  return path.join(
     homedir(),
-    "Library/Application Support/Claude/claude_desktop_config.json"
-  ),
-  codex: path.join(homedir(), ".codex/config.toml"),
+    ".local/share/chezmoi/config/mcp.template.local.json"
+  )
+}
+
+const getTargetConfigPaths = (): Readonly<Record<Target, string>> => {
+  return {
+    "claude-code": path.join(homedir(), ".claude.json"),
+    "claude-desktop": path.join(
+      homedir(),
+      "Library/Application Support/Claude/claude_desktop_config.json"
+    ),
+    codex: path.join(homedir(), ".codex/config.toml"),
+  }
+}
+
+const canWriteTarget = async (filePath: string): Promise<boolean> => {
+  const parentDir = path.dirname(filePath)
+
+  try {
+    await access(parentDir)
+    return true
+  } catch {
+    return false
+  }
 }
 
 const collectEnvVarRefs = (obj: unknown): readonly string[] => {
@@ -126,17 +136,18 @@ const getDisabledMcps = (): ReadonlySet<string> => {
 const readTemplate = async (): Promise<
   Readonly<Record<string, McpServerEntry>>
 > => {
-  const content = await readFile(TEMPLATE_PATH, "utf-8")
+  const content = await readFile(getTemplatePath(), "utf-8")
   const template = parseMcpTemplate(content)
   const resolved = resolveServers(template)
 
   // Merge local template if it exists
   try {
-    const localContent = await readFile(TEMPLATE_LOCAL_PATH, "utf-8")
+    const localPath = getTemplateLocalPath()
+    const localContent = await readFile(localPath, "utf-8")
     const localTemplate = parseMcpTemplate(localContent)
     const localResolved = resolveServers(localTemplate)
     Object.assign(resolved, localResolved)
-    console.log(`Local template: ${TEMPLATE_LOCAL_PATH}`)
+    console.log(`Local template: ${localPath}`)
   } catch {
     // Local template does not exist, skip silently
   }
@@ -306,8 +317,15 @@ const generateForTarget = async (
   servers: Readonly<Record<string, McpServerEntry>>,
   dryRun: boolean
 ): Promise<void> => {
-  const configPath = TARGET_CONFIG_PATHS[target]
+  const configPath = getTargetConfigPaths()[target]
   console.log(`\n[${target}] ${configPath}`)
+
+  if (!(await canWriteTarget(configPath))) {
+    console.log(
+      `  Skipped: parent directory does not exist: ${path.dirname(configPath)}`
+    )
+    return
+  }
 
   switch (target) {
     case "claude-code":
@@ -334,12 +352,14 @@ export type DeliverOptions = {
 export const deliverMcpConfig = async (
   options: DeliverOptions
 ): Promise<void> => {
+  const targetConfigPaths = getTargetConfigPaths()
+
   if (options.dryRun) {
     console.log("[dry-run mode]")
   }
-  console.log(`Template: ${TEMPLATE_PATH}`)
+  console.log(`Template: ${getTemplatePath()}`)
   console.log(
-    `Targets:\n${options.targets.map((t) => `  - [${t}] ${TARGET_CONFIG_PATHS[t]}`).join("\n")}`
+    `Targets:\n${options.targets.map((t) => `  - [${t}] ${targetConfigPaths[t]}`).join("\n")}`
   )
 
   const servers = await readTemplate()
