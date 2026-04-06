@@ -74,7 +74,7 @@ Do not hardcode a specific agent name for implementation — use the most approp
 **Goal**: Understand relevant existing code and patterns at both high and low levels
 
 **Actions**:
-1. Launch 2-3 `explorer` agents in parallel, each targeting a different aspect:
+1. Launch `explorer` agents in parallel to cover different aspects of the feature area:
 
 ```
 agent-task(
@@ -84,20 +84,12 @@ Explore the codebase for: {aspect}
 
 Context: We are implementing {feature_summary}.
 
-Focus on:
-- {specific_exploration_focus}
-
 Expected output:
-- Comprehensive analysis of relevant patterns and abstractions
-- List of 5-10 key files (with brief description of why each matters)
+- Analysis of relevant patterns, abstractions, and conventions
+- List of key files with brief descriptions of why each matters
 """
 )
 ```
-
-   Example aspects to explore in parallel:
-   - Similar features and their implementation patterns
-   - Architecture and abstractions for the relevant area
-   - UI patterns, testing approaches, or extension points
 
 2. Read all key files identified by agents to build deep understanding
 3. Present comprehensive summary of findings and patterns discovered
@@ -122,18 +114,16 @@ If the user says "whatever you think is best", provide your recommendation and g
 
 ## Phase 4: Architecture Design (delegate to `architect`)
 
-**Goal**: Design multiple implementation approaches with different trade-offs
+**Goal**: Design implementation approaches with different trade-offs
 
 **Actions**:
-1. Launch 2-3 `architect` agents in parallel with different design philosophies:
+1. Launch `architect` agents in parallel to explore different approaches:
 
 ```
 agent-task(
   agent="architect",
   message="""
 Design an implementation approach for: {feature_description}
-
-Design philosophy: {minimal_changes | clean_architecture | pragmatic_balance}
 
 Codebase context:
 {exploration_findings_summary}
@@ -144,7 +134,7 @@ Constraints:
 Expected output:
 - Concrete file-level changes (create/modify/delete)
 - Component design and data flow
-- Trade-offs of this approach
+- Trade-offs and risks of this approach
 """
 )
 ```
@@ -216,10 +206,10 @@ Follow project conventions. Write tests where test infrastructure exists.
 
 ## Phase 7: Quality Review (delegate to `reviewer`)
 
-**Goal**: Ensure code is simple, DRY, elegant, easy to read, and functionally correct
+**Goal**: Ensure code quality, correctness, and adherence to project conventions
 
 **Actions**:
-1. Launch 3 `reviewer` agents in parallel with different focuses:
+1. Launch `reviewer` agent:
 
 ```
 agent-task(
@@ -227,15 +217,15 @@ agent-task(
   message="""
 Review the implementation of: {feature_summary}
 
-Review focus: {simplicity_DRY | bugs_correctness | conventions_abstractions}
-
 Changed files:
 {list_of_changed_files}
 
-Out of scope: Do not review files unrelated to this feature.
+Scope: Only review files related to this feature.
 """
 )
 ```
+
+   The reviewer determines review strategy and focus areas — do not prescribe what to check.
 
 2. Consolidate findings and identify highest severity issues
 3. **colab**: Present findings to user and ask how to proceed (fix now, fix later, or proceed as-is)
@@ -246,12 +236,29 @@ Out of scope: Do not review files unrelated to this feature.
 
 ## Phase 8: Quality Assurance (delegate to `qa-engineer`)
 
-**Goal**: Ensure the implementation is bug-free and ready for release
+**Goal**: Verify the implementation works correctly and is ready for release
 
 **Actions**:
-- Launch `qa-engineer` agent with the task scope and context
-- QA scope is determined by the agent, but provide specific areas to check if you have concerns from the orchestration perspective
-- If QA finds issues requiring code changes, delegate fixes to the implementation agent (resume the Phase 6 session). NEVER fix code yourself.
+1. Launch `qa-engineer` agent:
+
+```
+agent-task(
+  agent="qa-engineer",
+  message="""
+Verify the implementation of: {feature_summary}
+
+Acceptance criteria:
+{acceptance_criteria}
+
+Changed files:
+{list_of_changed_files}
+"""
+)
+```
+
+   The QA agent determines verification strategy, scope, and test approaches — do not prescribe specific steps or checks.
+
+2. If QA finds issues requiring code changes, delegate fixes to the implementation agent (resume the Phase 6 session). NEVER fix code yourself.
 
 ---
 
