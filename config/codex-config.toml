@@ -5,3 +5,12 @@ web_search = "live"
 [features]
 child_agents_md = true
 skills = true
+guardian_approval = true
+
+[profile.auto]
+sandbox = "danger-full-access"
+ask_for_approval = "never"
+
+[profile.safe-auto]
+sandbox = "workspace-write"
+ask_for_approval = "never"
