@@ -29,6 +29,10 @@ in
     pkgs.typescript
 
     # AI
+{{ if eq .chezmoi.os "linux" }}
+    pkgs.bubblewrap # required by claude-code sandbox
+    pkgs.socat # required by claude-code sandbox
+{{ end }}
     pkgsMaster.claude-code
     pkgsMaster.codex
     pkgsMaster.github-copilot-cli
@@ -57,7 +61,8 @@ in
     pkgs.fzf
     pkgs.colordiff
 
-    # 標準コマンドのGNU版統一
+{{ if eq .chezmoi.os "darwin" }}
+    # 標準コマンドのGNU版統一 (macOS をLinuxに寄せる)
     pkgs.coreutils-full
     pkgs.diffutils
     pkgs.findutils
@@ -65,6 +70,7 @@ in
     pkgs.gnugrep
     pkgs.gawk
     pkgs.gnutar
+{{ end }}
   ];
 
   home.sessionVariables = {

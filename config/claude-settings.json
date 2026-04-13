@@ -9,6 +9,49 @@
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true
   },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Write|Edit|NotebookEdit|Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/safety-gate.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/observe.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/observe.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/observe.sh"
+          }
+        ]
+      }
+    ]
+  },
   "language": "日本語",
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
