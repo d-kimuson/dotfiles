@@ -24,3 +24,13 @@
   path = .gitconfig-sms
 [include]
   path = .gitconfig-local
+[gpg]
+  format = ssh
+[gpg "ssh"]
+  allowedSignersFile = ~/.ssh/allowed_signers
+[user]
+  signingkey = ~/.ssh/github
+[tag]
+  gpgSign = true
+[commit]
+  gpgsign = true
