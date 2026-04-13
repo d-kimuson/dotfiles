@@ -22,6 +22,8 @@ if [ -n "$dir" ] && [ -d "$dir" ]; then
   repo=$(cd "$dir" && basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null)
 fi
 
+claude_version=$(claude --version 2>/dev/null | head -1 | awk '{print $1}')
+
 pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 model=$(echo "$input" | jq -r '.model.display_name // .model.id // "unknown"')
 
@@ -128,7 +130,9 @@ elif [ "$five_over" -eq 0 ] && [ "$seven_over" -eq 0 ]; then
 fi
 
 # --- Output ---
-echo "📂 ${display_dir}"
+version_prefix=""
+[ -n "$claude_version" ] && version_prefix="claude-code@${claude_version} at "
+echo "${version_prefix}${display_dir}"
 
 if [ -n "$branch" ] && [ -n "$repo" ]; then
   echo "⎇ ${branch} | 🐙 ${repo}"
