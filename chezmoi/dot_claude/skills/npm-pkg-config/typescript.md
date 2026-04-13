@@ -8,6 +8,18 @@ pnpm add -D typescript @tsconfig/strictest
 pnpm add -D @types/node @types/react @types/react-dom
 ```
 
+## package.json
+
+型チェックには tsgo を使用する。
+
+```json:package.json
+{
+  "scripts": {
+    "typecheck": "tsgo -p . --noEmit"
+  }
+}
+```
+
 ## tsconfig.json (base)
 
 ```json:tsconfig.json
@@ -93,7 +105,15 @@ pnpm add -D @types/node @types/react @types/react-dom
 
 ```json:.vscode/settings.json
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.preferences.importModuleSpecifier": "relative",
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.preferences.importModuleSpecifier": "relative"
 }
 ```
+
+## Zed
+
+Zed では vtsls を TypeScript の language server として使用する（typescript-language-server, tsgo は無効化）。
+
+language_servers の設定は oxc.md の Zed セクションに統合されている。
