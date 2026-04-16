@@ -102,6 +102,14 @@ function gadd() {
   git add $1 && git status
 }
 
+function gnew() {
+  if [ -z "$1" ]; then
+    echo "required branch name";
+    return 1;
+  fi
+  git fetch origin && git switch -c "$1" origin/main
+}
+
 function gcd() {
   cd $(git rev-parse --show-toplevel)
 }
