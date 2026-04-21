@@ -43,6 +43,18 @@
         "DD_API_KEY": "${DD_API_KEY}",
         "DD_APPLICATION_KEY": "${DD_APPLICATION_KEY}"
       }
+    },
+    "n8n": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "n8n-mcp@latest"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "${N8N_API_URL}",
+        "N8N_API_KEY": "${N8N_API_KEY}"
+      }
     }
   }
 }

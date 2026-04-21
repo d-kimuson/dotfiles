@@ -7,3 +7,4 @@ tmp.local.*
 
 # claude code
 **/.kimuson/**
+.claude/trash/

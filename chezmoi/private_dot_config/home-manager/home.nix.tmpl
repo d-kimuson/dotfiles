@@ -99,6 +99,13 @@ in
     fi
   '';
 
+  home.activation.installHermesAgent = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    if [ ! -x "${config.home.homeDirectory}/.hermes/hermes-agent/venv/bin/hermes" ]; then
+      $DRY_RUN_CMD bash -c "$(${pkgs.curl}/bin/curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh)" -- --skip-setup
+    fi
+    $DRY_RUN_CMD ln -sf "${config.home.homeDirectory}/.hermes/hermes-agent/venv/bin/hermes" "${config.home.homeDirectory}/bin/hermes"
+  '';
+
   nixpkgs.config.allowUnfree = true; # Allow unfree packages
 
   programs.home-manager.enable = true; # Let Home Manager install and manage itself.
