@@ -34,16 +34,16 @@ MUST enable appropriate skills before starting implementation:
 
 ## File Deletion
 
-**ファイルを削除する際は、`rm` ではなく必ず `~/.claude/trash/` への `mv` で行う。**
+**ファイルを削除する際は、`rm` ではなく必ず `${workingDir}/.claude/trash/` への `mv` で行う。**
 
 ファイル名の衝突を避けるため、移動時にタイムスタンプサフィックスを付与する:
 
 ```bash
 # 例: foo.ts を削除したい場合
-mv path/to/foo.ts ~/.claude/trash/foo_$(date +%Y%m%d_%H%M%S).ts
+mv path/to/foo.ts ./.claude/trash/foo_$(date +%Y%m%d_%H%M%S).ts
 
 # 拡張子なしの場合
-mv path/to/file ~/.claude/trash/file_$(date +%Y%m%d_%H%M%S)
+mv path/to/file ./.claude/trash/file_$(date +%Y%m%d_%H%M%S)
 ```
 
 ---

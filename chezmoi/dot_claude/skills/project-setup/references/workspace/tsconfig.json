@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "references": [
+    {
+      "path": "./apps/frontend/tsconfig.json"
+    },
+    {
+      "path": "./apps/backend/tsconfig.json"
+    }
+  ]
+}

@@ -1,20 +1,3 @@
-# workspace
-
-## pnpm-workspace.yaml
-
-```yaml
-packages:
-  - apps/*
-  - packages/*
-```
-
-## turbo
-
-```bash
-pnpm add -D -w turbo
-```
-
-```json:turbo.json
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": ["NODE_OPTIONS", "NODE_ENV"],
@@ -37,4 +20,3 @@ pnpm add -D -w turbo
     "test": {}
   }
 }
-```
