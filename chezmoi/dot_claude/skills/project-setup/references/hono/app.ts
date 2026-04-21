@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 
 export type HonoContext = {
-  Variables: {};
+  Variables: Record<string, never>;
 };
 
 export const honoApp = new Hono<HonoContext>();

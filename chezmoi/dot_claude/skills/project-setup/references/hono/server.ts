@@ -1,12 +1,12 @@
 import { serve } from "@hono/node-server";
 import { honoApp } from "./app";
-import { routes } from "./route";
+import { routes } from "./routes";
 
 type ServerOptions = {
   port?: number;
 };
 
-export const startServer = async (options?: ServerOptions) => {
+export const startServer = (options?: ServerOptions) => {
   const { port = <default-port> } = options ?? {};
 
   routes(honoApp)

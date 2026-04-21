@@ -9,7 +9,14 @@
 
 ```bash
 pnpm add hono @hono/node-server
+pnpm add -D @types/node
 ```
+
+### tsconfig.json adjustments for Node.js
+
+For backend-only (no DOM):
+- Change `lib` to `["esnext"]` (remove `"dom"`, `"dom.iterable"`)
+- Add `"types": ["node"]` to `compilerOptions`
 
 ## Template Files
 
@@ -18,12 +25,12 @@ pnpm add hono @hono/node-server
 | `app.ts` | Add context variables to `HonoContext` as needed |
 | `routes.ts` | Replace example routes with actual API routes, update `<project-name>` |
 | `server.ts` | Set `<default-port>` to desired port number |
-| `main.ts` | None |
+| `main.ts` | Import path (see below) |
 
 ### File Placement
 
-- Shares package with frontend: Copy to `src/server/`
-- API-only package: Copy to `src/`
+- Shares package with frontend: Copy `app.ts`, `routes.ts`, `server.ts` to `src/server/`. Copy `main.ts` to `src/` and update import to `./server/server`
+- API-only package: Copy all files to `src/`
 
 ## Multi-Package Type Export
 

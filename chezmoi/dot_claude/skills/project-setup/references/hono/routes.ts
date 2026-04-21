@@ -1,8 +1,9 @@
+import type { Hono } from "hono";
 import type { HonoAppType, HonoContext } from "./app";
 
 export const routes = (app: HonoAppType) => {
   return app
-    .get("/info", async (c) => {
+    .get("/info", (c) => {
       return c.json({
         status: "healthy",
         server: "<project-name>",

@@ -9,6 +9,7 @@ Follows the same convention as `tanstack-spa/`:
 
 ## Prerequisites
 
+- `vite.config.ts` must exist (shadcn CLI uses it for framework detection)
 - Tailwind CSS must be configured (handled by `tanstack-spa` setup or manually)
 - `tsconfig.json` must have `@/*` path alias pointing to `./src/*`
 
@@ -32,7 +33,7 @@ Ensure `vite.config.ts` has the alias and plugin configured (see `tanstack-spa/v
 ### Frontend-only package (default)
 
 ```bash
-pnpm dlx shadcn@latest init --base-color neutral --yes --src-dir --css-variables
+pnpm dlx shadcn@latest init --defaults
 ```
 
 ### Shared package (frontend in `src/web/`)
@@ -40,7 +41,7 @@ pnpm dlx shadcn@latest init --base-color neutral --yes --src-dir --css-variables
 Run init then update `components.json` aliases to point into `src/web/`:
 
 ```bash
-pnpm dlx shadcn@latest init --base-color neutral --yes --src-dir --css-variables
+pnpm dlx shadcn@latest init --defaults
 ```
 
 Update `components.json`:

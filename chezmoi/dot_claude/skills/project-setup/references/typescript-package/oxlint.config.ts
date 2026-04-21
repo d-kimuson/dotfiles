@@ -230,7 +230,6 @@ export default defineConfig({
     {
       files: ['**/*.{test,spec}.?([mc])[jt]s?(x)'],
       rules: {
-        'jest/expect-test': 'error', // テスト関数に expect の呼び出しを強制
         'jest/no-conditional-expect': 'error', // 条件分岐内での expect を禁止
         'jest/no-disabled-tests': 'off', // test.skip の使用はプロジェクト運用に依存
         'jest/no-export': 'error', // テストファイルからの export を禁止

@@ -1,6 +1,6 @@
 import { hc } from "hono/client";
-import type { RouteType } from "../../server/hono/route";  // シングルパッケージ
-import type { RouteType } from '<pkg-name-backend>/types'; // マルチパッケージ
+import type { RouteType } from "../../server/routes";
+// マルチパッケージの場合: import type { RouteType } from '<pkg-name-backend>/types';
 
 type Fetch = typeof fetch;
 

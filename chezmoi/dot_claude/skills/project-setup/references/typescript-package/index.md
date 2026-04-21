@@ -23,9 +23,12 @@ Note: `.gitignore` and `LICENSE` are handled by `core/` reference.
 
 ```bash
 pnpm add -D @typescript/native-preview @tsconfig/strictest
-# if needed:
-pnpm add -D @types/node @types/react @types/react-dom
 ```
+
+Add type definitions based on project type:
+- **Node.js backend**: `pnpm add -D @types/node`
+- **React frontend**: `pnpm add -D @types/react @types/react-dom`
+- **Fullstack**: `pnpm add -D @types/node @types/react @types/react-dom`
 
 `@typescript/native-preview` provides `tsgo` — the native TypeScript type checker.
 
