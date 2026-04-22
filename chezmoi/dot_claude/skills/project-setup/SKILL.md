@@ -34,6 +34,8 @@ All paths are relative to this skill's directory (`references/`).
 | `hono/` | Backend API — `app.ts`, `routes.ts`, `server.ts`, `main.ts`, `client.ts` + hono-rpc-msw-adapter |
 | `tanstack-spa/` | Frontend SPA — `vite.config.ts`, `index.html`, `main.tsx`, `__root.tsx`, query client |
 | `shadcn-ui/` | UI components — Tailwind + shadcn init, `components.json` for shared packages |
+| `cloudflare-workers/` | Cloudflare Workers deploy — `wrangler.jsonc`, `worker.ts`, `deploy.sh`, env management |
+| `tanstack-start-static/` | TanStack Start pre-rendered SPA — `vite.config.ts`, `router.tsx`, `__root.tsx` |
 | `agent-harness/` | CLAUDE.md/AGENTS.md, coding guideline/process, conventions (commit, branch, E2E testing) |
 
 </reference_index>

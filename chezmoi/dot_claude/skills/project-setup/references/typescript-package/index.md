@@ -75,6 +75,37 @@ Copy `oxlint.config.ts`, `.oxfmtrc.json`, `lefthook.yml` to project root.
 - For workspaces, place these configs at workspace root
 - Preserve all comments in `oxlint.config.ts`
 
+#### jsPlugins (Custom Lint Rules)
+
+For projects with module boundaries or architectural conventions, set up custom oxlint JS plugins:
+
+1. Create `dev/lints/` directory at project root
+2. Copy `conventions.js` to `dev/lints/conventions.js`
+3. Customize `MODULE_NAMES`, `ALLOWED_RUNTIME_DEPS`, `ALLOWED_TYPE_DEPS` for your project's module structure
+4. Add `jsPlugins` to `oxlint.config.ts`:
+
+```typescript
+export default defineConfig({
+  jsPlugins: ['./dev/lints/conventions.js'],
+  // ...
+  rules: {
+    // ...
+    'conventions/no-barrel-file': 'error',
+    'conventions/colocated-tests': 'error',
+    'conventions/module-boundaries': 'error',
+  },
+  ignorePatterns: [
+    // ... existing patterns
+    'dev/**',
+  ],
+});
+```
+
+Available rules in the conventions plugin:
+- `no-barrel-file`: Prohibits `index.ts` files that only contain re-exports
+- `colocated-tests`: Requires test files to sit next to source, not in `__tests__/` directories
+- `module-boundaries`: Enforces dependency direction between `src/` modules
+
 ### 4. Testing (vitest)
 
 ```bash
@@ -167,6 +198,20 @@ Copy `ci.yml` to `.github/workflows/ci.yml` — customize steps per project need
 | `vitest.config.ts` | Simplify per project type (see above) |
 | `setup-node-action.yml` | None — copy to `.github/actions/setup-node/action.yml` |
 | `ci.yml` | Add/remove steps — copy to `.github/workflows/ci.yml` |
+| `conventions.js` | Module names, dependency directions — copy to `dev/lints/conventions.js` |
+| `lib/typedIncludes.ts` | None — copy to `src/lib/typedIncludes.ts` |
+| `lib/controllablePromise.ts` | None — copy to `src/lib/controllablePromise.ts` |
+
+## Common Utility Libraries
+
+For TypeScript projects, copy utility files from `lib/` to `src/lib/`:
+
+| File | Description |
+|------|-------------|
+| `lib/typedIncludes.ts` | Type-safe `Array.includes()` — narrows the value type via type predicate |
+| `lib/controllablePromise.ts` | Promise with externally accessible `resolve`/`reject`/`status` — useful for tests and coordination patterns |
+
+Copy only the utilities needed for your project.
 
 ## Editor Settings
 

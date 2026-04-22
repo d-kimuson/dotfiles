@@ -28,7 +28,9 @@ If TypeScript, continue. Otherwise, only `core/` setup applies — skip remainin
 Present the following as options (these correspond to references):
 
 - hono (Backend API)
-- tanstack-spa (Frontend SPA)
+- tanstack-spa (Frontend SPA — Vite + React + TanStack Router/Query)
+- tanstack-start-static (Pre-rendered SPA — TanStack Start + pre-rendering)
+- cloudflare-workers (Cloudflare Workers deploy + asset serving)
 - shadcn-ui (UI components)
 
 If more tool references are added in the future, split into multiple questions (max 4 options each).
@@ -59,6 +61,7 @@ Framework-level setup. Depends on Tier 1 being complete.
 |-----------|-----------|
 | `hono/` | Selected in Step 1 |
 | `tanstack-spa/` | Selected in Step 1 |
+| `tanstack-start-static/` | Selected in Step 1 |
 
 ### Tier 3: Tool
 
@@ -67,6 +70,7 @@ Additional tooling layered on top of application setup.
 | Reference | Condition |
 |-----------|-----------|
 | `shadcn-ui/` | Selected in Step 1 |
+| `cloudflare-workers/` | Selected in Step 1 |
 
 **Location rules**:
 - Single package: All configs at project root, source in `src/`
