@@ -1,9 +1,5 @@
 { config, pkgs, pkgsMaster, beads, lib, ... }:
 
-let
-  playwrightCliPrefix = "${config.home.homeDirectory}/.npm-global";
-  playwrightCliSpec = "@playwright/cli@latest";
-in
 {
   home.username = "{{ .chezmoi.username }}";
   home.homeDirectory = "{{ .chezmoi.homeDir }}";
@@ -34,7 +30,6 @@ in
     pkgs.socat # required by claude-code sandbox
 {{ end }}
     pkgsMaster.claude-code
-    pkgsMaster.codex
     pkgsMaster.github-copilot-cli
     pkgs.opencode
     beads
@@ -73,29 +68,10 @@ in
 {{ end }}
   ];
 
-  home.sessionVariables = {
-    NPM_CONFIG_PREFIX = playwrightCliPrefix;
-  };
-
-  home.sessionPath = [
-    "${playwrightCliPrefix}/bin"
-  ];
-
   home.activation.installZenoZsh = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     zenoDir="${config.home.homeDirectory}/.zsh/zeno"
     if [ ! -d "$zenoDir" ]; then
       $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/yuki-yano/zeno.zsh.git "$zenoDir"
-    fi
-  '';
-
-  home.activation.installPlaywrightCli = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    prefix=${lib.escapeShellArg playwrightCliPrefix}
-    package=${lib.escapeShellArg playwrightCliSpec}
-
-    $DRY_RUN_CMD mkdir -p "$prefix"
-
-    if [ ! -x "$prefix/bin/playwright-cli" ]; then
-      $DRY_RUN_CMD ${pkgs.nodejs}/bin/npm install --global --prefix "$prefix" "$package"
     fi
   '';
 

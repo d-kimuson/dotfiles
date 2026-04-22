@@ -48,3 +48,10 @@ path=(
   ${HOME}/.npm-global/bin
   ${HOME}/.local/share/chezmoi/shell/bin
 )
+
+# ====================
+# Local overrides
+# ====================
+if [ -s "${CHEZMOI_WORKING_TREE}/shell/localrc.sh" ]; then
+  source "${CHEZMOI_WORKING_TREE}/shell/localrc.sh"
+fi

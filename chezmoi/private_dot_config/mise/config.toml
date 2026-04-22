@@ -1,5 +1,8 @@
 [tools]
 node = "24.13.0"
+"npm:@mariozechner/pi-coding-agent" = "latest"
+"npm:@openai/codex" = "latest"
+"npm:@playwright/cli" = "latest"
 vp = "latest"
 
 [settings]
