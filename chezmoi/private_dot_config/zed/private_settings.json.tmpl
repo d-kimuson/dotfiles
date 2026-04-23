@@ -1,5 +1,20 @@
 {
   // UI / テーマ
+  "cli_default_open_behavior": "new_window",
+  "outline_panel": {
+    "dock": "left"
+  },
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "agent": {
+    "dock": "right",
+    "favorite_models": [],
+    "model_parameters": []
+  },
+  "git_panel": {
+    "dock": "left"
+  },
   "edit_predictions": {
     "provider": "none"
   },
@@ -29,6 +44,7 @@
 
   // ファイルツリー
   "project_panel": {
+    "dock": "left",
     "auto_fold_dirs": false,
     "folder_actions": {
       "confirm_delete": true
@@ -149,5 +165,19 @@
   "telemetry": {
     "diagnostics": false,
     "metrics": false
-  }
+  },
+
+  // SSH
+  "ssh_connections": [
+    {
+      "host": "home-server",
+      "username": "kaito",
+      "port_forwards": [
+        {
+          "local_port": 34567,
+          "remote_port": 34567
+        }
+      ]
+    }
+  ]
 }
