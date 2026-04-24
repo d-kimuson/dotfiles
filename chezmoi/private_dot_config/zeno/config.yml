@@ -67,6 +67,10 @@ snippets:
     keyword: codex-auto
     snippet: codex --dangerously-bypass-approvals-and-sandbox
 
+  - name: cursor auto
+    keyword: cursor-auto
+    snippet: agent --yolo
+
   # dotfiles
   - name: dotfiles apply
     keyword: dotfiles-apply
