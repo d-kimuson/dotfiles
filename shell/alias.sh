@@ -107,7 +107,7 @@ function gnew() {
     echo "required branch name";
     return 1;
   fi
-  git fetch origin && git switch -c "$1" origin/main
+  git fetch origin main && git switch -c "$1" origin/main
 }
 
 function gcd() {
