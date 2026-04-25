@@ -1,4 +1,4 @@
-{ config, pkgs, beads, lib, ... }:
+{ config, pkgs, pkgsMaster, lib, ... }:
 
 {
   home.username = "{{ .chezmoi.username }}";
@@ -29,10 +29,8 @@
     pkgs.bubblewrap # required by claude-code sandbox
     pkgs.socat # required by claude-code sandbox
 {{ end }}
-    pkgs.claude-code
-    pkgs.github-copilot-cli
-    pkgs.opencode
-    beads
+    pkgsMaster.claude-code
+    pkgsMaster.github-copilot-cli
 
     # Git
     pkgs.gh
