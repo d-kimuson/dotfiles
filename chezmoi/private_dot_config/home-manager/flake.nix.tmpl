@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -11,21 +10,16 @@
   };
 
   outputs =
-    { nixpkgs, nixpkgs-master, home-manager, ... }:
+    { nixpkgs, home-manager, ... }:
     let
       system = "{{ if eq .chezmoi.arch "arm64" }}aarch64{{ else }}x86_64{{ end }}-{{ .chezmoi.os }}";
       pkgs = nixpkgs.legacyPackages.${system};
-      pkgsMaster = import nixpkgs-master {
-        inherit system;
-        config.allowUnfree = true;
-      };
-      beads = pkgsMaster.callPackage ./packages/beads.nix {};
+      beads = pkgs.callPackage ./packages/beads.nix {};
     in
     {
       homeConfigurations."{{ .chezmoi.username }}" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         extraSpecialArgs = {
-          pkgsMaster = pkgsMaster;
           inherit beads;
         };
 

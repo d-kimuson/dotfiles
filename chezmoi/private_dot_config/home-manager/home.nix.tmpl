@@ -1,4 +1,4 @@
-{ config, pkgs, pkgsMaster, beads, lib, ... }:
+{ config, pkgs, beads, lib, ... }:
 
 {
   home.username = "{{ .chezmoi.username }}";
@@ -29,8 +29,8 @@
     pkgs.bubblewrap # required by claude-code sandbox
     pkgs.socat # required by claude-code sandbox
 {{ end }}
-    pkgsMaster.claude-code
-    pkgsMaster.github-copilot-cli
+    pkgs.claude-code
+    pkgs.github-copilot-cli
     pkgs.opencode
     beads
 
@@ -75,11 +75,27 @@
     fi
   '';
 
-  home.activation.installHermesAgent = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    if [ ! -x "${config.home.homeDirectory}/.hermes/hermes-agent/venv/bin/hermes" ]; then
-      $DRY_RUN_CMD bash -c "$(${pkgs.curl}/bin/curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh)" -- --skip-setup
+  home.activation.installCursorAgent = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    cursorAgentPath="${config.home.homeDirectory}/.local/bin/cursor-agent"
+    homeBinDir="${config.home.homeDirectory}/bin"
+
+    if [ ! -x "$cursorAgentPath" ]; then
+      $DRY_RUN_CMD bash -c "$(${pkgs.curl}/bin/curl -fsSL https://cursor.com/install)"
     fi
-    $DRY_RUN_CMD ln -sf "${config.home.homeDirectory}/.hermes/hermes-agent/venv/bin/hermes" "${config.home.homeDirectory}/bin/hermes"
+
+    $DRY_RUN_CMD mkdir -p "$homeBinDir"
+    if [ -x "$cursorAgentPath" ]; then
+      $DRY_RUN_CMD ln -sf "$cursorAgentPath" "$homeBinDir/agent"
+    fi
+  '';
+
+  home.activation.installMiseTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    miseConfigPath="${config.home.homeDirectory}/.config/mise/config.toml"
+
+    if [ -f "$miseConfigPath" ]; then
+      $DRY_RUN_CMD ${pkgs.mise}/bin/mise install
+      $DRY_RUN_CMD ${pkgs.mise}/bin/mise reshim
+    fi
   '';
 
   nixpkgs.config.allowUnfree = true; # Allow unfree packages
