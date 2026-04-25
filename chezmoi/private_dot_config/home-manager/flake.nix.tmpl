@@ -11,7 +11,7 @@
   };
 
   outputs =
-    { nixpkgs, home-manager, ... }:
+    { nixpkgs, nixpkgs-master, home-manager, ... }:
     let
       system = "{{ if eq .chezmoi.arch "arm64" }}aarch64{{ else }}x86_64{{ end }}-{{ .chezmoi.os }}";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -24,11 +24,7 @@
       homeConfigurations."{{ .chezmoi.username }}" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         extraSpecialArgs = {
-<<<<<<< HEAD
-          inherit beads;
-=======
           pkgsMaster = pkgsMaster;
->>>>>>> 58f3e5b (remove unused tools)
         };
 
         # Specify your home configuration modules here, for example,
