@@ -57,6 +57,8 @@ chezmoi apply + home-manager switch + シェル再読み込みが実行される
 ./scripts/update.sh
 ```
 
+`mise`, `direnv`, `zed-editor` は stable pin、それ以外は主に unstable を利用している。
+
 ### 環境固有の設定を追加したい
 
 shell/localrc.sh を追加し、環境変数等追加したい設定を記載

@@ -1,4 +1,4 @@
-{ config, pkgs, pkgsMaster, lib, ... }:
+{ config, pkgs, pkgsStable, pkgsMaster, lib, ... }:
 
 {
   home.username = "{{ .chezmoi.username }}";
@@ -7,8 +7,8 @@
 
   home.packages = [
     # 開発環境で使うツール
-    pkgs.mise
-    pkgs.direnv
+    pkgsStable.mise
+    pkgsStable.direnv
     pkgs.starship
     pkgs.colima
     pkgs.docker
@@ -18,7 +18,8 @@
     pkgs.zsh
     pkgs.deno # required by zeno.zsh
     pkgs.caddy
-    # zed-editor: ビルドが重いため nix profile で分離管理 (see scripts/setup.sh)
+    pkgsStable.zed-editor
+    # mise, direnv, zed-editor: stable pin で管理
 
     # Language Servers
     pkgs.typescript-language-server
@@ -30,7 +31,6 @@
     pkgs.socat # required by claude-code sandbox
 {{ end }}
     pkgsMaster.claude-code
-    pkgsMaster.github-copilot-cli
 
     # Git
     pkgs.gh
@@ -89,10 +89,11 @@
 
   home.activation.installMiseTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     miseConfigPath="${config.home.homeDirectory}/.config/mise/config.toml"
+    export PATH="${pkgsStable.mise}/bin:$PATH"
 
     if [ -f "$miseConfigPath" ]; then
-      $DRY_RUN_CMD ${pkgs.mise}/bin/mise install
-      $DRY_RUN_CMD ${pkgs.mise}/bin/mise reshim
+      $DRY_RUN_CMD ${pkgsStable.mise}/bin/mise install
+      $DRY_RUN_CMD ${pkgsStable.mise}/bin/mise reshim
     fi
   '';
 

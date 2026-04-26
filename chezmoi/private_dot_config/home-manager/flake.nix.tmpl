@@ -3,7 +3,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-master.url = "github:NixOS/nixpkgs/a5673e674446d540fab626b2692e8be09365f776";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -11,10 +12,14 @@
   };
 
   outputs =
-    { nixpkgs, nixpkgs-master, home-manager, ... }:
+    { nixpkgs, nixpkgs-stable, nixpkgs-master, home-manager, ... }:
     let
       system = "{{ if eq .chezmoi.arch "arm64" }}aarch64{{ else }}x86_64{{ end }}-{{ .chezmoi.os }}";
       pkgs = nixpkgs.legacyPackages.${system};
+      pkgsStable = import nixpkgs-stable {
+        inherit system;
+        config.allowUnfree = true;
+      };
       pkgsMaster = import nixpkgs-master {
         inherit system;
         config.allowUnfree = true;
@@ -24,6 +29,7 @@
       homeConfigurations."{{ .chezmoi.username }}" = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         extraSpecialArgs = {
+          pkgsStable = pkgsStable;
           pkgsMaster = pkgsMaster;
         };
 
