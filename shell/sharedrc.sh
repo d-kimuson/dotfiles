@@ -19,7 +19,6 @@ export CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
 export CLAUDE_CODE_DISABLE_1M_CONTEXT=1
 export MCP_TIMEOUT=120000
 
-export NODE_EXTRA_CA_CERTS=/tmp/portless/ca.pem
 
 export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in

@@ -1,9 +1,5 @@
 {
   "mcpServers": {
-    "aws-knowledge": {
-      "type": "http",
-      "url": "https://knowledge-mcp.global.api.aws"
-    },
     "obsidian": {
       "type": "stdio",
       "command": "${OBSIDIAN_VAULT_PATH}/.obsidian/plugins/mcp-tools/bin/mcp-server",

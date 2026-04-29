@@ -1,9 +1,69 @@
 { config, pkgs, pkgsStable, pkgsMaster, lib, ... }:
 
+let
+  braveSearchCliVersion = "1.5.0";
+  braveSearchCliPlatform =
+    if pkgs.stdenv.hostPlatform.system == "x86_64-linux" then
+      {
+        suffix = "linux-amd64";
+        hash = "sha256-gjqG39BnNP7oQ3HpucCKidutdpH79D2tIXqcVliCf6A=";
+      }
+    else if pkgs.stdenv.hostPlatform.system == "aarch64-linux" then
+      {
+        suffix = "linux-arm64";
+        hash = "sha256-iePF05GWQgV+nwNbrD1mOgra39xvqoE/XUKnrvItD9Q=";
+      }
+    else if pkgs.stdenv.hostPlatform.system == "aarch64-darwin" then
+      {
+        suffix = "darwin-arm64";
+        hash = "sha256-KXg5hyCUgOOm9s8VkVCys5rFXty23bxxwabPUthg7rE=";
+      }
+    else
+      null;
+
+  braveSearchCli =
+    if braveSearchCliPlatform == null then
+      null
+    else
+      pkgs.stdenvNoCC.mkDerivation rec {
+        pname = "brave-search-cli";
+        version = braveSearchCliVersion;
+
+        src = pkgs.fetchurl {
+          url = "https://github.com/brave/brave-search-cli/releases/download/v${version}/bx-${version}-${braveSearchCliPlatform.suffix}";
+          hash = braveSearchCliPlatform.hash;
+        };
+
+        dontUnpack = true;
+
+        installPhase = ''
+          install -Dm755 "$src" "$out/bin/bx"
+        '';
+
+        meta = with lib; {
+          description = "CLI for the Brave Search API";
+          homepage = "https://github.com/brave/brave-search-cli";
+          license = licenses.mpl20;
+          platforms = [
+            "x86_64-linux"
+            "aarch64-linux"
+            "aarch64-darwin"
+          ];
+          sourceProvenance = [ sourceTypes.binaryNativeCode ];
+        };
+      };
+in
 {
   home.username = "{{ .chezmoi.username }}";
   home.homeDirectory = "{{ .chezmoi.homeDir }}";
   home.stateVersion = "25.11"; # Please read the comment before changing.
+
+  assertions = [
+    {
+      assertion = braveSearchCliPlatform != null;
+      message = "brave-search-cli is only available for x86_64-linux, aarch64-linux, and aarch64-darwin.";
+    }
+  ];
 
   home.packages = [
     # 開発環境で使うツール
@@ -34,6 +94,7 @@
 
     # Git
     pkgs.gh
+    pkgs.ghq
     pkgs.lazygit
 
     # 準標準
@@ -64,6 +125,8 @@
     pkgs.gawk
     pkgs.gnutar
 {{ end }}
+  ] ++ [
+    braveSearchCli
   ];
 
   home.activation.installZenoZsh = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

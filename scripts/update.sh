@@ -51,9 +51,11 @@ export PATH="$(dirname "$MISE_BIN"):$PATH"
 "$MISE_BIN" upgrade --bump -y \
   npm:@mariozechner/pi-coding-agent \
   npm:@openai/codex \
+  npm:opencode-ai \
   npm:@playwright/cli \
   npm:@github/copilot \
-  npm:vite-plus
+  npm:vite-plus \
+  npm:portless
 cp "${HOME}/.config/mise/config.toml" "$MISE_CONFIG_PATH"
 "$MISE_BIN" reshim
 
