@@ -129,6 +129,10 @@ in
     braveSearchCli
   ];
 
+  # Pueue: CLI process scheduler and manager
+  # `pueue add <command>` でタスク投入、`pueue status` で確認。
+  services.pueue.enable = true;
+
   home.activation.installZenoZsh = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     zenoDir="${config.home.homeDirectory}/.zsh/zeno"
     if [ ! -d "$zenoDir" ]; then
