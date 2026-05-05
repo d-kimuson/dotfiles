@@ -54,6 +54,15 @@ snippets:
     keyword: guncom
     snippet: git rm -rf --cached
 
+  # pi
+  - name: pi mid
+    keyword: pi-mid
+    snippet: pi --models 'opencode-go/deepseek-v4-pro,openai-codex/gpt-5.4,openai-codex/gpt-5.3-codex-spark' --thinking low
+
+  - name: pi high
+    keyword: pi-high
+    snippet: pi --models 'openai-codex/gpt-5.5,opencode-go/kimi2.6' --thinking medium
+
   # claude
   - name: claude auto
     keyword: claude-auto

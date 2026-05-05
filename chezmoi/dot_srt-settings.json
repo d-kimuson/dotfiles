@@ -1,0 +1,40 @@
+{
+  "network": {
+    "allowedDomains": [
+      "github.com",
+      "*.github.com",
+      "lfs.github.com",
+      "api.github.com",
+      "npmjs.org",
+      "*.npmjs.org",
+      "chatgpt.com",
+      "*.chatgpt.com",
+      "api.anthropic.com",
+      "*.api.anthropic.com",
+      "statsig.com",
+      "*.statsig.com",
+      "openai.com",
+      "*.openai.com",
+      "opencode.ai",
+      "*.opencode.ai",
+      "kimuson.com",
+      "*.kimuson.com"
+    ],
+    "deniedDomains": ["malicious.com"],
+    "allowUnixSockets": ["/var/run/docker.sock"],
+    "allowLocalBinding": false
+  },
+  "filesystem": {
+    "denyRead": ["~/.ssh"],
+    "allowRead": [],
+    "allowWrite": [".", "src/", "test/", "/tmp", "~/Library/pnpm", "~/.local/share/pnpm", "~/.codex", "~/.claude", "~/.pi"],
+    "denyWrite": [".env", "config/production.json"]
+  },
+  "ignoreViolations": {
+    "*": ["/usr/bin", "/System"],
+    "git push": ["/usr/bin/nc"],
+    "npm": ["/private/tmp"]
+  },
+  "enableWeakerNestedSandbox": false,
+  "enableWeakerNetworkIsolation": false
+}
