@@ -26,22 +26,21 @@
   - Bad example: When encountering a deep-rooted error, trying to solve it yourself without launching a debugging agent.
 - How to call an agent: `pi --models <model1>,<model2>,... -p '<instructions>'` (left-priority fallback)
   - When a delegated task needs a specific skill, specify it in the prompt: `pi --models <model1>,<model2>,... -p '/skill:<skill-name> <instructions>'`
-- Research tasks are not feasible with pi alone. Delegate research to Codex using this pattern:
-  ```bash
-  codex exec --dangerously-bypass-approvals-and-sandbox --model 'gpt-5.4' '<research instructions>' -o '/tmp/<topic>-report.txt' >/dev/null 2>&1 && cat /tmp/<topic>-report.txt
-  ```
-  Example:
-  ```bash
-  codex exec --dangerously-bypass-approvals-and-sandbox --model 'gpt-5.4' 'shadcn-ui の利用方法について調べて' -o '/tmp/shadcn-ui-report.txt' >/dev/null 2>&1 && cat /tmp/shadcn-ui-report.txt
-  ```
 - Model selection:
   - Difficulty: high
     - Models: `openai-codex/gpt-5.5,opencode-go/kimi2.6`
     - Use for highly abstract problems such as design, difficult deep troubleshooting, or code reviews that require careful reasoning and high confidence.
   - Difficulty: low
-    - Models: `opencode-go/deepseek-v4-pro,openai-codex/gpt-5.3-codex-spark`
+    - Models: `opencode-go/deepseek-v4-pro,openai-codex/gpt-5.4,openai-codex/gpt-5.3-codex-spark`
     - Use for low-difficulty or low-abstraction tasks, such as coding from an existing design.
 - When calling an agent, clearly communicate the background, goal, expected output, and what not to do.
+
+## Research
+
+- Research tasks are not feasible with pi alone. Delegate research to Codex using this pattern:
+  ```bash
+  codex exec -s read-only -a never -m gpt-5.4 '<research instructions>' -o '/tmp/<topic>-report.txt' >/dev/null 2>&1 && cat /tmp/<topic>-report.txt
+  ```
 
 ## Long-running Tasks and Development Servers
 
