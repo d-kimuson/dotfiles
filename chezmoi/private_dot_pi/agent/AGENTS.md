@@ -28,7 +28,7 @@
   - When a delegated task needs a specific skill, specify it in the prompt: `pi ... -p '/skill:<skill-name> <instructions>'`
 - Model selection:
   - Difficulty: high
-    - Option: `--models 'openai-codex/gpt-5.5,opencode-go/kimi2.6' --thinking 'high'`
+    - Option: `--models 'openai-codex/gpt-5.5,opencode-go/kimi-k2.6' --thinking 'high'`
     - Use for highly abstract problems such as design, difficult deep troubleshooting, or code reviews that require careful reasoning and high confidence.
   - Difficulty: medium
     - Option: `--models 'opencode-go/deepseek-v4-pro,openai-codex/gpt-5.4,openai-codex/gpt-5.3-codex-spark' --thinking 'low'`
@@ -57,7 +57,7 @@
 - Start them with `pueue add -- <command>`, and use `pueue status` / `pueue log` / `pueue follow` / `pueue kill` / `pueue remove` to check status or manage them.
 - For parallel agent delegation, queue tasks via pueue:
   ```bash
-  pueue add -i --print-task-id -- "pi ... -p '<instruction>' < /dev/null"
+  pueue add -i --print-task-id -- "pi ... --models 'openai-codex/gpt-5.5,opencode-go/kimi-k2.6' -p '<instruction>' < /dev/null"
   ```
   ```bash
   pueue status
