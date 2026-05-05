@@ -3,6 +3,38 @@
 # aliases は zeno.zsh の abbr に移行済み (~/.config/zeno/config.yml)
 # ここには abbr にできない関数のみ残す
 
+# ====================
+# srt helpers
+# ====================
+function srtx() {
+  if [ "$1" = "--" ]; then
+    shift
+  fi
+
+  if [ $# -eq 0 ]; then
+    echo "usage: srtx -- <command> [args...]"
+    return 1
+  fi
+
+  local cmd="${(j: :)${(q)@}}"
+  srt -c "$cmd"
+}
+
+# ====================
+# pi (srt sandbox 経由)
+# ====================
+function pi-low() {
+  srtx -- pi --models 'opencode-go/deepseek-v4-flash,openai-codex/gpt-5.4-mini' --thinking off "$@"
+}
+
+function pi-mid() {
+  srtx -- pi --models 'opencode-go/deepseek-v4-pro,openai-codex/gpt-5.4,openai-codex/gpt-5.3-codex-spark' --thinking low "$@"
+}
+
+function pi-high() {
+  srtx -- pi --models 'openai-codex/gpt-5.5,opencode-go/kimi2.6' --thinking medium "$@"
+}
+
 function c() {
   if [ -z "$1" ]; then
     echo "required file path";

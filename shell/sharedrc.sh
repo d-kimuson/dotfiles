@@ -57,3 +57,7 @@ path=(
 if [ -s "${CHEZMOI_WORKING_TREE}/shell/localrc.sh" ]; then
   source "${CHEZMOI_WORKING_TREE}/shell/localrc.sh"
 fi
+
+if [ -s "${CHEZMOI_WORKING_TREE}/shell/env-secrets.sh" ]; then
+  source "${CHEZMOI_WORKING_TREE}/shell/env-secrets.sh"
+fi

@@ -1,6 +1,7 @@
 config/modular-mcp.json
 config/mcp.template.local.json
 shell/localrc.sh
+shell/env-secrets.sh
 .claude/settings.local.json
 .playwright-cli
 .env
