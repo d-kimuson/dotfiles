@@ -38,13 +38,28 @@
     - Generally not recommended. Use for summarizing or extracting data that is too voluminous to handle in a main session with high/medium models.
 - When calling an agent, clearly communicate the background, goal, expected output, and what not to do.
 
-## Research
+## Web Fetch
 
-- External/web research tasks are not feasible with pi alone. Delegate research to Codex using this pattern:
+- Use Jina AI from Bash to fetch article/page content with `r.jina.ai`:
+
+```bash
+curl -H "Authorization: Bearer ${JINA_API_KEY}" \
+  -fsSL 'https://r.jina.ai/<target-url>'
+```
+
+## Research external/web
+
+- For direct web search, use Jina AI from Bash with `s.jina.ai`:
+  ```bash
+  curl -H "X-Respond-With: no-content" \
+    -H "Authorization: Bearer ${JINA_API_KEY}" \
+    -fsSL 'https://s.jina.ai/<search-query>'
+  ```
+- For broader/deeper external web research, delegate research to Codex using this pattern:
   ```bash
   codex -a never exec \
     -s read-only \
-    -m gpt-5.4 \
+    -m gpt-5.4-mini \
     '<research instructions>' \
     -o '/tmp/<topic>-report.txt' \
     < /dev/null \

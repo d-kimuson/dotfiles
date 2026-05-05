@@ -77,6 +77,7 @@
       "*.java.com",
       "java.net",
       "*.java.net",
+      "*.jina.ai",
       "jcenter.bintray.com",
       "k8s.io",
       "*.k8s.io",
@@ -170,7 +171,7 @@
     "allowLocalBinding": false
   },
   "filesystem": {
-    "denyRead": ["~/.ssh"],
+    "denyRead": ["~/.ssh", "~/.local/share/chezmoi/shell/env-secrets.sh"],
     "allowRead": ["."],
     "allowWrite": [".", "src/", "test/", "/tmp", "~/.cache", "~/Library/pnpm", "~/.local/share/pnpm", "~/.codex", "~/.claude", "~/.pi"],
     "denyWrite": [".env", "config/production.json"]
