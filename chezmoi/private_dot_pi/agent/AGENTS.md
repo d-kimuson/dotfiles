@@ -24,17 +24,18 @@
 - To keep context clean and preserve accuracy, speed, and cost efficiency, proactively delegate yak shaving and work outside the current focus to an appropriate model agent.
   - Good example: When asked to implement something, delegate design, review, or behavior verification to other agents.
   - Bad example: When encountering a deep-rooted error, trying to solve it yourself without launching a debugging agent.
-- How to call an agent: `pi --models <model1>,<model2>,... --thinking <effort> -p '<instructions>'` (left-priority fallback)
+- How to call an agent: `pi --model <provider/model:effort> --fallback-models <provider/model:effort,...> -p '<instructions>'`
+  - `--fallback-models` is provided by the global model-fallback extension. Use it for left-priority fallback instead of listing candidates in `--models`.
   - When a delegated task needs a specific skill, specify it in the prompt: `pi ... -p '/skill:<skill-name> <instructions>'`
 - Model selection:
   - Difficulty: high
-    - Option: `--models 'openai-codex/gpt-5.5,opencode-go/kimi-k2.6' --thinking 'high'`
+    - Option: `--model 'openai-codex/gpt-5.5:high' --fallback-models 'opencode-go/kimi-k2.6:high'`
     - Use for highly abstract problems such as design, difficult deep troubleshooting, or code reviews that require careful reasoning and high confidence.
   - Difficulty: medium
-    - Option: `--models 'opencode-go/deepseek-v4-pro,openai-codex/gpt-5.4,openai-codex/gpt-5.3-codex-spark' --thinking 'low'`
+    - Option: `--model 'opencode-go/deepseek-v4-pro:high' --fallback-models 'openai-codex/gpt-5.4:low,openai-codex/gpt-5.3-codex-spark:low'`
     - Use for low-difficulty or low-abstraction tasks, such as coding from an existing design.
   - Difficulty: low
-    - Option: `--models 'opencode-go/deepseek-v4-flash,openai-codex/gpt-5.4-mini' --thinking 'off'`
+    - Option: `--model 'opencode-go/deepseek-v4-flash:off' --fallback-models 'openai-codex/gpt-5.4-mini:off'`
     - Generally not recommended. Use for summarizing or extracting data that is too voluminous to handle in a main session with high/medium models.
 - When calling an agent, clearly communicate the background, goal, expected output, and what not to do.
 
@@ -72,7 +73,7 @@ curl -H "Authorization: Bearer ${JINA_API_KEY}" \
 - Start them with `pueue add -- <command>`, and use `pueue status` / `pueue log` / `pueue follow` / `pueue kill` / `pueue remove` to check status or manage them.
 - For parallel agent delegation, queue tasks via pueue:
   ```bash
-  pueue add -i --print-task-id -- "pi ... --models 'openai-codex/gpt-5.5,opencode-go/kimi-k2.6' -p '<instruction>' < /dev/null"
+  pueue add -i --print-task-id -- "pi ... --model 'openai-codex/gpt-5.5:high' --fallback-models 'opencode-go/kimi-k2.6:high' -p '<instruction>' < /dev/null"
   ```
   ```bash
   pueue status
