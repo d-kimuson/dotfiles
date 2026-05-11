@@ -35,11 +35,17 @@ Present the following as options (these correspond to references):
 
 If more tool references are added in the future, split into multiple questions (max 4 options each).
 
-## Step 2: Setup Sequence
+## Step 2: Orchestrate Setup via Subagents
 
-Follow this order — each tier depends on the previous ones.
+Do not perform the setup directly in the main agent. The main agent is responsible for orchestration only:
 
-For each reference: read its `index.md` for detailed instructions, then copy and customize template files.
+1. Determine the required references from Step 1.
+2. Dispatch subagents in the tier order below.
+3. Pass each subagent the relevant reference file path(s) and explicit setup instructions.
+4. Wait for each tier to complete before dispatching the next tier.
+5. Review each subagent's report and resolve coordination issues before proceeding.
+
+For each reference, instruct the subagent to read its `index.md` for detailed instructions, then copy and customize template files. Provide the reference path explicitly, e.g. `references/core/index.md` or the absolute path to that file.
 
 ### Tier 1: Platform
 
@@ -78,6 +84,8 @@ Additional tooling layered on top of application setup.
 
 ## Step 3: Verify
 
+Verification may be delegated to a subagent as well. Pass the subagent the project path, the selected setup references, and the expected verification commands.
+
 Run the project's build, lint, and test commands in sequence. Fix any failures before proceeding to the next.
 
 For TypeScript projects, this typically includes:
@@ -93,4 +101,6 @@ Adapt commands to the actual project setup.
 
 ## Step 4: Agent Harness
 
-Read `agent-harness/index.md` and follow its procedure to generate CLAUDE.md/AGENTS.md and convention docs.
+Delegate this step to a subagent. Pass `references/agent-harness/index.md` (or its absolute path), the project path, and the project configuration gathered in Step 1.
+
+Instruct the subagent to read `agent-harness/index.md` and follow its procedure to generate CLAUDE.md/AGENTS.md and convention docs.
