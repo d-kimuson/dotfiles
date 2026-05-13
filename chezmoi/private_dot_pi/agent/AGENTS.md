@@ -21,7 +21,7 @@
 
 - AGENTS.md assumes progressive disclosure: it contains only the minimum information needed, while task-specific knowledge and guidelines live elsewhere.
 - Select and load the necessary skills as needed for each task.
-- Use explore subagents: Thoroughly understanding the codebase before making changes is critical. It is recommended to launch agents for exploration purposes to gather relevant context.
+- Use explore subagents: Thoroughly understanding the codebase before making changes is critical.
 
 ### Responsibility Boundaries and Autonomy
 
@@ -31,9 +31,11 @@
 
 ### SubAgent Delegation
 
-- To keep context clean and preserve accuracy, speed, and cost efficiency, proactively delegate yak shaving and work outside the current focus to an appropriate model agent.
+- Actively delegate yak shaving and work outside the main scope to subagents.
+- Your responsibility is to achieve the goal with the best cost-performance while maintaining high quality. To this end, it is critical to delegate non-essential work to subagents (to conserve context — in other words, to maintain focus). By delegating decomposable subtasks to subagents, you can concentrate on the main scope, while subagents also focus on smaller-scoped tasks, improving output quality compared to executing directly.
   - Good example: When asked to implement something, delegate design, review, or behavior verification to other agents.
   - Bad example: When encountering a deep-rooted error, trying to solve it yourself without launching a debugging agent.
+  - Bad example: Running explore or creating PRs yourself because it is easy (the decision criterion is context management, so ease of execution is not a relevant factor)
 - How to call an agent: `pi --model <provider/model:effort> --fallback-models <provider/model:effort,...> -p '<instructions>'`
   - When a delegated task needs a specific skill, specify it in the prompt: `pi ... -p '/skill:<skill-name> <instructions>'`
 - Model selection:
