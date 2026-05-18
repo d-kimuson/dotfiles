@@ -11,6 +11,7 @@
     "npm:@juicesharp/rpiv-btw",
     "npm:pi-agent-browser-native",
     "npm:pi-subagents",
+    "npm:pi-intercom",
     "npm:pi-mcp-adapter",
     "npm:pi-markdown-preview",
     "npm:pi-mermaid",

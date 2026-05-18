@@ -55,7 +55,8 @@ export PATH="$(dirname "$MISE_BIN"):$PATH"
   npm:@playwright/cli \
   npm:@github/copilot \
   npm:vite-plus \
-  npm:portless
+  npm:portless \
+  npm:agent-browser
 cp "${HOME}/.config/mise/config.toml" "$MISE_CONFIG_PATH"
 "$MISE_BIN" reshim
 
