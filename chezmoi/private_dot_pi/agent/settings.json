@@ -6,6 +6,12 @@
   "skills": [
     "~/.claude/skills"
   ],
+  "npmCommand": [
+    "npm-fw",
+    "npm",
+    "--prefix",
+    "/home/kaito/.pi/agent/npm-global"
+  ],
   "packages": [
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-btw",
