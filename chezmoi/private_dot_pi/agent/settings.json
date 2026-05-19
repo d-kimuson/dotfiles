@@ -23,7 +23,8 @@
     "npm:pi-mermaid",
     "npm:@capyup/pi-goal",
     "npm:@edlsh/pi-web-tools",
-    "npm:@vaayne/pi-rules"
+    "npm:@vaayne/pi-rules",
+    "npm:pi-notify-agent"
   ],
   "enabledModels": [
     "openai-codex/gpt-5.4",
