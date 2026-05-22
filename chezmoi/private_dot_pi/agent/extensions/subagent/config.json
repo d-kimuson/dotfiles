@@ -1,0 +1,4 @@
+{
+  "asyncByDefault": false,
+  "defaultSessionDir": "~/.pi/agent/sessions/subagent"
+}
