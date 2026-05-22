@@ -10,6 +10,16 @@ source ${CHEZMOI_WORKING_TREE}/shell/alias.sh
 # ====================
 source ${CHEZMOI_WORKING_TREE}/shell/envrc.sh
 
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+
+# home-manager session variables (e.g. PKG_CONFIG_PATH)
+if [ -s "${HOME}/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
+  source "${HOME}/.nix-profile/etc/profile.d/hm-session-vars.sh"
+fi
+
 # ====================
 # Activate tools
 # ====================
