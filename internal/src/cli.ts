@@ -3,6 +3,7 @@ import path from "node:path"
 import { Command } from "commander"
 import { mergeConfigs } from "./merge-config/merge.ts"
 import { deliverMcpConfig } from "./mcp/deliver.ts"
+import { deliverPiAgentConfig } from "./pi-agent/deliver.ts"
 
 const VALID_TARGETS = ["claude-code", "claude-desktop", "codex"] as const
 type Target = (typeof VALID_TARGETS)[number]
@@ -50,6 +51,41 @@ program
       dryRun: opts.dryRun ?? false,
     })
   })
+
+const parseProviders = (value: string): readonly string[] =>
+  value
+    .split(/[|,]/)
+    .map((provider) => provider.trim())
+    .filter((provider) => provider.length > 0)
+
+const piAgent = program
+  .command("pi-agent")
+  .description("pi-agent configuration management")
+
+piAgent
+  .command("deliver")
+  .description("Deliver pi-agent configuration from shared and local parts")
+  .option("--dry-run", "Show what would be written without making changes")
+  .option(
+    "--providers <providers>",
+    "Available providers separated by | or , (opencode-go|openai-codex|github-copilot)",
+    parseProviders
+  )
+  .action(
+    async (opts: {
+      readonly dryRun?: boolean
+      readonly providers?: readonly string[]
+    }) => {
+      await deliverPiAgentConfig(
+        opts.providers === undefined
+          ? { dryRun: opts.dryRun ?? false }
+          : {
+              dryRun: opts.dryRun ?? false,
+              availableProviders: opts.providers,
+            }
+      )
+    }
+  )
 
 const mcp = program.command("mcp").description("MCP configuration management")
 

@@ -71,5 +71,22 @@ export TERM=xterm-256color
 
 ```bash
 internal-cli mcp deliver
+internal-cli pi-agent deliver
 internal-cli merge-config
 ```
+
+### pi-agent のマシン別設定
+
+`config/pi-agent/` の共有設定と `internal/src/pi-agent/model-profiles.json` をベースに、git 管理しない local 設定を重ねて `~/.pi/agent/` へ配布する。
+
+- `config/pi-agent/providers.local.json`: このマシンで利用可能な provider を `availableProviders` で指定
+- `config/pi-agent/settings.json` + model profile + `config/pi-agent/settings.local.json` → `~/.pi/agent/settings.json`
+- `config/pi-agent/agents/frontend_worker.md` + `design` profile + `config/pi-agent/agents/frontend_worker.local.json` → `~/.pi/agent/agents/frontend_worker.md`
+
+```json:config/pi-agent/providers.local.json
+{
+  "availableProviders": ["opencode-go", "openai-codex"]
+}
+```
+
+local 設定は top-level key 単位でマージされ、model profile から `enabledModels` / `defaultProvider` / `defaultModel` / agent ごとの `model` / `fallbackModels` / `thinking` が展開される。

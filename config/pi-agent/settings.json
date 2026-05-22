@@ -1,0 +1,26 @@
+{
+  "lastChangelogVersion": "0.74.0",
+  "skills": [
+    "~/.claude/skills"
+  ],
+  "npmCommand": [
+    "npm-fw",
+    "npm",
+    "--prefix",
+    "~/.pi/agent/npm-global"
+  ],
+  "packages": [
+    "npm:@juicesharp/rpiv-todo",
+    "npm:@juicesharp/rpiv-btw",
+    "npm:pi-agent-browser-native",
+    "npm:pi-subagents",
+    "npm:pi-intercom",
+    "npm:pi-mcp-adapter",
+    "npm:pi-markdown-preview",
+    "npm:pi-mermaid",
+    "npm:@edlsh/pi-web-tools",
+    "npm:@vaayne/pi-rules",
+    "npm:pi-notify-agent",
+    "npm:@kimuson/pi-ralph"
+  ]
+}
