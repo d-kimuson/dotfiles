@@ -9,7 +9,7 @@
 "npm:@anthropic-ai/sandbox-runtime" = "0.0.49"
 "npm:agent-browser" = "0.27.0"
 "npm:@kimuson/npm-fw" = "0.0.4"
-node = "24.13.0"
+node = "26.2.0"
 
 [settings]
 idiomatic_version_file_enable_tools = ["node"]
