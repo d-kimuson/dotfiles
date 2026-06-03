@@ -25,7 +25,7 @@ home_manager_switch() {
   if command -v home-manager >/dev/null 2>&1; then
     cd ~/.config/home-manager && home-manager switch
   else
-    nix run home-manager/master -- switch --flake ~/.config/home-manager#"$(whoami)"
+    nix run github:nix-community/home-manager/release-26.05 -- switch --flake ~/.config/home-manager#"$(whoami)"
   fi
 }
 
@@ -54,7 +54,6 @@ export PATH="$(dirname "$MISE_BIN"):$PATH"
   npm:opencode-ai \
   npm:@playwright/cli \
   npm:@github/copilot \
-  npm:vite-plus \
   npm:portless \
   npm:agent-browser
 cp "${HOME}/.config/mise/config.toml" "$MISE_CONFIG_PATH"

@@ -36,7 +36,7 @@ $HOME/bin/chezmoi init --apply https://github.com/d-kimuson/dotfiles.git
 $HOME/bin/chezmoi apply
 
 # setup home-manager
-nix run home-manager/master -- switch
+nix run github:nix-community/home-manager/release-26.05 -- switch --flake "$HOME/.config/home-manager#$(whoami)"
 
 
 cd $CWD
