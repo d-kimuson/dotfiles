@@ -5,8 +5,12 @@ disable-model-invocation: true
 user-invocable: true
 ---
 
-Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
+Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions.
 
-Ask the questions one at a time.
+## Question format
 
-If a question can be answered by exploring the codebase, explore the codebase instead.
+**Batch independent decisions.** Group every question that does not depend on the answer to another pending question into a single batch. For each question, state your **assumed answer** (the most reasonable default given the available context). The user replies only to questions where the assumption is wrong or refinement is needed — silence on a question means the assumption is accepted.
+
+**Ask dependent decisions one at a time.** When one decision gates the next, ask it alone and wait for the answer before proceeding down that branch.
+
+If a question can be answered by exploring the codebase, explore the codebase instead of asking.
