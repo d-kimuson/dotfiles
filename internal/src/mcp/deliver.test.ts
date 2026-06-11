@@ -86,4 +86,23 @@ describe("deliverMcpConfig", () => {
       },
     })
   })
+
+  it("writes pi-agent config to ~/.pi/agent/mcp.json", async () => {
+    await writeTemplate()
+    const targetFile = path.join(homeDir, ".pi/agent/mcp.json")
+
+    await deliverMcpConfig({
+      targets: ["pi-agent"],
+      dryRun: false,
+    })
+
+    expect(await readJson(targetFile)).toEqual({
+      mcpServers: {
+        obsidian: {
+          command: "npx",
+          args: ["-y", "@modelcontextprotocol/server-obsidian"],
+        },
+      },
+    })
+  })
 })

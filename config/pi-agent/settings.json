@@ -21,6 +21,7 @@
     "npm:@edlsh/pi-web-tools",
     "npm:@vaayne/pi-rules",
     "npm:pi-notify-agent",
+    "npm:@narumitw/pi-goal",
     "npm:@kimuson/pi-ralph",
     "npm:@kimuson/pi-auto"
   ]

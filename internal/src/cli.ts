@@ -5,7 +5,7 @@ import { mergeConfigs } from "./merge-config/merge.ts"
 import { deliverMcpConfig } from "./mcp/deliver.ts"
 import { deliverPiAgentConfig } from "./pi-agent/deliver.ts"
 
-const VALID_TARGETS = ["claude-code", "claude-desktop", "codex"] as const
+const VALID_TARGETS = ["claude-code", "claude-desktop", "codex", "pi-agent"] as const
 type Target = (typeof VALID_TARGETS)[number]
 
 const DOTFILES_ROOT = path.join(homedir(), ".local/share/chezmoi")
@@ -94,7 +94,7 @@ mcp
   .description("Deliver MCP configuration from template to target platforms")
   .option(
     "--target <targets>",
-    "Target platforms separated by | (all|claude-code|claude-desktop|codex)",
+    "Target platforms separated by | (all|claude-code|claude-desktop|codex|pi-agent)",
     parseTargets,
     ALL_TARGETS
   )

@@ -75,6 +75,13 @@ internal-cli pi-agent deliver
 internal-cli merge-config
 ```
 
+- `internal-cli mcp deliver`: `config/mcp.template.json` を各種 MCP 設定へ配布
+  - `~/.pi/agent/` は必要に応じて自動作成
+  - `~/.claude.json`
+  - `~/Library/Application Support/Claude/claude_desktop_config.json`
+  - `~/.codex/config.toml`
+  - `~/.pi/agent/mcp.json`
+
 ### pi-agent のマシン別設定
 
 `config/pi-agent/` の共有設定と `internal/src/pi-agent/model-profiles.json` をベースに、git 管理しない local 設定を重ねて `~/.pi/agent/` へ配布する。

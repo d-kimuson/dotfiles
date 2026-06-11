@@ -1,9 +1,9 @@
-import { access, readFile, writeFile } from "node:fs/promises"
+import { access, mkdir, readFile, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import path from "node:path"
 import { parse as parseTOML, stringify as stringifyTOML } from "smol-toml"
 
-type Target = "claude-code" | "claude-desktop" | "codex"
+type Target = "claude-code" | "claude-desktop" | "codex" | "pi-agent"
 
 type McpServerEntry = Readonly<Record<string, unknown>>
 
@@ -34,6 +34,7 @@ const getTargetConfigPaths = (): Readonly<Record<Target, string>> => {
       "Library/Application Support/Claude/claude_desktop_config.json"
     ),
     codex: path.join(homedir(), ".codex/config.toml"),
+    "pi-agent": path.join(homedir(), ".pi/agent/mcp.json"),
   }
 }
 
@@ -312,6 +313,11 @@ const toDesktopServers = async (
   )
 }
 
+const ensureTargetParentDir = async (target: Target, filePath: string): Promise<void> => {
+  if (target !== "pi-agent") return
+  await mkdir(path.dirname(filePath), { recursive: true })
+}
+
 const generateForTarget = async (
   target: Target,
   servers: Readonly<Record<string, McpServerEntry>>,
@@ -319,6 +325,8 @@ const generateForTarget = async (
 ): Promise<void> => {
   const configPath = getTargetConfigPaths()[target]
   console.log(`\n[${target}] ${configPath}`)
+
+  await ensureTargetParentDir(target, configPath)
 
   if (!(await canWriteTarget(configPath))) {
     console.log(
@@ -329,6 +337,7 @@ const generateForTarget = async (
 
   switch (target) {
     case "claude-code":
+    case "pi-agent":
       await mergeJsonMcpServers(configPath, servers, dryRun)
       break
     case "claude-desktop":
