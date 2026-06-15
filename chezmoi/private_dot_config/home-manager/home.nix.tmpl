@@ -169,5 +169,9 @@ in
 
   nixpkgs.config.allowUnfree = true; # Allow unfree packages
 
+  # Suppress version mismatch warning: we intentionally use nixos-unstable nixpkgs
+  # with release-26.05 home-manager because newer home-manager releases are not always available.
+  home.enableNixpkgsReleaseCheck = false;
+
   programs.home-manager.enable = true; # Let Home Manager install and manage itself.
 }

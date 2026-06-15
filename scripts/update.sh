@@ -55,7 +55,8 @@ export PATH="$(dirname "$MISE_BIN"):$PATH"
   npm:@playwright/cli \
   npm:@github/copilot \
   npm:portless \
-  npm:agent-browser
+  npm:agent-browser || \
+  echo "Warning: some mise upgrades failed (newer version may be within min-release-age window)" >&2
 cp "${HOME}/.config/mise/config.toml" "$MISE_CONFIG_PATH"
 "$MISE_BIN" reshim
 

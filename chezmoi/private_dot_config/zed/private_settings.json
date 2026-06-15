@@ -1,5 +1,25 @@
 {
   // UI / テーマ
+  "proxy": "",
+  "agent_servers": {
+    "claude-acp": {
+      "type": "registry"
+    },
+    "cursor": {
+      "type": "registry"
+    },
+    "codex-acp": {
+      "type": "registry"
+    },
+    "pi-acp": {
+      "favorite_models": [
+        "openai-codex/gpt-5.4",
+        "openai-codex/gpt-5.5",
+        "gateway-kimuson/gateway/balanced"
+      ],
+      "type": "registry"
+    }
+  },
   "cli_default_open_behavior": "new_window",
   "outline_panel": {
     "dock": "left"
@@ -8,6 +28,7 @@
     "dock": "left"
   },
   "agent": {
+    "play_sound_when_agent_done": "always",
     "dock": "right",
     "favorite_models": [],
     "model_parameters": []
@@ -16,6 +37,10 @@
     "dock": "left"
   },
   "edit_predictions": {
+    "open_ai_compatible_api": {
+      "model": "gateway/fast",
+      "api_url": "https://llm-gateway.kimuson.com/api/openai/v1"
+    },
     "provider": "none"
   },
   "theme": "One Dark",
@@ -73,11 +98,12 @@
   "terminal": {
     "font_size": 18,
     "font_family": "Hack Nerd Font Mono",
-    "option_as_meta": false,
-    "shell": {
-      "program": "zsh"
-    },
-    "working_directory": "current_project_directory"
+    // "option_as_meta": false,
+    // "shell": {
+    //   "program": "zsh"
+    // },
+    "working_directory": "current_project_directory",
+    "env": { "LANG": "ja_JP.UTF-8", "LC_CTYPE": "ja_JP.UTF-8" }
   },
 
   // ファイル除外
@@ -173,10 +199,97 @@
     {
       "host": "home-server",
       "username": "kaito",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/home/kaito"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/acp-playground"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/ai-corp"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/pi-auto/./"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/pi-ralph/./"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/remote-agent"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/s-tec"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/sandbox-app/./"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/tsumugi"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/wiki"
+          ]
+        }
+      ],
       "port_forwards": [
+        {
+          "local_port": 1355,
+          "remote_port": 1355
+        },
         {
           "local_port": 34567,
           "remote_port": 34567
+        },
+        {
+          "local_port": 33333,
+          "remote_port": 33333
+        }
+      ]
+    },
+    {
+      "host": "home-server",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/home/kaito/.local/share/chezmoi"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/ai-gateway/./"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/awf"
+          ]
+        },
+        {
+          "paths": [
+            "/home/kaito/repos/symphony-pi/./"
+          ]
         }
       ]
     }
