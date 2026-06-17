@@ -2,6 +2,7 @@ config/modular-mcp.json
 config/mcp.template.local.json
 config/pi-agent/providers.local.json
 config/pi-agent/settings.local.json
+config/pi-agent/models.local.json
 config/pi-agent/agents/*.local.json
 shell/localrc.sh
 shell/env-secrets.sh

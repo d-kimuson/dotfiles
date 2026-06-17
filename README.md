@@ -88,6 +88,7 @@ internal-cli merge-config
 
 - `config/pi-agent/providers.local.json`: このマシンで利用可能な provider を `availableProviders` で指定
 - `config/pi-agent/settings.json` + model profile + `config/pi-agent/settings.local.json` → `~/.pi/agent/settings.json`
+- `config/pi-agent/models.json` + existing target + `config/pi-agent/models.local.json` → `~/.pi/agent/models.json`
 - `config/pi-agent/agents/frontend_worker.md` + `design` profile + `config/pi-agent/agents/frontend_worker.local.json` → `~/.pi/agent/agents/frontend_worker.md`
 
 ```json:config/pi-agent/providers.local.json
@@ -97,3 +98,5 @@ internal-cli merge-config
 ```
 
 local 設定は top-level key 単位でマージされ、model profile から `enabledModels` / `defaultProvider` / `defaultModel` / agent ごとの `model` / `fallbackModels` / `thinking` が展開される。
+
+`models.json` は既存の `~/.pi/agent/models.json` を保持しつつ、provider ごとの `models` を `id` で upsert する。dry-run では secret を含む可能性がある target 内容は表示しない。

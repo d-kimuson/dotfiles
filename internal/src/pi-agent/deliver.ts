@@ -59,6 +59,9 @@ const getPaths = () => {
     settingsSource: path.join(piAgentConfigRoot, "settings.json"),
     settingsLocal: path.join(piAgentConfigRoot, "settings.local.json"),
     settingsTarget: path.join(homedir(), ".pi/agent/settings.json"),
+    modelsSource: path.join(piAgentConfigRoot, "models.json"),
+    modelsLocal: path.join(piAgentConfigRoot, "models.local.json"),
+    modelsTarget: path.join(homedir(), ".pi/agent/models.json"),
     frontendWorkerSource: path.join(
       piAgentConfigRoot,
       "agents/frontend_worker.md"
@@ -83,6 +86,143 @@ const mergeTopLevel = (
 ): JsonObject => {
   if (overlay === null) return base
   return { ...base, ...overlay }
+}
+
+const mergeJsonObject = (
+  base: JsonObject | undefined,
+  overlay: JsonObject | undefined
+): JsonObject | undefined => {
+  if (base === undefined) return overlay
+  if (overlay === undefined) return base
+  return { ...base, ...overlay }
+}
+
+const mergeModelObjects = (base: JsonObject, overlay: JsonObject): JsonObject => {
+  const merged: JsonObject = { ...base, ...overlay }
+  const cost = mergeJsonObject(
+    isPlainObject(base["cost"]) ? base["cost"] : undefined,
+    isPlainObject(overlay["cost"]) ? overlay["cost"] : undefined
+  )
+  const compat = mergeJsonObject(
+    isPlainObject(base["compat"]) ? base["compat"] : undefined,
+    isPlainObject(overlay["compat"]) ? overlay["compat"] : undefined
+  )
+
+  if (cost !== undefined) merged["cost"] = cost
+  if (compat !== undefined) merged["compat"] = compat
+  return merged
+}
+
+const mergeModelArrays = (
+  base: readonly JsonValue[] | undefined,
+  overlay: readonly JsonValue[] | undefined
+): readonly JsonValue[] | undefined => {
+  if (base === undefined) return overlay
+  if (overlay === undefined) return base
+
+  const merged = [...base]
+  const indexById = new Map<string, number>()
+
+  for (const [index, entry] of merged.entries()) {
+    if (isPlainObject(entry) && typeof entry["id"] === "string") {
+      indexById.set(entry["id"], index)
+    }
+  }
+
+  for (const entry of overlay) {
+    if (!isPlainObject(entry) || typeof entry["id"] !== "string") {
+      merged.push(entry)
+      continue
+    }
+
+    const existingIndex = indexById.get(entry["id"])
+    if (existingIndex === undefined) {
+      indexById.set(entry["id"], merged.length)
+      merged.push(entry)
+      continue
+    }
+
+    const existing = merged[existingIndex]
+    merged[existingIndex] = isPlainObject(existing)
+      ? mergeModelObjects(existing, entry)
+      : entry
+  }
+
+  return merged
+}
+
+const mergeModelOverrides = (
+  base: JsonObject | undefined,
+  overlay: JsonObject | undefined
+): JsonObject | undefined => {
+  if (base === undefined) return overlay
+  if (overlay === undefined) return base
+
+  const merged: JsonObject = { ...base }
+  for (const [modelId, override] of Object.entries(overlay)) {
+    const existing = merged[modelId]
+    merged[modelId] = isPlainObject(existing) && isPlainObject(override)
+      ? mergeModelObjects(existing, override)
+      : override
+  }
+  return merged
+}
+
+const mergeProviderConfig = (base: JsonObject, overlay: JsonObject): JsonObject => {
+  const baseModels = Array.isArray(base["models"]) ? base["models"] : undefined
+  const overlayModels = Array.isArray(overlay["models"]) ? overlay["models"] : undefined
+  const baseOverrides = isPlainObject(base["modelOverrides"])
+    ? base["modelOverrides"]
+    : undefined
+  const overlayOverrides = isPlainObject(overlay["modelOverrides"])
+    ? overlay["modelOverrides"]
+    : undefined
+
+  const merged: JsonObject = { ...base, ...overlay }
+  const headers = mergeJsonObject(
+    isPlainObject(base["headers"]) ? base["headers"] : undefined,
+    isPlainObject(overlay["headers"]) ? overlay["headers"] : undefined
+  )
+  const compat = mergeJsonObject(
+    isPlainObject(base["compat"]) ? base["compat"] : undefined,
+    isPlainObject(overlay["compat"]) ? overlay["compat"] : undefined
+  )
+  const models = mergeModelArrays(baseModels, overlayModels)
+  const modelOverrides = mergeModelOverrides(baseOverrides, overlayOverrides)
+
+  if (headers !== undefined) merged["headers"] = headers
+  if (compat !== undefined) merged["compat"] = compat
+  if (models !== undefined) merged["models"] = models
+  if (modelOverrides !== undefined) merged["modelOverrides"] = modelOverrides
+  return merged
+}
+
+const mergeModelsConfig = (
+  base: JsonObject,
+  overlay: JsonObject | null
+): JsonObject => {
+  if (overlay === null) return base
+
+  const baseProviders = isPlainObject(base["providers"])
+    ? base["providers"]
+    : {}
+  const overlayProviders = isPlainObject(overlay["providers"])
+    ? overlay["providers"]
+    : {}
+  const providers: JsonObject = { ...baseProviders }
+
+  for (const [providerName, providerConfig] of Object.entries(overlayProviders)) {
+    const existing = providers[providerName]
+    providers[providerName] = isPlainObject(existing) && isPlainObject(providerConfig)
+      ? mergeProviderConfig(existing, providerConfig)
+      : providerConfig
+  }
+
+  return {
+    ...base,
+    ...overlay,
+    providers,
+  }
 }
 
 const readOptionalText = async (filePath: string): Promise<string | null> => {
@@ -344,6 +484,42 @@ const materializeJsonConfig = async (
   console.log(`${targetExists ? "Updated" : "Created"}: ${targetPath}`)
 }
 
+const countModelEntries = (config: JsonObject): number => {
+  const providers = isPlainObject(config["providers"]) ? config["providers"] : {}
+  let count = 0
+  for (const providerConfig of Object.values(providers)) {
+    if (isPlainObject(providerConfig) && Array.isArray(providerConfig["models"])) {
+      count += providerConfig["models"].length
+    }
+  }
+  return count
+}
+
+const materializeModelsConfig = async (
+  sourcePath: string,
+  localPath: string,
+  targetPath: string,
+  dryRun: boolean
+): Promise<void> => {
+  const managed = await readJsonObject(sourcePath)
+  const target = await readOptionalJsonObject(targetPath)
+  const local = await readOptionalJsonObject(localPath)
+  const built = mergeModelsConfig(mergeModelsConfig(target ?? {}, managed), local)
+
+  const targetExists = target !== null
+  const output = JSON.stringify(built, null, 2) + "\n"
+
+  if (dryRun) {
+    console.log(`  [dry-run] Would merge into: ${targetPath}`)
+    console.log(`  [dry-run] Model entries after merge: ${countModelEntries(built)}`)
+    return
+  }
+
+  await mkdir(dirname(targetPath), { recursive: true })
+  await writeFile(targetPath, output, "utf-8")
+  console.log(`${targetExists ? "Updated" : "Created"}: ${targetPath}`)
+}
+
 const parseFrontmatter = (content: string, filePath: string): MarkdownAgent => {
   const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(content)
   if (match === null) {
@@ -471,6 +647,14 @@ export const deliverPiAgentConfig = async (
     paths.settingsLocal,
     paths.settingsTarget,
     buildGeneratedSettings(profiles, availableProviders),
+    options.dryRun
+  )
+
+  console.log("\npi-agent models")
+  await materializeModelsConfig(
+    paths.modelsSource,
+    paths.modelsLocal,
+    paths.modelsTarget,
     options.dryRun
   )
 

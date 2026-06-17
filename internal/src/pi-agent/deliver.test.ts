@@ -38,6 +38,7 @@ const writeBaseFiles = async (): Promise<void> => {
         scoped: [
           "openai-codex/gpt-5.4:medium",
           "opencode-go/deepseek-v4-pro:high",
+          "opencode-go/glm-5.2",
           "github-copilot/gpt-5.4:medium",
         ],
         hard: [
@@ -73,6 +74,33 @@ const writeBaseFiles = async (): Promise<void> => {
       {
         lastChangelogVersion: "0.74.0",
         packages: ["npm:pi-subagents"],
+      },
+      null,
+      2
+    ),
+    "utf-8"
+  )
+
+  await writeFile(
+    path.join(configDir, "models.json"),
+    JSON.stringify(
+      {
+        providers: {
+          "opencode-go": {
+            models: [
+              {
+                id: "glm-5.2",
+                name: "GLM-5.2",
+                api: "openai-completions",
+                reasoning: true,
+                input: ["text"],
+                contextWindow: 1048576,
+                maxTokens: 131072,
+                compat: { maxTokensField: "max_tokens" },
+              },
+            ],
+          },
+        },
       },
       null,
       2
@@ -120,7 +148,11 @@ describe("deliverPiAgentConfig", () => {
       defaultProvider: "opencode-go",
       defaultModel: "deepseek-v4-pro",
       defaultThinkingLevel: "high",
-      enabledModels: ["openai-codex/gpt-5.4", "opencode-go/deepseek-v4-pro"],
+      enabledModels: [
+        "openai-codex/gpt-5.4",
+        "opencode-go/deepseek-v4-pro",
+        "opencode-go/glm-5.2",
+      ],
       agentOverrides: {
         planner: {
           model: "openai-codex/gpt-5.5",
@@ -173,6 +205,60 @@ describe("deliverPiAgentConfig", () => {
     expect(frontendWorker).toContain("thinking: medium")
     expect(frontendWorker).not.toContain("fallbackModels:")
     expect(frontendWorker).toContain("You are `frontend_worker`.")
+  })
+
+  it("merges managed models into existing models.json", async () => {
+    await writeBaseFiles()
+    await mkdir(targetDir, { recursive: true })
+    await writeFile(
+      path.join(targetDir, "models.json"),
+      JSON.stringify(
+        {
+          providers: {
+            "gateway-kimuson": {
+              baseUrl: "https://gateway.example.test/v1",
+              apiKey: "$GATEWAY_API_KEY",
+              api: "openai-completions",
+              models: [{ id: "private-model" }],
+            },
+            "opencode-go": {
+              models: [{ id: "custom-opencode-model", name: "Custom" }],
+            },
+          },
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+
+    await deliverPiAgentConfig({ dryRun: false })
+
+    expect(await readJson(path.join(targetDir, "models.json"))).toEqual({
+      providers: {
+        "gateway-kimuson": {
+          baseUrl: "https://gateway.example.test/v1",
+          apiKey: "$GATEWAY_API_KEY",
+          api: "openai-completions",
+          models: [{ id: "private-model" }],
+        },
+        "opencode-go": {
+          models: [
+            { id: "custom-opencode-model", name: "Custom" },
+            {
+              id: "glm-5.2",
+              name: "GLM-5.2",
+              api: "openai-completions",
+              reasoning: true,
+              input: ["text"],
+              contextWindow: 1048576,
+              maxTokens: 131072,
+              compat: { maxTokensField: "max_tokens" },
+            },
+          ],
+        },
+      },
+    })
   })
 
   it("uses cli providers and writes only built config", async () => {
