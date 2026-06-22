@@ -1,12 +1,12 @@
 [tools]
-"npm:@openai/codex" = "0.140.0"
+"npm:@openai/codex" = "0.141.0"
 "npm:@earendil-works/pi-coding-agent" = "0.79.6"
-"npm:opencode-ai" = "1.17.7"
+"npm:opencode-ai" = "1.17.9"
 "npm:@playwright/cli" = "0.1.14"
 "npm:@github/copilot" = "1.0.63"
 "npm:portless" = "0.14.0"
 "npm:@anthropic-ai/sandbox-runtime" = "0.0.49"
-"npm:agent-browser" = "0.28.0"
+"npm:agent-browser" = "0.29.1"
 "npm:@kimuson/npm-fw" = "0.0.4"
 node = "26.2.0"
 

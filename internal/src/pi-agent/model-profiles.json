@@ -5,11 +5,11 @@
     "openai-codex/gpt-5.4",
     "github-copilot/gpt-5.4",
     "openai-codex/gpt-5.5",
-    "opencode-go/kimi-k2.6"
+    "opencode-go/kimi-k2.7-code"
   ],
   "hard": [
     "openai-codex/gpt-5.5:hard",
-    "opencode-go/kimi-k2.6:high",
+    "opencode-go/kimi-k2.7-code:high",
     "github-copilot/gpt-5.4:hard"
   ],
   "medium": [
@@ -23,7 +23,8 @@
     "github-copilot/gemini-3-flash-preview:off"
   ],
   "design": [
-    "opencode-go/kimi-k2.6:medium",
+    "opencode-go/glm-5.2:medium",
+    "opencode-go/kimi-k2.7-code:medium",
     "github-copilot/claude-sonnet-4-6:medium",
     "anthropic/claude-sonnet-4-6:medium"
   ]
