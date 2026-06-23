@@ -2,7 +2,6 @@
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "singleQuote": true,
   "sortImports": {
-    "newlinesBetween": true,
     "groups": [
       "type-import",
       ["value-builtin", "value-external"],
@@ -15,6 +14,9 @@
   },
   "sortPackageJson": true,
   "ignorePatterns": [
-    "**/*.generated.*"
+    "**/*.gen.*",
+    "**/*.generated.*",
+    "src/server/worker-configuration.d.ts",
+    "drizzle/**"
   ]
 }

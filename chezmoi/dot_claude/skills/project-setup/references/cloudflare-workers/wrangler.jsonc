@@ -5,25 +5,42 @@
   "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
   "main": "src/server/worker.ts",
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "keep_vars": true,
   "workers_dev": true,
-  "vars": {
-    "ENVIRONMENT": "dev"
-  },
-  "upload_source_maps": true,
+  "upload_source_maps": false,
   "assets": {
     "directory": "./dist/client",
-    "html_handling": "drop-trailing-slash",
-    "not_found_handling": "404-page",
-    "run_worker_first": ["/api/*"]
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
   },
+  "vars": {
+    "ENVIRONMENT": "dev",
+  },
+  // Remove this block if D1 is not used.
+  "d1_databases": [
+    {
+      "binding": "db",
+      "database_name": "<project-name>-dev",
+      "database_id": "<dev-d1-database-id>",
+      "migrations_dir": "drizzle/d1-migrations",
+    },
+  ],
   "env": {
     "prod": {
       "vars": {
-        "ENVIRONMENT": "prod"
-      }
-    }
-  }
+        "ENVIRONMENT": "prod",
+      },
+      // Remove this block if D1 is not used.
+      "d1_databases": [
+        {
+          "binding": "db",
+          "database_name": "<project-name>-prod",
+          "database_id": "<prod-d1-database-id>",
+          "migrations_dir": "drizzle/d1-migrations",
+        },
+      ],
+    },
+  },
 }

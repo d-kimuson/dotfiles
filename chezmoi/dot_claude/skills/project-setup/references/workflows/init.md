@@ -28,24 +28,38 @@ If TypeScript, continue. Otherwise, only `core/` setup applies — skip remainin
 Present the following as options (these correspond to references):
 
 - hono (Backend API)
-- tanstack-spa (Frontend SPA — Vite + React + TanStack Router/Query)
-- tanstack-start-static (Pre-rendered SPA — TanStack Start + pre-rendering)
+- tanstack-start (Frontend — TanStack Start + React + Router/Query; choose `prerender` or `spa` mode)
 - cloudflare-workers (Cloudflare Workers deploy + asset serving)
 - shadcn-ui (UI components)
 
 If more tool references are added in the future, split into multiple questions (max 4 options each).
 
+### Question 5: TanStack Start Mode (only if `tanstack-start` selected)
+
+> TanStack Start mode: `prerender` or `spa`?
+
+- `prerender`: pre-render `/` and `/home`; `/` renders no UI and redirects to `/home` after hydration.
+- `spa`: old TanStack Router SPA replacement; no pre-rendered pages.
+
+For Cloudflare Workers Assets, both modes use `not_found_handling: "single-page-application"`.
+
+### Question 6: Auth and E2E Bypass (only if the app has frontend + backend or user requests auth)
+
+> Does this application need user authentication?
+
+If yes, require the setup to include an E2E/QA auth bypass such as `DISABLE_AUTH=true` so agents can verify behavior without external OAuth login. If no, do not add auth-specific files or environment variables.
+
 ## Step 2: Orchestrate Setup via Subagents
 
 Do not perform the setup directly in the main agent. The main agent is responsible for orchestration only:
 
-1. Determine the required references from Step 1.
+1. Determine the required references and options from Step 1, including TanStack Start mode and auth bypass requirement when applicable.
 2. Dispatch subagents in the tier order below.
 3. Pass each subagent the relevant reference file path(s) and explicit setup instructions.
 4. Wait for each tier to complete before dispatching the next tier.
 5. Review each subagent's report and resolve coordination issues before proceeding.
 
-For each reference, instruct the subagent to read its `index.md` for detailed instructions, then copy and customize template files. Provide the reference path explicitly, e.g. `references/core/index.md` or the absolute path to that file.
+For each reference, instruct the subagent to read its `index.md` for detailed instructions, then copy and customize template files. Provide the reference path explicitly, e.g. `references/core/index.md` or the absolute path to that file. Pass selected options explicitly (for example `tanstack-start mode=prerender` and `auth bypass required=true`).
 
 ### Tier 1: Platform
 
@@ -66,8 +80,7 @@ Framework-level setup. Depends on Tier 1 being complete.
 | Reference | Condition |
 |-----------|-----------|
 | `hono/` | Selected in Step 1 |
-| `tanstack-spa/` | Selected in Step 1 |
-| `tanstack-start-static/` | Selected in Step 1 |
+| `tanstack-start/` | Selected in Step 1 |
 
 ### Tier 3: Tool
 

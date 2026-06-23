@@ -1,7 +1,7 @@
-name: "Setup Node & pnpm"
-description: "Install pnpm and setup Node.js with pnpm cache (fixed versions)"
+name: 'Setup Node & pnpm'
+description: 'Install pnpm and setup Node.js with pnpm cache (fixed versions)'
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Setup Node.js
       uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
@@ -10,7 +10,7 @@ runs:
 
     - name: Setup pnpm
       shell: bash
-      run: npm install -g pnpm
+      run: npm install -g pnpm@11.0.3
 
     - name: Install Dependencies
       shell: bash

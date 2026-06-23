@@ -1,19 +1,21 @@
-import { serve } from "@hono/node-server";
-import { honoApp } from "./app";
-import { routes } from "./routes";
+import { serve } from '@hono/node-server';
+
+import { honoApp } from './app';
+import { routes } from './routes';
 
 type ServerOptions = {
-  port?: number;
+  readonly port?: number;
 };
 
-export const startServer = (options?: ServerOptions) => {
-  const { port = <default-port> } = options ?? {};
+const defaultPort = 3000;
 
-  routes(honoApp)
+export const startServer = (options?: ServerOptions) => {
+  const { port = defaultPort } = options ?? {};
+  const app = routes(honoApp());
 
   const server = serve(
     {
-      fetch: honoApp.fetch,
+      fetch: app.fetch,
       port,
     },
     (info) => {
@@ -29,11 +31,11 @@ export const startServer = (options?: ServerOptions) => {
     }
   };
 
-  process.on("SIGINT", () => {
+  process.on('SIGINT', () => {
     cleanUp();
   });
 
-  process.on("SIGTERM", () => {
+  process.on('SIGTERM', () => {
     cleanUp();
   });
 

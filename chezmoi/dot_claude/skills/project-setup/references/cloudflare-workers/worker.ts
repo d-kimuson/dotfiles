@@ -1,5 +1,5 @@
-import { honoApp } from './hono/app.ts';
-import { routes } from './hono/routes.ts';
+import { honoApp } from './app.ts';
+import { routes } from './routes.ts';
 
 const app = routes(honoApp());
 

@@ -2,7 +2,7 @@
 
 ## Directory Convention
 
-Follows the same convention as `tanstack-spa/`:
+Follows the same convention as `tanstack-start/`:
 
 - **Frontend shares package with backend**: Components under `src/web/components/ui/`, styles at `src/web/styles.css`
 - **Frontend-only package**: Components under `src/components/ui/`, styles at `src/styles.css`
@@ -10,7 +10,7 @@ Follows the same convention as `tanstack-spa/`:
 ## Prerequisites
 
 - `vite.config.ts` must exist (shadcn CLI uses it for framework detection)
-- Tailwind CSS must be configured (handled by `tanstack-spa` setup or manually)
+- Tailwind CSS must be configured (handled by `tanstack-start` setup or manually)
 - `tsconfig.json` must have `@/*` path alias pointing to `./src/*`
 
 ## Tailwind CSS Setup (Vite only, skip for Next.js)
@@ -26,7 +26,7 @@ Create styles.css (`src/styles.css` or `src/web/styles.css`):
 @import "tailwindcss";
 ```
 
-Ensure `vite.config.ts` has the alias and plugin configured (see `tanstack-spa/vite.config.ts`).
+Ensure `vite.config.ts` has the alias and plugin configured (see `tanstack-start/vite.config.ts`).
 
 ## shadcn/ui Init
 

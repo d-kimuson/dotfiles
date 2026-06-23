@@ -6,7 +6,7 @@ This project is designed with the philosophy of achieving both rapid feedback an
 
 - Strict typing with ADT
 - Constraints for maintaining code quality configured in Lint as much as possible
-- Dependency injection and effective testing
+- Explicit data flow and effective testing
 
 For development, implement with TDD development style.
 
@@ -20,15 +20,16 @@ On task completion, verify ALL of the following pass in addition to task-specifi
 pnpm gatecheck check
 ```
 
-{If there are checks not covered by gatecheck, list them here:}
-{- Manual verification steps}
-{- Integration/E2E checks}
+Gatecheck should cover: typecheck, lint, build, related tests, and format checks. If the project has checks not covered by gatecheck, list and run them explicitly.
 
 ## Notable Commands
 
 | Command | Purpose |
 |---------|---------|
-| `pnpm build` | Build for production |
-| `pnpm generate` | Run code generation |
+| `pnpm typecheck` | Type check |
+| `pnpm lint` | Lint and format check |
+| `pnpm test` | Unit / integration tests |
+| `pnpm build` | Production build |
+| `pnpm gatecheck check` | Diff-aware quality gate |
 
-{Add project-specific commands, deployment steps, and workflows as needed.}
+{Customize: add project-specific generation, migration, deploy, and E2E commands.}

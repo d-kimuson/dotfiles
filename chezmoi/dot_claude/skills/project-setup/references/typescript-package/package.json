@@ -4,8 +4,18 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "lint": "run-p lint:*",
+    "lint:oxlint": "oxlint --ignore-path .gitignore",
+    "lint:oxfmt": "pnpm fix:oxfmt --check",
+    "fix": "run-p fix:*",
+    "fix:oxlint": "pnpm lint:oxlint --fix",
+    "fix:oxfmt": "oxfmt --ignore-path .gitignore --no-error-on-unmatched-pattern",
+    "typecheck": "tsgo -p . --noEmit",
+    "test": "vitest run",
+    "prepare": "lefthook install"
+  },
   "dependencies": {},
   "devDependencies": {},
-  "packageManager": "pnpm@10.26.1+sha512.664074abc367d2c9324fdc18037097ce0a8f126034160f709928e9e9f95d98714347044e5c3164d65bd5da6c59c6be362b107546292a8eecb7999196e5ce58fa"
+  "packageManager": "pnpm@11.0.3+sha512.10448f2988933787c6699aef683174c741f6472ad91b7e3c8fe3e2bda57be8a0f7caf58949b8bc22e624578b3dc6e57876ba4c631928a1b84cc141e12c79bccd"
 }

@@ -1,5 +1,62 @@
 import { defineConfig } from 'oxlint';
 
+const restrictedReactQueryImportPaths = [
+  {
+    name: '@tanstack/react-query',
+    importNames: ['useQuery'],
+    message:
+      'useSuspenseQuery を原則使用してください。useQuery が必要な箇所だけ oxlint-ignore で明示的に例外化してください。',
+  },
+];
+
+const restrictedBaseImportPaths = [
+  ...restrictedReactQueryImportPaths,
+  {
+    name: '@testing-library/react',
+    importNames: ['renderHook'],
+    message:
+      'src/web/lib/test/renderHook から renderHook を import してください。テスト用 Provider tree を共通化します。',
+  },
+];
+
+const restrictedApiClientImportPatterns = [
+  {
+    group: ['**/lib/api/client'],
+    message:
+      'src/web/apis 配下の concrete API module から利用してください。src/web/lib/api/client.ts の直接利用は禁止されています。',
+  },
+];
+
+const restrictedBackendDbImportPatterns = [
+  {
+    group: ['**/db/**', '**/repositories/**'],
+    allowTypeImports: true,
+    message:
+      'models/services から DB 境界への値 import は禁止です。必要な契約は type import にしてください。',
+  },
+];
+
+const restrictedBackendWorkflowImportPatterns = [
+  {
+    group: ['**/workflows/**'],
+    allowTypeImports: true,
+    message: 'workflow の値 import は routes 境界からのみ許可されています。',
+  },
+];
+
+const restrictedFrontendBackendImportPatterns = [
+  {
+    group: ['**/server/**'],
+    allowTypeImports: true,
+    message:
+      'frontend から backend のコード import は禁止です。必要な契約は models の type import に限定してください。',
+  },
+  {
+    group: ['**/server/**', '!**/server/**/models/**', '!**/server/models/**'],
+    message: 'frontend から backend への type import は models 配下の契約だけ許可されています。',
+  },
+];
+
 export default defineConfig({
   plugins: [
     'unicorn',
@@ -8,21 +65,14 @@ export default defineConfig({
     'import',
     'jsdoc',
     'promise',
-
-    // Node.js only
     'node',
-
-    // test only
     'jest',
-
-    // React only
     'react',
     'jsx-a11y',
   ],
   categories: {},
   rules: {
     /* Correctness (違反するとそのままランタイムエラーになるような無条件適用しやすいルール群) */
-    // default rules
     'constructor-super': 'error',
     'for-direction': 'error',
     'no-async-promise-executor': 'error',
@@ -156,6 +206,14 @@ export default defineConfig({
     /* Restriction */
     'default-case': 'error', // switch 文に default case を強制
     'no-var': 'error', // var の使用を禁止
+    'no-restricted-globals': [
+      'error',
+      {
+        name: 'Date',
+        message:
+          '現在時刻は src/lib/clock.ts の currentDate/currentTimestamp を使用してください。固定日時の生成も dateFromIsoString を使用してください。',
+      },
+    ],
 
     'typescript/no-explicit-any': 'error', // any 型の使用を禁止
     'typescript/no-non-null-assertion': 'error', // non-null assertion operator の使用を禁止
@@ -216,20 +274,26 @@ export default defineConfig({
     'typescript/consistent-type-definitions': ['error', 'type'], // 型定義は type を使用（interface より優先）
 
     /* Custom Restrictions */
-    // "no-console": "error", // console 禁止 (logger を設定する場合)
     // "node/no-process-env": "error", // process.env への直接アクセスを禁止 (腐敗防止層を用意する場合)
-    // "no-restricted-globals": [ // new Date の利用を禁止(依存性注入されたファクトリーを使用する場合)
-    //   "error",
-    //   {
-    //     "name": "Date",
-    //     "message": "Use injected Clock/DateFactory instead of global Date."
-    //   }
-    // ] // グローバル Date の使用を禁止（依存性注入されたファクトリーを使用）
+
+    'no-restricted-imports': [
+      'error',
+      {
+        paths: restrictedBaseImportPaths,
+      },
+    ],
   },
   overrides: [
     {
+      files: ['**/routes/**/*.tsx'],
+      rules: {
+        'func-style': 'off', // TanStack Router の慣例的な function declaration を許可
+      },
+    },
+    {
       files: ['**/*.{test,spec}.?([mc])[jt]s?(x)'],
       rules: {
+        'jest/expect-expect': 'error', // テスト関数に expect の呼び出しを強制
         'jest/no-conditional-expect': 'error', // 条件分岐内での expect を禁止
         'jest/no-disabled-tests': 'off', // test.skip の使用はプロジェクト運用に依存
         'jest/no-export': 'error', // テストファイルからの export を禁止
@@ -239,6 +303,118 @@ export default defineConfig({
         'jest/valid-describe-callback': 'error', // describe コールバックの制約（非同期禁止等）を検証
         'jest/valid-expect': 'error', // expect 後のアサーションメソッド呼び出しを強制
         'jest/valid-title': 'error', // test/describe のタイトルが空文字でないことを検証
+      },
+    },
+    {
+      files: ['src/server/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: restrictedBaseImportPaths,
+            patterns: restrictedBackendWorkflowImportPatterns,
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/server/**/{routes,*.routes,withAuthRoutes}.ts', 'src/server/**/*.test.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: restrictedBaseImportPaths,
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/server/domain/**/{models,services}/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: restrictedBaseImportPaths,
+            patterns: [
+              ...restrictedBackendDbImportPatterns,
+              ...restrictedBackendWorkflowImportPatterns,
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/web/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: restrictedBaseImportPaths,
+            patterns: [
+              ...restrictedApiClientImportPatterns,
+              ...restrictedFrontendBackendImportPatterns,
+            ],
+          },
+        ],
+        'no-restricted-globals': [
+          'error',
+          {
+            name: 'Date',
+            message:
+              '現在時刻は src/lib/clock.ts の currentDate/currentTimestamp を使用してください。固定日時の生成も dateFromIsoString を使用してください。',
+          },
+          {
+            name: 'fetch',
+            message:
+              'src/web/lib/api/client.ts を直接使わず、src/web/apis 配下の concrete API module を使用してください。fetch の直接利用は禁止されています。',
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/web/apis/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: restrictedBaseImportPaths,
+            patterns: restrictedFrontendBackendImportPatterns,
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/web/lib/test/renderHook.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: restrictedReactQueryImportPaths,
+            patterns: [
+              ...restrictedApiClientImportPatterns,
+              ...restrictedFrontendBackendImportPatterns,
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/web/lib/api/client.ts'],
+      rules: {
+        'no-restricted-globals': [
+          'error',
+          {
+            name: 'Date',
+            message:
+              '現在時刻は src/lib/clock.ts の currentDate/currentTimestamp を使用してください。固定日時の生成も dateFromIsoString を使用してください。',
+          },
+        ], // API クライアント内での fetch 利用は許可
+      },
+    },
+    {
+      files: ['src/lib/clock.ts'],
+      rules: {
+        'no-restricted-globals': 'off', // clock 境界だけ Date 直接利用を許可
       },
     },
     {
@@ -295,7 +471,7 @@ export default defineConfig({
   ],
   settings: {
     'jsx-a11y': {
-      polymorphicPropName: null,
+      polymorphicPropName: undefined,
       components: {},
       attributes: {},
     },
@@ -335,6 +511,14 @@ export default defineConfig({
     '**/*.generated.*',
     '**/generated/**',
     '**/*.tsbuildinfo',
+    'config/**',
+    '**/*.gen.ts',
+    '**/*.generated.ts',
+    'src/server/worker-configuration.d.ts',
+    'src/server/env.d.ts',
+    'src/web/components/ui/**',
+    'dev/**',
+    'public/sw.js',
   ],
   options: {
     typeCheck: false,

@@ -1,4 +1,3 @@
-import { playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -6,24 +5,36 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    isolate: false,
     projects: [
       {
-        name: 'web',
         test: {
-          include: ['src/web/**/*.test.{ts,tsx}'],
-          browser: {
-            enabled: true,
-            provider: playwright(),
-            instances: [{ browser: 'chromium' }],
-            headless: true,
-          },
+          name: 'web-hooks',
+          include: ['src/web/**/use*.test.{ts,tsx}'],
+          environment: 'happy-dom',
+          setupFiles: ['configs/vitest/time.setup.ts'],
         },
       },
       {
-        name: 'unit',
         test: {
+          name: 'pure',
           include: ['src/**/*.test.{ts,tsx}'],
-          exclude: ['src/web/**/*.test.{ts,tsx}'],
+          setupFiles: ['configs/vitest/time.setup.ts'],
+          exclude: [
+            'src/web/**/use*.test.{ts,tsx}',
+            'src/server/**/workflows/**/*.test.{ts,tsx}',
+            'src/server/**/repositories/**/*.test.{ts,tsx}',
+          ],
+        },
+      },
+      {
+        test: {
+          name: 'db-required',
+          include: [
+            'src/server/**/workflows/**/*.test.{ts,tsx}',
+            'src/server/**/repositories/**/*.test.{ts,tsx}',
+          ],
+          setupFiles: ['configs/vitest/time.setup.ts', 'configs/vitest/db-required.setup.ts'],
         },
       },
     ],

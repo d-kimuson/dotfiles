@@ -8,13 +8,13 @@
 
 ## Types
 
-| Type | When to use |
-|------|-------------|
-| `feature` | New feature or capability |
-| `fix` | Bug fix |
-| `hotfix` | Urgent production fix |
-| `chore` | Tooling, CI, dependencies |
-| `refactor` | Code restructuring |
+| Type       | When to use               |
+| ---------- | ------------------------- |
+| `feature`  | New feature or capability |
+| `fix`      | Bug fix                   |
+| `hotfix`   | Urgent production fix     |
+| `chore`    | Tooling, CI, dependencies |
+| `refactor` | Code restructuring        |
 
 ## Rules
 
@@ -25,14 +25,14 @@
 ## Examples
 
 Good:
+
 - `feature/add-user-auth`
 - `fix/race-condition-queue`
 - `chore/update-dependencies`
 - `feature/123-payment-flow`
 
 Bad:
+
 - `Feature/AddUserAuth` (uppercase, no hyphens)
 - `fix` (no description)
 - `my-branch` (no type prefix)
-
-{Customize based on actual Git branch patterns found in this project.}

@@ -1,24 +1,23 @@
 # AGENTS.md ({project-name})
 
-## Architecture
+## About Project
 
-{Brief description of what the project does and how it's structured.}
+{1-3 sentences describing what the project does. Keep this concise because AGENTS.md is always loaded.}
 
-```
-{High-level data/request flow diagram using ASCII art.
-Show the main path from input to output, highlighting key components.}
-```
+## Communication
 
-{2-3 bullet points on key architectural decisions: main patterns, data sources, abstractions.}
+- Think in English.
+- Always communicate with the user in Japanese.
+- Do not use honorific or polite Japanese when communicating with the user; use the plain `だ` / `である` style.
+- Write documentation and code comments in Japanese.
 
 ## Reference
 
-{Progressive Disclosure — read only when needed, not upfront.}
+`docs/human/**` は人間向けドキュメントであり、通常の Agent 作業ではノイズになるため参照しない。人間向けの案内を作る・更新する・説明するなど、人間向けドキュメントが明示的に必要な場合だけ探索してよい。通常作業では下記の作業用 reference を優先する。
 
-- Coding guideline (design philosophy): docs/coding-guideline.md
-- Coding process and conventions: docs/coding-process.md
-- Commit message conventions: docs/commit_message.md
-- Branch naming conventions: docs/branch_naming.md
-- E2E exploratory testing process: docs/e2e-exploratory-testing-process.md
-{Add project-specific references as needed, e.g.:}
-{- Test fixture update procedure: docs/fixture.md}
+- Coding guideline (design philosophy): coding-guideline skill
+- Coding process and conventions: docs/CODING_PROCESS.md
+- QA policy and procedures: docs/QA_GUIDELINE.md
+- Commit message conventions: docs/COMMIT_MSG.md
+- Branch naming conventions: docs/BRANCH_NAMING.md
+- Architecture for this application: docs/ARCHITECTURE.md
