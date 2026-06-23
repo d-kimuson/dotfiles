@@ -85,22 +85,7 @@ const writeBaseFiles = async (): Promise<void> => {
     path.join(configDir, "models.json"),
     JSON.stringify(
       {
-        providers: {
-          "opencode-go": {
-            models: [
-              {
-                id: "glm-5.2",
-                name: "GLM-5.2",
-                api: "openai-completions",
-                reasoning: true,
-                input: ["text"],
-                contextWindow: 1048576,
-                maxTokens: 131072,
-                compat: { maxTokensField: "max_tokens" },
-              },
-            ],
-          },
-        },
+        providers: {},
       },
       null,
       2
@@ -207,7 +192,7 @@ describe("deliverPiAgentConfig", () => {
     expect(frontendWorker).toContain("You are `frontend_worker`.")
   })
 
-  it("merges managed models into existing models.json", async () => {
+  it("preserves existing models when managed models.json is empty", async () => {
     await writeBaseFiles()
     await mkdir(targetDir, { recursive: true })
     await writeFile(
@@ -243,19 +228,7 @@ describe("deliverPiAgentConfig", () => {
           models: [{ id: "private-model" }],
         },
         "opencode-go": {
-          models: [
-            { id: "custom-opencode-model", name: "Custom" },
-            {
-              id: "glm-5.2",
-              name: "GLM-5.2",
-              api: "openai-completions",
-              reasoning: true,
-              input: ["text"],
-              contextWindow: 1048576,
-              maxTokens: 131072,
-              compat: { maxTokensField: "max_tokens" },
-            },
-          ],
+          models: [{ id: "custom-opencode-model", name: "Custom" }],
         },
       },
     })

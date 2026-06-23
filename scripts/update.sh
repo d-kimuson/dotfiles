@@ -49,7 +49,7 @@ if [ ! -x "$MISE_BIN" ]; then
 fi
 export PATH="$(dirname "$MISE_BIN"):$PATH"
 "$MISE_BIN" upgrade --bump -y \
-  npm:@mariozechner/pi-coding-agent \
+  npm:@earendil-works/pi-coding-agent \
   npm:@openai/codex \
   npm:opencode-ai \
   npm:@playwright/cli \

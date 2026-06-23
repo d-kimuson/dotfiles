@@ -1,20 +1,3 @@
 {
-  "providers": {
-    "opencode-go": {
-      "models": [
-        {
-          "id": "glm-5.2",
-          "name": "GLM-5.2",
-          "api": "openai-completions",
-          "reasoning": true,
-          "input": ["text"],
-          "contextWindow": 1048576,
-          "maxTokens": 131072,
-          "compat": {
-            "maxTokensField": "max_tokens"
-          }
-        }
-      ]
-    }
-  }
+  "providers": {}
 }
