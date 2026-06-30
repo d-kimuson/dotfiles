@@ -58,6 +58,7 @@ const writeBaseFiles = async (): Promise<void> => {
         ],
         design: [
           "opencode-go/kimi-k2.6:medium",
+          "opencode-go/glm-5.2:medium",
           "github-copilot/claude-sonnet-4-6:medium",
           "anthropic/claude-sonnet-4-6:medium",
         ],
@@ -101,6 +102,8 @@ const writeBaseFiles = async (): Promise<void> => {
       "description: Frontend UI implementation agent.",
       "systemPromptMode: replace",
       "skills: frontend-design",
+      "output: .agents/tmp/context.md",
+      "defaultReads: .agents/tmp/context.md",
       "---",
       "",
       "You are `frontend_worker`.",
@@ -138,46 +141,48 @@ describe("deliverPiAgentConfig", () => {
         "opencode-go/deepseek-v4-pro",
         "opencode-go/glm-5.2",
       ],
-      agentOverrides: {
-        planner: {
-          model: "openai-codex/gpt-5.5",
-          thinking: "hard",
-          fallbackModels: ["opencode-go/kimi-k2.6"],
-        },
-        reviewer: {
-          model: "openai-codex/gpt-5.5",
-          thinking: "hard",
-          fallbackModels: ["opencode-go/kimi-k2.6"],
-        },
-        oracle: {
-          model: "openai-codex/gpt-5.5",
-          thinking: "hard",
-          fallbackModels: ["opencode-go/kimi-k2.6"],
-        },
-        worker: {
-          model: "opencode-go/deepseek-v4-pro",
-          thinking: "high",
-          fallbackModels: ["openai-codex/gpt-5.4"],
-        },
-        scout: {
-          model: "opencode-go/deepseek-v4-flash",
-          thinking: "off",
-          fallbackModels: ["openai-codex/gpt-5.4-mini"],
-        },
-        researcher: {
-          model: "opencode-go/deepseek-v4-flash",
-          thinking: "off",
-          fallbackModels: ["openai-codex/gpt-5.4-mini"],
-        },
-        "context-builder": {
-          model: "opencode-go/deepseek-v4-flash",
-          thinking: "off",
-          fallbackModels: ["openai-codex/gpt-5.4-mini"],
-        },
-        delegate: {
-          model: "opencode-go/deepseek-v4-flash",
-          thinking: "off",
-          fallbackModels: ["openai-codex/gpt-5.4-mini"],
+      subagents: {
+        agentOverrides: {
+          planner: {
+            model: "openai-codex/gpt-5.5",
+            thinking: "hard",
+            fallbackModels: ["opencode-go/kimi-k2.6"],
+          },
+          reviewer: {
+            model: "openai-codex/gpt-5.5",
+            thinking: "hard",
+            fallbackModels: ["opencode-go/kimi-k2.6"],
+          },
+          oracle: {
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "off",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+          },
+          worker: {
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "off",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+          },
+          scout: {
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "off",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+          },
+          researcher: {
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "off",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+          },
+          "context-builder": {
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "off",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+          },
+          delegate: {
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "off",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+          },
         },
       },
     })
@@ -188,7 +193,9 @@ describe("deliverPiAgentConfig", () => {
     )
     expect(frontendWorker).toContain("model: opencode-go/kimi-k2.6")
     expect(frontendWorker).toContain("thinking: medium")
-    expect(frontendWorker).not.toContain("fallbackModels:")
+    expect(frontendWorker).toContain("fallbackModels: opencode-go/glm-5.2")
+    expect(frontendWorker).toContain("output: .agents/tmp/context.md")
+    expect(frontendWorker).toContain("defaultReads: .agents/tmp/context.md")
     expect(frontendWorker).toContain("You are `frontend_worker`.")
   })
 
@@ -279,38 +286,40 @@ describe("deliverPiAgentConfig", () => {
       packages: ["npm:pi-subagents"],
       defaultProvider: "github-copilot",
       defaultThinkingLevel: "medium",
-      agentOverrides: {
-        planner: {
-          model: "github-copilot/gpt-5.4",
-          thinking: "hard"
-        },
-        reviewer: {
-          model: "github-copilot/gpt-5.4",
-          thinking: "hard"
-        },
-        oracle: {
-          model: "github-copilot/gpt-5.4",
-          thinking: "hard"
-        },
-        worker: {
-          model: "github-copilot/gpt-5.4",
-          thinking: "medium"
-        },
-        scout: {
-          model: "github-copilot/gemini-3-flash-preview",
-          thinking: "off"
-        },
-        researcher: {
-          model: "github-copilot/gemini-3-flash-preview",
-          thinking: "off"
-        },
-        "context-builder": {
-          model: "github-copilot/gemini-3-flash-preview",
-          thinking: "off"
-        },
-        delegate: {
-          model: "github-copilot/gemini-3-flash-preview",
-          thinking: "off"
+      subagents: {
+        agentOverrides: {
+          planner: {
+            model: "github-copilot/gpt-5.4",
+            thinking: "hard",
+          },
+          reviewer: {
+            model: "github-copilot/gpt-5.4",
+            thinking: "hard",
+          },
+          oracle: {
+            model: "github-copilot/gemini-3-flash-preview",
+            thinking: "off",
+          },
+          worker: {
+            model: "github-copilot/gemini-3-flash-preview",
+            thinking: "off",
+          },
+          scout: {
+            model: "github-copilot/gemini-3-flash-preview",
+            thinking: "off",
+          },
+          researcher: {
+            model: "github-copilot/gemini-3-flash-preview",
+            thinking: "off",
+          },
+          "context-builder": {
+            model: "github-copilot/gemini-3-flash-preview",
+            thinking: "off",
+          },
+          delegate: {
+            model: "github-copilot/gemini-3-flash-preview",
+            thinking: "off",
+          },
         },
       },
       defaultModel: "gpt-5.4",

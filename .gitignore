@@ -8,4 +8,5 @@ shell/localrc.sh
 shell/env-secrets.sh
 .claude/settings.local.json
 .playwright-cli
+.agents/tmp/
 .env

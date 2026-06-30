@@ -23,8 +23,8 @@
     "github-copilot/gemini-3-flash-preview:off"
   ],
   "design": [
-    "opencode-go/glm-5.2:medium",
     "opencode-go/kimi-k2.7-code:medium",
+    "opencode-go/glm-5.2:medium",
     "github-copilot/claude-sonnet-4-6:medium",
     "anthropic/claude-sonnet-4-6:medium"
   ]

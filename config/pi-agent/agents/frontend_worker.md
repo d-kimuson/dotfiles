@@ -5,8 +5,8 @@ systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
 skills: frontend-design
-output: context.md
-defaultReads: context.md
+output: .agents/tmp/context.md
+defaultReads: .agents/tmp/context.md
 defaultProgress: true
 interactive: true
 maxSubagentDepth: 1

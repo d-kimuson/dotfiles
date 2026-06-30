@@ -41,9 +41,8 @@ const SUPPORTED_PROVIDERS = [
 ] as const
 
 const AGENT_MODEL_PROFILES = {
-  hard: ["planner", "reviewer", "oracle"],
-  medium: ["worker"],
-  low: ["scout", "researcher", "context-builder", "delegate"],
+  hard: ["planner", "reviewer"],
+  low: ["oracle", "worker", "scout", "researcher", "context-builder", "delegate"],
 } as const
 
 const getPaths = () => {
@@ -151,21 +150,29 @@ const mergeModelArrays = (
   return merged
 }
 
-const mergeModelOverrides = (
+const mergeObjectOverrides = (
   base: JsonObject | undefined,
-  overlay: JsonObject | undefined
+  overlay: JsonObject | undefined,
+  mergeEntry: (base: JsonObject, overlay: JsonObject) => JsonObject
 ): JsonObject | undefined => {
   if (base === undefined) return overlay
   if (overlay === undefined) return base
 
   const merged: JsonObject = { ...base }
-  for (const [modelId, override] of Object.entries(overlay)) {
-    const existing = merged[modelId]
-    merged[modelId] = isPlainObject(existing) && isPlainObject(override)
-      ? mergeModelObjects(existing, override)
+  for (const [name, override] of Object.entries(overlay)) {
+    const existing = merged[name]
+    merged[name] = isPlainObject(existing) && isPlainObject(override)
+      ? mergeEntry(existing, override)
       : override
   }
   return merged
+}
+
+const mergeModelOverrides = (
+  base: JsonObject | undefined,
+  overlay: JsonObject | undefined
+): JsonObject | undefined => {
+  return mergeObjectOverrides(base, overlay, mergeModelObjects)
 }
 
 const mergeProviderConfig = (base: JsonObject, overlay: JsonObject): JsonObject => {
@@ -223,6 +230,38 @@ const mergeModelsConfig = (
     ...overlay,
     providers,
   }
+}
+
+const mergeSubagentsConfig = (
+  base: JsonObject | undefined,
+  overlay: JsonObject | undefined
+): JsonObject | undefined => {
+  if (base === undefined) return overlay
+  if (overlay === undefined) return base
+
+  const agentOverrides = mergeObjectOverrides(
+    isPlainObject(base["agentOverrides"]) ? base["agentOverrides"] : undefined,
+    isPlainObject(overlay["agentOverrides"]) ? overlay["agentOverrides"] : undefined,
+    mergeTopLevel
+  )
+  const merged: JsonObject = { ...base, ...overlay }
+  if (agentOverrides !== undefined) merged["agentOverrides"] = agentOverrides
+  return merged
+}
+
+const mergeSettingsConfig = (
+  base: JsonObject,
+  overlay: JsonObject | null
+): JsonObject => {
+  if (overlay === null) return base
+
+  const subagents = mergeSubagentsConfig(
+    isPlainObject(base["subagents"]) ? base["subagents"] : undefined,
+    isPlainObject(overlay["subagents"]) ? overlay["subagents"] : undefined
+  )
+  const merged: JsonObject = { ...base, ...overlay }
+  if (subagents !== undefined) merged["subagents"] = subagents
+  return merged
 }
 
 const readOptionalText = async (filePath: string): Promise<string | null> => {
@@ -434,7 +473,9 @@ const buildGeneratedSettings = (
     defaultModel: defaultChoice.modelName,
     defaultThinkingLevel,
     enabledModels: scoped.map((choice) => choice.modelId),
-    agentOverrides,
+    subagents: {
+      agentOverrides,
+    },
   }
 }
 
@@ -459,7 +500,7 @@ const buildGeneratedFrontendWorker = (
       }
 }
 
-const materializeJsonConfig = async (
+const materializeSettingsConfig = async (
   sourcePath: string,
   localPath: string,
   targetPath: string,
@@ -468,7 +509,7 @@ const materializeJsonConfig = async (
 ): Promise<void> => {
   const base = await readJsonObject(sourcePath)
   const local = await readOptionalJsonObject(localPath)
-  const built = mergeTopLevel(mergeTopLevel(base, generated), local)
+  const built = mergeSettingsConfig(mergeSettingsConfig(base, generated), local)
 
   const targetExists = (await readOptionalText(targetPath)) !== null
   const output = JSON.stringify(built, null, 2) + "\n"
@@ -642,7 +683,7 @@ export const deliverPiAgentConfig = async (
   console.log(`Available providers: ${availableProviders.join(", ")}`)
 
   console.log("\npi-agent settings")
-  await materializeJsonConfig(
+  await materializeSettingsConfig(
     paths.settingsSource,
     paths.settingsLocal,
     paths.settingsTarget,
