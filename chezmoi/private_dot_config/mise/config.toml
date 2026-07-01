@@ -1,6 +1,6 @@
 [tools]
 "npm:@openai/codex" = "0.141.0"
-"npm:@earendil-works/pi-coding-agent" = "0.79.10"
+"npm:@earendil-works/pi-coding-agent" = "0.80.2"
 "npm:opencode-ai" = "1.17.9"
 "npm:@playwright/cli" = "0.1.14"
 "npm:@github/copilot" = "1.0.63"
