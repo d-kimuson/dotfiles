@@ -12,7 +12,7 @@ export const getRouter = () =>
   });
 
 declare module '@tanstack/react-router' {
-  // eslint-disable-next-line typescript/consistent-type-definitions -- module augmentation requires interface
+  // oxlint-disable-next-line typescript/consistent-type-definitions -- module augmentation requires interface
   interface Register {
     router: ReturnType<typeof getRouter>;
   }

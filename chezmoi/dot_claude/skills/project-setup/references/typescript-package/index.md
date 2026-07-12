@@ -33,7 +33,7 @@ Note: `.gitignore` and `LICENSE` are handled by `core/` reference.
 ### 2. TypeScript
 
 ```bash
-pnpm add -D @typescript/native-preview @tsconfig/strictest
+pnpm add -D typescript @tsconfig/strictest
 ```
 
 Add type definitions based on project type:
@@ -47,7 +47,7 @@ Add typecheck script to `package.json`:
 ```json
 {
   "scripts": {
-    "typecheck": "tsgo -p . --noEmit"
+    "typecheck": "tsc -p . --noEmit"
   }
 }
 ```

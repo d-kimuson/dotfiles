@@ -21,15 +21,3 @@ pnpm gatecheck check
 ```
 
 Gatecheck should cover: typecheck, lint, build, related tests, and format checks. If the project has checks not covered by gatecheck, list and run them explicitly.
-
-## Notable Commands
-
-| Command | Purpose |
-|---------|---------|
-| `pnpm typecheck` | Type check |
-| `pnpm lint` | Lint and format check |
-| `pnpm test` | Unit / integration tests |
-| `pnpm build` | Production build |
-| `pnpm gatecheck check` | Diff-aware quality gate |
-
-{Customize: add project-specific generation, migration, deploy, and E2E commands.}
