@@ -2,24 +2,24 @@
   "scoped": [
     "opencode-go/deepseek-v4-pro",
     "opencode-go/glm-5.2",
-    "openai-codex/gpt-5.4",
-    "github-copilot/gpt-5.4",
-    "openai-codex/gpt-5.5",
+    "openai-codex/gpt-5.6-terra",
+    "github-copilot/gpt-5.6-terra",
+    "openai-codex/gpt-5.6-sol",
     "opencode-go/kimi-k2.7-code"
   ],
   "hard": [
-    "openai-codex/gpt-5.5:hard",
+    "openai-codex/gpt-5.6-sol:hard",
     "opencode-go/kimi-k2.7-code:high",
-    "github-copilot/gpt-5.4:hard"
+    "github-copilot/gpt-5.6-terra:hard"
   ],
   "medium": [
     "opencode-go/deepseek-v4-pro:high",
-    "openai-codex/gpt-5.4:medium",
-    "github-copilot/gpt-5.4:medium"
+    "openai-codex/gpt-5.6-terra:medium",
+    "github-copilot/gpt-5.6-terra:medium"
   ],
   "light": [
     "opencode-go/deepseek-v4-flash:off",
-    "openai-codex/gpt-5.4-mini:off",
+    "openai-codex/gpt-5.6-luna:off",
     "github-copilot/gemini-3-flash-preview:off"
   ],
   "design": [
