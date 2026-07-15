@@ -4,6 +4,28 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+ensure_nix_available() {
+  local nix_daemon_profile="/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
+  local nix_daemon_bin="/nix/var/nix/profiles/default/bin"
+
+  if command -v nix >/dev/null 2>&1; then
+    return
+  fi
+
+  if [ -r "$nix_daemon_profile" ]; then
+    if [[ ":$PATH:" != *":$nix_daemon_bin:"* ]]; then
+      unset __ETC_PROFILE_NIX_SOURCED
+    fi
+    # shellcheck disable=SC1091
+    source "$nix_daemon_profile"
+  fi
+
+  if ! command -v nix >/dev/null 2>&1; then
+    echo "Error: nix command not found. Expected Nix at $nix_daemon_bin." >&2
+    exit 1
+  fi
+}
+
 # ── nix flake ──────────────────────────────────────────
 update_flake() {
   echo "flake: updating inputs..."
@@ -32,6 +54,7 @@ home_manager_switch() {
 # ── main ───────────────────────────────────────────────
 echo "=== dotfiles update ==="
 
+ensure_nix_available
 chezmoi apply 2>/dev/null || true
 update_flake
 remove_migrated_profile_packages

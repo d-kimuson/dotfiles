@@ -16,10 +16,15 @@ export LDFLAGS=-L/usr/lib
 # ====================
 # Nix daemon environment
 # ====================
-# Keep Nix available even when macOS resets /etc/zshrc and removes the installer hook.
-if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-  source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+# Keep Nix available even when macOS resets PATH after an inherited Nix shell exported
+# __ETC_PROFILE_NIX_SOURCED=1 and the installer hook would otherwise no-op here.
+NIX_DAEMON_PROFILE=/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+NIX_DAEMON_BIN=/nix/var/nix/profiles/default/bin
+if [ -e "$NIX_DAEMON_PROFILE" ] && [[ ":$PATH:" != *":$NIX_DAEMON_BIN:"* ]]; then
+  unset __ETC_PROFILE_NIX_SOURCED
+  source "$NIX_DAEMON_PROFILE"
 fi
+unset NIX_DAEMON_PROFILE NIX_DAEMON_BIN
 
 # ====================
 # Zsh Completion
