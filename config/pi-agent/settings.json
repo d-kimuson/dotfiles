@@ -18,7 +18,7 @@
     "npm:pi-mcp-adapter",
     "npm:pi-markdown-preview",
     "npm:pi-mermaid",
-    "npm:@edlsh/pi-web-tools",
+    "npm:pi-web-access",
     "npm:@vaayne/pi-rules",
     "npm:pi-notify-agent",
     "npm:@narumitw/pi-goal",
