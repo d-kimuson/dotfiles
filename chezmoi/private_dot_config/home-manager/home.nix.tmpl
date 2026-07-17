@@ -70,7 +70,7 @@ in
     pkgsStable.mise
     pkgsStable.direnv
     pkgs.starship
-    pkgsStable.colima
+    pkgs.colima
     pkgs.docker
     pkgs.docker-compose
     pkgs.bun
@@ -80,6 +80,7 @@ in
     pkgs.caddy
     pkgsStable.zed-editor
     # mise, direnv, zed-editor: stable pin で管理
+    # colima: stable の依存 lima が insecure 扱いになることがあるため unstable を使用
 
     # Language Servers
     pkgs.typescript-language-server
