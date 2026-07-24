@@ -52,6 +52,15 @@
             "command": "~/.claude/hooks/observe.sh"
           }
         ]
+      },
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/context-warning.sh"
+          }
+        ]
       }
     ]
   },

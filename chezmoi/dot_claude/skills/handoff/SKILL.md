@@ -6,7 +6,7 @@ user-invocable: true
 allowed-tools: Edit, Write, Bash(git diff:*), Bash(git status:*), Bash(git log:*)
 ---
 
-Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the `.agent/handoff.md`.
+Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the `.agents/handoff.md`.
 
 Include a "suggested skills" section in the document, which suggests skills that the agent should invoke.
 
@@ -17,8 +17,8 @@ Redact any sensitive information, such as API keys, passwords, or personally ide
 If the user passed arguments, treat them as a description of what the next session will focus on and tailor the doc accordingly.
 
 <constraints>
-- `.agent/handoff.md` is a TEMPORARY file — never commit it
-- If `.agent/handoff.md` already exists, READ it first and UPDATE it (preserve prior sessions, append new one)
+- `.agents/handoff.md` is a TEMPORARY file — never commit it
+- If `.agents/handoff.md` already exists, READ it first and UPDATE it (preserve prior sessions, append new one)
 - Write in English for token efficiency (except user-facing communication)
 </constraints>
 
