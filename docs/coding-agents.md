@@ -1,0 +1,54 @@
+# Coding Agent 設定の配布
+
+Claude Code、Codex、Pi、GitHub Copilot の設定は、chezmoi によるファイル配布と `internal-cli` によるマージ・生成配布を組み合わせて管理する。
+ローカル固有の設定は `.local.json` と `settings.local.json` に置き、Git 管理しない。
+
+## Claude Code と Codex
+
+| ソース | 配布先 | 配布方法 |
+| --- | --- | --- |
+| `chezmoi/dot_claude/` | `~/.claude/` | chezmoi |
+| `chezmoi/dot_codex/` | `~/.codex/` | chezmoi |
+| `config/claude-settings.json` | `~/.claude/settings.json` | `internal-cli merge-config` |
+| `config/codex-config.toml` | `~/.codex/config.toml` | `internal-cli merge-config` |
+
+`chezmoi/dot_codex/symlink_prompts` と `symlink_skills` は Claude Code の commands と skills を Codex から共有する。
+`~/.claude/settings.local.json` は Claude Code が直接読むローカル上書きであり、`merge-config` の入力ではない。
+
+`merge-config` は管理対象の値を優先し、target にしかないキーは保持する。
+更新時は `node internal/src/cli.ts merge-config --dry-run` を先に実行する。
+
+## Pi
+
+Pi の共有設定は `config/pi-agent/`、モデルプロファイルは `internal/src/pi-agent/model-profiles.json` に置く。
+`internal-cli pi-agent deliver` は共有設定、生成したモデル設定、Git 管理外の `.local.json` をマージして `~/.pi/agent/` へ配布する。
+
+| ソース | 配布先 |
+| --- | --- |
+| `config/pi-agent/settings.json` | `~/.pi/agent/settings.json` |
+| `config/pi-agent/models.json` | `~/.pi/agent/models.json` |
+| `config/pi-agent/agents/frontend_worker.md` | `~/.pi/agent/agents/frontend_worker.md` |
+| `chezmoi/private_dot_pi/agent/` | `~/.pi/agent/` の AGENTS、拡張、skills など |
+
+Git 管理外の `providers.local.json` は利用可能な provider を指定する。
+`settings.local.json`、`models.local.json`、`agents/*.local.json` はマシン固有の上書きである。
+
+Pi の共有設定、モデルプロファイル、または local provider を変更したら、次を実行する。
+
+```bash
+node internal/src/cli.ts pi-agent deliver --dry-run
+node internal/src/cli.ts pi-agent deliver
+npx vitest run internal/src/pi-agent/deliver.test.ts
+```
+
+## GitHub Copilot
+
+`chezmoi/dot_copilot/` は chezmoi で `~/.copilot/` に配布する。
+Copilot CLI 自体は mise で管理する。
+MCP 設定の詳細は [MCP 設定の配布](mcp.md) を参照する。
+
+## 設定変更の反映
+
+Coding Agent の設定を変更した場合は、対応する配布経路を必ず実行する。
+chezmoi のファイルを変更しただけでは `config/` 配下のマージ・生成設定は更新されない。
+逆に `config/` だけを変更しても chezmoi 管理ファイルは更新されない。
