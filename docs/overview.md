@@ -22,7 +22,7 @@
 ## source state と target state
 
 `.chezmoiroot` は source state のルートとして `chezmoi/` を指定する。
-`chezmoi/dot_claude/`、`chezmoi/dot_codex/`、`chezmoi/private_dot_pi/`、`chezmoi/private_dot_config/` などは、chezmoi が `$HOME` 以下へ配布するファイルのソースである。
+`chezmoi/dot_agents/`、`chezmoi/dot_claude/`、`chezmoi/dot_codex/`、`chezmoi/private_dot_pi/`、`chezmoi/private_dot_config/` などは、chezmoi が `$HOME` 以下へ配布するファイルのソースである。
 
 `config/`、`internal/`、`shell/`、`scripts/` は source state そのものではない。
 ただし、`shell/` と `internal/` はターゲット環境で実行されるため、設定変更時には内容と実行経路を合わせて確認する。

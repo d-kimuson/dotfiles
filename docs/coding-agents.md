@@ -9,10 +9,11 @@ Claude Code、Codex、Pi、GitHub Copilot の設定は、chezmoi によるファ
 | --- | --- | --- |
 | `chezmoi/dot_claude/` | `~/.claude/` | chezmoi |
 | `chezmoi/dot_codex/` | `~/.codex/` | chezmoi |
+| `chezmoi/dot_agents/` | `~/.agents/` | chezmoi |
 | `config/claude-settings.json` | `~/.claude/settings.json` | `internal-cli merge-config` |
 | `config/codex-config.toml` | `~/.codex/config.toml` | `internal-cli merge-config` |
 
-`chezmoi/dot_codex/symlink_prompts` と `symlink_skills` は Claude Code の commands と skills を Codex から共有する。
+`chezmoi/dot_codex/symlink_prompts` は Claude Code の commands を Codex から共有する。`chezmoi/dot_claude/symlink_skills` と `chezmoi/dot_codex/symlink_skills` は、全 Agent 共通の `~/.agents/skills` を共有する。
 `~/.claude/settings.local.json` は Claude Code が直接読むローカル上書きであり、`merge-config` の入力ではない。
 
 `merge-config` は管理対象の値を優先し、target にしかないキーは保持する。

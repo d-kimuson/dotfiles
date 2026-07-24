@@ -2,8 +2,6 @@
 input=$(cat)
 
 SETTINGS_FILE="$HOME/.claude/settings.json"
-DEFAULT_MODEL="opus"
-FALLBACK_MODEL="sonnet"
 
 # ANSI colors
 GREEN=$'\033[92m'
@@ -105,30 +103,6 @@ if [ -n "$seven_reset_epoch" ] && [ "$seven_reset_epoch" != "null" ]; then
   seven_elapsed_pct=$(calc_elapsed_pct "$seven_reset_epoch" 604800)
 fi
 
-# --- Auto model switch based on pace ---
-current_model=$(jq -r '.model // empty' "$SETTINGS_FILE" 2>/dev/null)
-switched=""
-five_over=0
-seven_over=0
-[ -n "$five_pct" ] && [ -n "$five_elapsed_pct" ] && [ "$five_pct" -gt "$five_elapsed_pct" ] 2>/dev/null && five_over=1
-[ -n "$seven_pct" ] && [ -n "$seven_elapsed_pct" ] && [ "$seven_pct" -gt "$seven_elapsed_pct" ] 2>/dev/null && seven_over=1
-
-if [ "$five_over" -eq 1 ] || [ "$seven_over" -eq 1 ]; then
-  # Pace exceeded → switch to fallback
-  if [ "$current_model" = "$DEFAULT_MODEL" ]; then
-    jq --arg m "$FALLBACK_MODEL" '.model = $m' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" \
-      && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
-    switched=" ⚡"
-  fi
-elif [ "$five_over" -eq 0 ] && [ "$seven_over" -eq 0 ]; then
-  # Both within pace → restore default
-  if [ "$current_model" = "$FALLBACK_MODEL" ]; then
-    jq --arg m "$DEFAULT_MODEL" '.model = $m' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" \
-      && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
-    switched=" ✨"
-  fi
-fi
-
 # --- Output ---
 version_prefix=""
 [ -n "$claude_version" ] && version_prefix="claude-code@${claude_version} at "
@@ -140,7 +114,7 @@ elif [ -n "$branch" ]; then
   echo "⎇ ${branch}"
 fi
 
-echo "🧠 ${ctx_bar} ${pct}%${switched} | ${model} | ${effort}"
+echo "🧠 ${ctx_bar} ${pct}% | ${model} | ${effort}"
 
 if [ -n "$five_pct" ] || [ -n "$seven_pct" ]; then
   usage_line="💰"

@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.80.2",
   "skills": [
-    "~/.claude/skills"
+    "~/.agents/skills"
   ],
   "npmCommand": [
     "npm-fw",

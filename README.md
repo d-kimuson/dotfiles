@@ -12,6 +12,7 @@
 ```
 .chezmoiroot           # chezmoi/ をソースディレクトリとして指定
 chezmoi/               # chezmoi 以下が同期される設定ファイル群
+  dot_agents/          # → ~/.agents
   dot_claude/          # → ~/.claude
   dot_zshrc.tmpl       # → ~/.zshrc
   private_dot_config/  # → ~/.config/
