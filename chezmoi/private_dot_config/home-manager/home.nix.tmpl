@@ -1,4 +1,4 @@
-{ config, pkgs, pkgsStable, pkgsMaster, lib, ... }:
+{ config, pkgs, pkgsStable, lib, ... }:
 
 let
   braveSearchCliVersion = "1.5.0";
@@ -91,7 +91,6 @@ in
     pkgs.bubblewrap # required by claude-code sandbox
     pkgs.socat # required by claude-code sandbox
 {{ end }}
-    pkgsMaster.claude-code
 
     # Git
     pkgs.gh

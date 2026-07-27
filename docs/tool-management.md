@@ -7,7 +7,7 @@
 新しい依存関係は、先に `nix search nixpkgs <package>` で nixpkgs に存在するか確認する。
 
 通常は unstable の `pkgs` を使う。
-更新の安定性を優先する `mise`、`direnv`、`zed-editor` は `pkgsStable`、最新機能が必要な Claude Code は `pkgsMaster` を使う。
+更新の安定性を優先する `mise`、`direnv`、`zed-editor` は `pkgsStable` を使う。
 利用する属性は検索結果の最後の要素に対応させる。
 たとえば `legacyPackages.aarch64-darwin.ripgrep` は通常 `pkgs.ripgrep` と書く。
 
