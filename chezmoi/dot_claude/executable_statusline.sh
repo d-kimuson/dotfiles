@@ -43,16 +43,22 @@ make_bar() {
 ctx_bar=$(make_bar "$pct")
 
 # --- Rate limits (from statusline input) ---
+# GNU date uses -d "@epoch", BSD date uses -r epoch
+format_epoch() {
+  local epoch="$1" fmt="$2"
+  { date -d "@$epoch" "$fmt" 2>/dev/null || date -r "$epoch" "$fmt" 2>/dev/null; } | sed 's/  */ /g'
+}
+
 format_reset_time_short() {
   local epoch="$1"
   [ -z "$epoch" ] || [ "$epoch" = "null" ] && return
-  date -d "@$epoch" '+%p%-l時' 2>/dev/null | sed 's/  */ /g'
+  format_epoch "$epoch" '+%p%-l時'
 }
 
 format_reset_time_long() {
   local epoch="$1"
   [ -z "$epoch" ] || [ "$epoch" = "null" ] && return
-  date -d "@$epoch" '+%-m/%-d %p%-l時' 2>/dev/null | sed 's/  */ /g'
+  format_epoch "$epoch" '+%-m/%-d %p%-l時'
 }
 
 # Calculate elapsed % for a window given reset time (epoch) and window duration in seconds
