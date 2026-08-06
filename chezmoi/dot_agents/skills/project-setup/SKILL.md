@@ -1,7 +1,7 @@
 ---
 name: project-setup
 description: 'プロジェクトの初期化・設定に関するナレッジ'
-disable-model-invocation: false
+disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(pnpm:*, git:*, curl:*, mkdir:*, ls:*, npx:*, node:*, chmod:*, cp:*, mv:*, rm:*, rg:*)
 ---
