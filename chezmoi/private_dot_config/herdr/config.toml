@@ -1,2 +1,3 @@
 [keys]
 prefix = "ctrl+shift+b"
+onboarding = false
