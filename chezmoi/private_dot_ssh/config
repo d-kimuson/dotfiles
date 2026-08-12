@@ -13,3 +13,7 @@ Host home-server
   HostName 100.76.89.33
   User kaito
   IdentityFile ~/.ssh/github
+
+Host remote-dev
+  HostName 100.121.51.7
+  User kaito
