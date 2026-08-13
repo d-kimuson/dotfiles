@@ -294,7 +294,7 @@ function renderWindow(
 	if (opts.showReset && resetAtMs !== null) {
 		meta.push(`🔄${formatDate(Math.floor(resetAtMs / 1000))}`);
 	}
-	if (opts.showElapsed && elapsed !== null && elapsed > 0) {
+	if (opts.showElapsed && elapsed !== null) {
 		meta.push(`${elapsed}%`);
 	}
 	return meta.length > 0 ? `${label} ${pctText} (${meta.join("・")})` : `${label} ${pctText}`;
@@ -356,25 +356,26 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 		const codex = last.codex;
 		const lines: string[] = [];
 
-		// --- Line 1: OpenCode Go ---
+		// --- Line 1: OpenCode Go (labels = window length: 5h rolling / 7d weekly / 1m monthly) ---
 		if (go) {
 			const rolling = go.rolling;
 			const weekly = go.weekly;
 			const monthly = go.monthly;
 			const goParts: string[] = [];
 			goParts.push(
-				renderWindow(theme, "R", rolling.percent, rolling.resetsAt ? Date.parse(rolling.resetsAt) : null, GO_ROLLING_WINDOW_SECONDS, {
+				renderWindow(theme, "5h", rolling.percent, rolling.resetsAt ? Date.parse(rolling.resetsAt) : null, GO_ROLLING_WINDOW_SECONDS, {
 					showReset: rolling.percent > 0,
+					showElapsed: true,
 				}),
 			);
 			goParts.push(
-				renderWindow(theme, "W", weekly.percent, weekly.resetsAt ? Date.parse(weekly.resetsAt) : null, GO_WEEKLY_WINDOW_SECONDS, {
+				renderWindow(theme, "7d", weekly.percent, weekly.resetsAt ? Date.parse(weekly.resetsAt) : null, GO_WEEKLY_WINDOW_SECONDS, {
 					showReset: true,
 					showElapsed: true,
 				}),
 			);
 			goParts.push(
-				renderWindow(theme, "M", monthly.percent, monthly.resetsAt ? Date.parse(monthly.resetsAt) : null, GO_MONTHLY_WINDOW_SECONDS, {
+				renderWindow(theme, "1m", monthly.percent, monthly.resetsAt ? Date.parse(monthly.resetsAt) : null, GO_MONTHLY_WINDOW_SECONDS, {
 					showReset: true,
 					showElapsed: true,
 				}),
@@ -417,8 +418,7 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 					),
 				);
 			}
-			const plan = codex.plan_type ? `${codex.plan_type} ` : "";
-			lines.push(theme.fg("dim", `codex ${plan}`) + (codexParts.length > 0 ? codexParts.join(theme.fg("dim", " · ")) : theme.fg("dim", "n/a")));
+			lines.push(theme.fg("dim", "codex ") + (codexParts.length > 0 ? codexParts.join(theme.fg("dim", " · ")) : theme.fg("dim", "n/a")));
 		} else {
 			lines.push(theme.fg("dim", "codex n/a"));
 		}
@@ -463,7 +463,7 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 		await refresh(ctx);
 	});
 
-	pi.registerCommand("usage", {
+		pi.registerCommand("usage", {
 		description: "Refresh and show subscription usage quota (OpenCode Go / Codex)",
 		handler: async (_args, ctx) => {
 			await refresh(ctx);
@@ -472,28 +472,29 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 			const go = last.go;
 			const codex = last.codex;
 
+			lines.push(theme.fg("dim", "each window: <used%> (🔄 reset, <elapsed%>) — colored by pace (green=ok, yellow=on pace, red=ahead)"));
+
 			if (go) {
 				lines.push(theme.fg("accent", "OpenCode Go"));
-				lines.push(`  rolling ${go.rolling.percent}%${go.rolling.resetsAt ? ` (reset ${go.rolling.resetsAt})` : ""}`);
-				lines.push(`  weekly  ${go.weekly.percent}%${go.weekly.resetsAt ? ` (reset ${go.weekly.resetsAt})` : ""}`);
-				lines.push(`  monthly ${go.monthly.percent}%${go.monthly.resetsAt ? ` (reset ${go.monthly.resetsAt})` : ""}`);
+				lines.push(`  5h (rolling): ${go.rolling.percent}% used${go.rolling.resetsAt ? ` (reset ${go.rolling.resetsAt})` : ""}`);
+				lines.push(`  7d (weekly):  ${go.weekly.percent}% used${go.weekly.resetsAt ? ` (reset ${go.weekly.resetsAt})` : ""}`);
+				lines.push(`  1m (monthly): ${go.monthly.percent}% used${go.monthly.resetsAt ? ` (reset ${go.monthly.resetsAt})` : ""}`);
 			} else {
 				lines.push(theme.fg("accent", "OpenCode Go"), theme.fg("dim", "  n/a"));
 			}
 
 			const primary = codex?.rate_limit?.primary_window;
 			if (codex && primary) {
-				const plan = codex.plan_type ?? "?";
 				const reset = typeof primary.reset_at === "number" ? new Date(primary.reset_at * 1000).toLocaleString("ja-JP") : "?";
 				lines.push(
 					theme.fg("accent", "Codex"),
-					`  plan ${plan} · ${formatWindowSeconds(primary.limit_window_seconds ?? 604800)} window ${primary.used_percent ?? 0}% (reset ${reset})`,
+					`  ${formatWindowSeconds(primary.limit_window_seconds ?? 604800)} window: ${primary.used_percent ?? 0}% used (reset ${reset})`,
 				);
 				for (const extra of codex.additional_rate_limits ?? []) {
 					const extraWindow = extra.rate_limit?.primary_window;
 					if (!extraWindow || !extra.limit_name) continue;
 					lines.push(
-						`  ${extra.limit_name}: ${extraWindow.used_percent ?? 0}% (reset ${typeof extraWindow.reset_at === "number" ? new Date(extraWindow.reset_at * 1000).toLocaleString("ja-JP") : "?"})`,
+						`  ${extra.limit_name}: ${extraWindow.used_percent ?? 0}% used (reset ${typeof extraWindow.reset_at === "number" ? new Date(extraWindow.reset_at * 1000).toLocaleString("ja-JP") : "?"})`,
 					);
 				}
 			} else {
