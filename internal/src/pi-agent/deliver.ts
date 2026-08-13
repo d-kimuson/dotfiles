@@ -41,8 +41,9 @@ const SUPPORTED_PROVIDERS = [
 ] as const
 
 const AGENT_MODEL_PROFILES = {
-  hard: ["planner", "reviewer"],
-  low: ["oracle", "worker", "scout", "researcher", "context-builder", "delegate"],
+  hard: ["reviewer"],
+  reasoning: ["oracle", "worker", "researcher"],
+  light: ["scout", "delegate"],
 } as const
 
 const getPaths = () => {
@@ -389,11 +390,6 @@ const getProfileChoices = (
 ): readonly ModelChoice[] => {
   const choices = profiles[profileName]
   if (choices !== undefined) return choices
-
-  if (profileName === "low") {
-    const lightChoices = profiles["light"]
-    if (lightChoices !== undefined) return lightChoices
-  }
 
   throw new Error(`Missing model profile: ${profileName}`)
 }

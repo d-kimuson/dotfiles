@@ -19,89 +19,20 @@
     "npm:pi-markdown-preview",
     "npm:pi-mermaid",
     "npm:pi-web-access",
-    "npm:@vaayne/pi-rules",
     "npm:pi-notify-agent",
     "npm:@narumitw/pi-goal",
-    "npm:@kimuson/pi-ralph",
-    "npm:@kimuson/pi-auto"
+    "npm:@kimuson/pi-ralph"
   ],
   "defaultProvider": "opencode-go",
-  "defaultModel": "deepseek-v4-pro",
+  "defaultModel": "deepseek-v4-flash",
   "defaultThinkingLevel": "high",
   "enabledModels": [
+    "opencode-go/deepseek-v4-flash",
     "opencode-go/deepseek-v4-pro",
     "opencode-go/glm-5.2",
     "openai-codex/gpt-5.6-terra",
     "github-copilot/gpt-5.6-terra",
     "openai-codex/gpt-5.6-sol",
     "opencode-go/kimi-k2.7-code"
-  ],
-  "subagents": {
-    "agentOverrides": {
-      "planner": {
-        "model": "openai-codex/gpt-5.6-sol",
-        "thinking": "hard",
-        "fallbackModels": [
-          "opencode-go/kimi-k2.7-code",
-          "github-copilot/gpt-5.6-terra"
-        ]
-      },
-      "reviewer": {
-        "model": "openai-codex/gpt-5.6-sol",
-        "thinking": "hard",
-        "fallbackModels": [
-          "opencode-go/kimi-k2.7-code",
-          "github-copilot/gpt-5.6-terra"
-        ]
-      },
-      "oracle": {
-        "model": "opencode-go/deepseek-v4-flash",
-        "thinking": "off",
-        "fallbackModels": [
-          "openai-codex/gpt-5.6-luna",
-          "github-copilot/gemini-3-flash-preview"
-        ]
-      },
-      "worker": {
-        "model": "opencode-go/deepseek-v4-flash",
-        "thinking": "off",
-        "fallbackModels": [
-          "openai-codex/gpt-5.6-luna",
-          "github-copilot/gemini-3-flash-preview"
-        ]
-      },
-      "scout": {
-        "model": "opencode-go/deepseek-v4-flash",
-        "thinking": "off",
-        "fallbackModels": [
-          "openai-codex/gpt-5.6-luna",
-          "github-copilot/gemini-3-flash-preview"
-        ]
-      },
-      "researcher": {
-        "model": "opencode-go/deepseek-v4-flash",
-        "thinking": "off",
-        "fallbackModels": [
-          "openai-codex/gpt-5.6-luna",
-          "github-copilot/gemini-3-flash-preview"
-        ]
-      },
-      "context-builder": {
-        "model": "opencode-go/deepseek-v4-flash",
-        "thinking": "off",
-        "fallbackModels": [
-          "openai-codex/gpt-5.6-luna",
-          "github-copilot/gemini-3-flash-preview"
-        ]
-      },
-      "delegate": {
-        "model": "opencode-go/deepseek-v4-flash",
-        "thinking": "off",
-        "fallbackModels": [
-          "openai-codex/gpt-5.6-luna",
-          "github-copilot/gemini-3-flash-preview"
-        ]
-      }
-    }
-  }
+  ]
 }

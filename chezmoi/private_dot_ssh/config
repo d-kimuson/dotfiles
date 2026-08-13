@@ -17,3 +17,7 @@ Host home-server
 Host remote-dev
   HostName 100.121.51.7
   User kaito
+
+Host game-server
+  HostName game-server
+  User kaito

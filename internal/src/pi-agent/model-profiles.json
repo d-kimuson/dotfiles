@@ -24,6 +24,11 @@
     "openai-codex/gpt-5.6-luna:off",
     "github-copilot/gemini-3-flash-preview:off"
   ],
+  "reasoning": [
+    "opencode-go/deepseek-v4-flash:hard",
+    "openai-codex/gpt-5.6-luna:hard",
+    "github-copilot/gemini-3-flash-preview:hard"
+  ],
   "design": [
     "opencode-go/kimi-k2.7-code:medium",
     "opencode-go/glm-5.2:medium",

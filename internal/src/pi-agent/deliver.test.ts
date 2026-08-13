@@ -56,6 +56,11 @@ const writeBaseFiles = async (): Promise<void> => {
           "openai-codex/gpt-5.4-mini:off",
           "github-copilot/gemini-3-flash-preview:off",
         ],
+        reasoning: [
+          "opencode-go/deepseek-v4-flash:hard",
+          "openai-codex/gpt-5.4-mini:hard",
+          "github-copilot/gemini-3-flash-preview:hard",
+        ],
         design: [
           "opencode-go/kimi-k2.6:medium",
           "opencode-go/glm-5.2:medium",
@@ -143,11 +148,6 @@ describe("deliverPiAgentConfig", () => {
       ],
       subagents: {
         agentOverrides: {
-          planner: {
-            model: "openai-codex/gpt-5.5",
-            thinking: "hard",
-            fallbackModels: ["opencode-go/kimi-k2.6"],
-          },
           reviewer: {
             model: "openai-codex/gpt-5.5",
             thinking: "hard",
@@ -155,25 +155,20 @@ describe("deliverPiAgentConfig", () => {
           },
           oracle: {
             model: "opencode-go/deepseek-v4-flash",
-            thinking: "off",
+            thinking: "hard",
             fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
           worker: {
             model: "opencode-go/deepseek-v4-flash",
-            thinking: "off",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
-          },
-          scout: {
-            model: "opencode-go/deepseek-v4-flash",
-            thinking: "off",
+            thinking: "hard",
             fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
           researcher: {
             model: "opencode-go/deepseek-v4-flash",
-            thinking: "off",
+            thinking: "hard",
             fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
-          "context-builder": {
+          scout: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
             fallbackModels: ["openai-codex/gpt-5.4-mini"],
@@ -288,31 +283,23 @@ describe("deliverPiAgentConfig", () => {
       defaultThinkingLevel: "medium",
       subagents: {
         agentOverrides: {
-          planner: {
-            model: "github-copilot/gpt-5.4",
-            thinking: "hard",
-          },
           reviewer: {
             model: "github-copilot/gpt-5.4",
             thinking: "hard",
           },
           oracle: {
             model: "github-copilot/gemini-3-flash-preview",
-            thinking: "off",
+            thinking: "hard",
           },
           worker: {
             model: "github-copilot/gemini-3-flash-preview",
-            thinking: "off",
-          },
-          scout: {
-            model: "github-copilot/gemini-3-flash-preview",
-            thinking: "off",
+            thinking: "hard",
           },
           researcher: {
             model: "github-copilot/gemini-3-flash-preview",
-            thinking: "off",
+            thinking: "hard",
           },
-          "context-builder": {
+          scout: {
             model: "github-copilot/gemini-3-flash-preview",
             thinking: "off",
           },
