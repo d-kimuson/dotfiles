@@ -85,7 +85,7 @@ internal-cli merge-config
 
 ### pi-agent のマシン別設定
 
-`config/pi-agent/` の共有設定と `internal/src/pi-agent/model-profiles.json` をベースに、git 管理しない local 設定を重ねて `~/.pi/agent/` へ配布する。
+`config/pi-agent/` の共有設定とモデルプロファイルをベースに、git 管理しない local 設定を重ねて `~/.pi/agent/` へ配布する。
 
 - `config/pi-agent/providers.local.json`: このマシンで利用可能な provider を `availableProviders` で指定
 - `config/pi-agent/settings.json` + model profile + `config/pi-agent/settings.local.json` → `~/.pi/agent/settings.json`

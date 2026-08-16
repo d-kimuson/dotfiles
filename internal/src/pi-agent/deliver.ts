@@ -37,7 +37,7 @@ export type DeliverPiAgentOptions = {
 const SUPPORTED_PROVIDERS = [
   "opencode-go",
   "openai-codex",
-  "github-copilot",
+  "anthropic",
 ] as const
 
 const AGENT_MODEL_PROFILES = {
@@ -52,8 +52,8 @@ const getPaths = () => {
 
   return {
     modelProfilesSource: path.join(
-      dotfilesRoot,
-      "internal/src/pi-agent/model-profiles.json"
+      piAgentConfigRoot,
+      "model-profiles.json"
     ),
     providersLocal: path.join(piAgentConfigRoot, "providers.local.json"),
     settingsSource: path.join(piAgentConfigRoot, "settings.json"),
@@ -427,6 +427,12 @@ const getThinking = (choice: ModelChoice, profileName: string): string => {
   if (choice.thinking !== null) return choice.thinking
   throw new Error(`Missing thinking level for profile ${profileName}: ${choice.modelId}`)
 }
+
+// Thinking levels in model-profiles.json must stay within pi-subagents' known set
+// (off/minimal/low/medium/high/xhigh/max): applyThinkingSuffix detects an existing
+// suffix via a fixed THINKING_LEVELS list, so provider-specific names (e.g. "hard")
+// get appended twice (provider/model:hard:hard) and are rejected by the gateway.
+// See docs/coding-agents.md for the upstream issue context.
 
 const buildAgentModelConfig = (
   choices: readonly ModelChoice[],

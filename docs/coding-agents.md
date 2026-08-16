@@ -21,8 +21,8 @@ Claude Code、Codex、Pi、GitHub Copilot の設定は、chezmoi によるファ
 
 ## Pi
 
-Pi の共有設定は `config/pi-agent/`、モデルプロファイルは `internal/src/pi-agent/model-profiles.json` に置く。
-`internal-cli pi-agent deliver` は共有設定、生成したモデル設定、Git 管理外の `.local.json` をマージして `~/.pi/agent/` へ配布する。
+Pi の共有設定とモデルプロファイルは `config/pi-agent/` に置く。
+`internal-cli pi-agent deliver` は共有設定、モデルプロファイル、Git 管理外の `.local.json` をマージして `~/.pi/agent/` へ配布する。
 
 | ソース | 配布先 |
 | --- | --- |
@@ -41,6 +41,15 @@ node internal/src/cli.ts pi-agent deliver --dry-run
 node internal/src/cli.ts pi-agent deliver
 npx vitest run internal/src/pi-agent/deliver.test.ts
 ```
+
+### model-profiles.json の制約
+
+- プロファイル名とエージェントの対応は `internal/src/pi-agent/deliver.ts` の `AGENT_MODEL_PROFILES` が唯一の定義場所。
+  `model-profiles.json` 単体では「どのプロファイルを誰が使うか」は決まらない。
+- `provider/model:thinking` の thinking 部分は **pi-subagents の既知レベル (`off` / `minimal` / `low` / `medium` / `high` / `xhigh` / `max`) のみ**使うこと。
+  provider 独自のレベル名 (例: `hard`) を指定すると、pi-subagents の `applyThinkingSuffix` が
+  固定リストで既存サフィックスを判定するため、二重付与 (`provider/model:hard:hard`) が起きてゲートウェイに拒否される。
+  2026-08 時点で上流修正は未対応のため、レベルを増やす場合は上流 (nicobailon/pi-subagents) の修正を先行させること。
 
 ## GitHub Copilot
 

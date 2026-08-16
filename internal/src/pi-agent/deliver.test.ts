@@ -21,9 +21,6 @@ beforeEach(async () => {
   targetDir = path.join(homeDir, ".pi/agent")
 
   await mkdir(path.join(configDir, "agents"), { recursive: true })
-  await mkdir(path.join(homeDir, ".local/share/chezmoi/internal/src/pi-agent"), {
-    recursive: true,
-  })
 })
 
 afterEach(async () => {
@@ -32,39 +29,37 @@ afterEach(async () => {
 
 const writeBaseFiles = async (): Promise<void> => {
   await writeFile(
-    path.join(homeDir, ".local/share/chezmoi/internal/src/pi-agent/model-profiles.json"),
+    path.join(configDir, "model-profiles.json"),
     JSON.stringify(
       {
         scoped: [
           "openai-codex/gpt-5.4:medium",
           "opencode-go/deepseek-v4-pro:high",
           "opencode-go/glm-5.2",
-          "github-copilot/gpt-5.4:medium",
         ],
         hard: [
-          "openai-codex/gpt-5.5:hard",
+          "openai-codex/gpt-5.5:xhigh",
           "opencode-go/kimi-k2.6:high",
-          "github-copilot/gpt-5.4:hard",
+          "anthropic/claude-fable-5:high",
         ],
         medium: [
           "opencode-go/deepseek-v4-pro:high",
           "openai-codex/gpt-5.4:medium",
-          "github-copilot/gpt-5.4:medium",
+          "anthropic/claude-opus-4-8:high",
         ],
         light: [
           "opencode-go/deepseek-v4-flash:off",
           "openai-codex/gpt-5.4-mini:off",
-          "github-copilot/gemini-3-flash-preview:off",
+          "anthropic/claude-haiku-4-5:off",
         ],
         reasoning: [
-          "opencode-go/deepseek-v4-flash:hard",
-          "openai-codex/gpt-5.4-mini:hard",
-          "github-copilot/gemini-3-flash-preview:hard",
+          "opencode-go/deepseek-v4-flash:xhigh",
+          "openai-codex/gpt-5.4-mini:xhigh",
+          "anthropic/claude-opus-4-8:high",
         ],
         design: [
           "opencode-go/kimi-k2.6:medium",
           "opencode-go/glm-5.2:medium",
-          "github-copilot/claude-sonnet-4-6:medium",
           "anthropic/claude-sonnet-4-6:medium",
         ],
       },
@@ -125,7 +120,7 @@ describe("deliverPiAgentConfig", () => {
       path.join(configDir, "providers.local.json"),
       JSON.stringify(
         {
-          availableProviders: ["opencode-go", "openai-codex"],
+          availableProviders: ["opencode-go", "openai-codex", "anthropic"],
         },
         null,
         2
@@ -150,33 +145,33 @@ describe("deliverPiAgentConfig", () => {
         agentOverrides: {
           reviewer: {
             model: "openai-codex/gpt-5.5",
-            thinking: "hard",
-            fallbackModels: ["opencode-go/kimi-k2.6"],
+            thinking: "xhigh",
+            fallbackModels: ["opencode-go/kimi-k2.6", "anthropic/claude-fable-5"],
           },
           oracle: {
             model: "opencode-go/deepseek-v4-flash",
-            thinking: "hard",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+            thinking: "xhigh",
+            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-opus-4-8"],
           },
           worker: {
             model: "opencode-go/deepseek-v4-flash",
-            thinking: "hard",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+            thinking: "xhigh",
+            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-opus-4-8"],
           },
           researcher: {
             model: "opencode-go/deepseek-v4-flash",
-            thinking: "hard",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+            thinking: "xhigh",
+            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-opus-4-8"],
           },
           scout: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-haiku-4-5"],
           },
           delegate: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
+            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-haiku-4-5"],
           },
         },
       },
@@ -273,44 +268,44 @@ describe("deliverPiAgentConfig", () => {
 
     await deliverPiAgentConfig({
       dryRun: false,
-      availableProviders: ["github-copilot"],
+      availableProviders: ["opencode-go"],
     })
 
     expect(await readJson(path.join(targetDir, "settings.json"))).toEqual({
       lastChangelogVersion: "0.74.0",
       packages: ["npm:pi-subagents"],
-      defaultProvider: "github-copilot",
-      defaultThinkingLevel: "medium",
+      defaultProvider: "opencode-go",
+      defaultThinkingLevel: "high",
       subagents: {
         agentOverrides: {
           reviewer: {
-            model: "github-copilot/gpt-5.4",
-            thinking: "hard",
+            model: "opencode-go/kimi-k2.6",
+            thinking: "high",
           },
           oracle: {
-            model: "github-copilot/gemini-3-flash-preview",
-            thinking: "hard",
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "xhigh",
           },
           worker: {
-            model: "github-copilot/gemini-3-flash-preview",
-            thinking: "hard",
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "xhigh",
           },
           researcher: {
-            model: "github-copilot/gemini-3-flash-preview",
-            thinking: "hard",
+            model: "opencode-go/deepseek-v4-flash",
+            thinking: "xhigh",
           },
           scout: {
-            model: "github-copilot/gemini-3-flash-preview",
+            model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
           },
           delegate: {
-            model: "github-copilot/gemini-3-flash-preview",
+            model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
           },
         },
       },
-      defaultModel: "gpt-5.4",
-      enabledModels: ["github-copilot/gpt-5.4"],
+      defaultModel: "deepseek-v4-pro",
+      enabledModels: ["opencode-go/deepseek-v4-pro", "opencode-go/glm-5.2"],
     })
 
     const frontendWorker = await readFile(
@@ -318,7 +313,7 @@ describe("deliverPiAgentConfig", () => {
       "utf-8"
     )
     expect(frontendWorker).toContain("name: frontend_worker")
-    expect(frontendWorker).toContain("model: github-copilot/claude-sonnet-4-6")
+    expect(frontendWorker).toContain("model: opencode-go/kimi-k2.6")
     expect(frontendWorker).not.toContain("localOnly: keep")
     expect(frontendWorker).not.toContain("old body")
   })
