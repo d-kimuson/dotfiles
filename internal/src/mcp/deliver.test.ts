@@ -105,4 +105,102 @@ describe("deliverMcpConfig", () => {
       },
     })
   })
+
+  it("excludes servers with excludeTargets for the matching target", async () => {
+    await writeFile(
+      path.join(homeDir, ".local/share/chezmoi/config/mcp.template.json"),
+      JSON.stringify(
+        {
+          mcpServers: {
+            shared: {
+              command: "shared-cmd",
+              args: [],
+            },
+            excluded: {
+              command: "excluded-cmd",
+              args: [],
+              excludeTargets: ["claude-code"],
+            },
+          },
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+
+    const claudeFile = path.join(homeDir, ".claude.json")
+    await deliverMcpConfig({
+      targets: ["claude-code"],
+      dryRun: false,
+    })
+
+    const claudeConfig = (await readJson(claudeFile)) as {
+      mcpServers: Record<string, unknown>
+    }
+    expect(claudeConfig.mcpServers).toHaveProperty("shared")
+    expect(claudeConfig.mcpServers).not.toHaveProperty("excluded")
+  })
+
+  it("delivers excludeTargets servers to non-excluded targets", async () => {
+    await writeFile(
+      path.join(homeDir, ".local/share/chezmoi/config/mcp.template.json"),
+      JSON.stringify(
+        {
+          mcpServers: {
+            "only-excluded-from-claude": {
+              command: "some-cmd",
+              args: [],
+              excludeTargets: ["claude-code"],
+            },
+          },
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+
+    const piFile = path.join(homeDir, ".pi/agent/mcp.json")
+    await deliverMcpConfig({
+      targets: ["pi-agent"],
+      dryRun: false,
+    })
+
+    const piConfig = (await readJson(piFile)) as {
+      mcpServers: Record<string, unknown>
+    }
+    expect(piConfig.mcpServers).toHaveProperty("only-excluded-from-claude")
+  })
+
+  it("strips excludeTargets field from delivered config", async () => {
+    await writeFile(
+      path.join(homeDir, ".local/share/chezmoi/config/mcp.template.json"),
+      JSON.stringify(
+        {
+          mcpServers: {
+            server: {
+              command: "cmd",
+              args: [],
+              excludeTargets: ["codex"],
+            },
+          },
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+
+    const claudeFile = path.join(homeDir, ".claude.json")
+    await deliverMcpConfig({
+      targets: ["claude-code"],
+      dryRun: false,
+    })
+
+    const config = (await readJson(claudeFile)) as {
+      mcpServers: Record<string, Record<string, unknown>>
+    }
+    expect(config.mcpServers["server"]).not.toHaveProperty("excludeTargets")
+  })
 })

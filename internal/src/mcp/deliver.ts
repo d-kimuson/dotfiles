@@ -318,6 +318,25 @@ const ensureTargetParentDir = async (target: Target, filePath: string): Promise<
   await mkdir(path.dirname(filePath), { recursive: true })
 }
 
+const filterServersForTarget = (
+  target: Target,
+  servers: Readonly<Record<string, McpServerEntry>>
+): Readonly<Record<string, McpServerEntry>> => {
+  const filtered: Record<string, McpServerEntry> = {}
+
+  for (const [name, entry] of Object.entries(servers)) {
+    const excludeTargets = entry["excludeTargets"]
+    if (Array.isArray(excludeTargets) && excludeTargets.includes(target)) {
+      console.log(`  ⊘ Excluded from ${target}: ${name}`)
+      continue
+    }
+    const { excludeTargets: _, ...rest } = entry as Record<string, unknown>
+    filtered[name] = rest as McpServerEntry
+  }
+
+  return filtered
+}
+
 const generateForTarget = async (
   target: Target,
   servers: Readonly<Record<string, McpServerEntry>>,
@@ -335,20 +354,27 @@ const generateForTarget = async (
     return
   }
 
+  const targetServers = filterServersForTarget(target, servers)
+
+  if (Object.keys(targetServers).length === 0) {
+    console.log(`  No servers for this target.`)
+    return
+  }
+
   switch (target) {
     case "claude-code":
     case "pi-agent":
-      await mergeJsonMcpServers(configPath, servers, dryRun)
+      await mergeJsonMcpServers(configPath, targetServers, dryRun)
       break
     case "claude-desktop":
       await mergeJsonMcpServers(
         configPath,
-        await toDesktopServers(servers),
+        await toDesktopServers(targetServers),
         dryRun
       )
       break
     case "codex":
-      await mergeTomlMcpServers(configPath, servers, dryRun)
+      await mergeTomlMcpServers(configPath, targetServers, dryRun)
       break
   }
 }

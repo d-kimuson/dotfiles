@@ -15,6 +15,9 @@ MCP サーバ設定のマスターは `config/mcp.template.json` である。
 `${VAR}` が未定義のサーバは警告して配布対象から外す。
 `DISABLE_MCPS` にカンマ区切りで指定したサーバも配布しない。
 
+サーバ定義に `"excludeTargets": ["claude-code"]` を加えると、そのターゲットへの配布をスキップする。
+Remote Connector など別経路で接続するクライアントからローカル配布を除外する用途で使う。
+
 ## 配布先
 
 | target | 配布先 | 形式 |
