@@ -33,6 +33,7 @@ const writeBaseFiles = async (): Promise<void> => {
     JSON.stringify(
       {
         scoped: [
+          "zai/glm-5.3",
           "openai-codex/gpt-5.4:medium",
           "opencode-go/deepseek-v4-pro:high",
           "opencode-go/glm-5.2",
@@ -43,6 +44,7 @@ const writeBaseFiles = async (): Promise<void> => {
           "anthropic/claude-fable-5:high",
         ],
         medium: [
+          "zai/glm-5.3:high",
           "opencode-go/deepseek-v4-pro:high",
           "openai-codex/gpt-5.4:medium",
           "anthropic/claude-opus-4-8:high",
@@ -120,7 +122,7 @@ describe("deliverPiAgentConfig", () => {
       path.join(configDir, "providers.local.json"),
       JSON.stringify(
         {
-          availableProviders: ["opencode-go", "openai-codex", "anthropic"],
+          availableProviders: ["opencode-go", "openai-codex", "anthropic", "zai"],
         },
         null,
         2
@@ -133,10 +135,11 @@ describe("deliverPiAgentConfig", () => {
     expect(await readJson(path.join(targetDir, "settings.json"))).toEqual({
       lastChangelogVersion: "0.74.0",
       packages: ["npm:pi-subagents"],
-      defaultProvider: "opencode-go",
-      defaultModel: "deepseek-v4-pro",
+      defaultProvider: "zai",
+      defaultModel: "glm-5.3",
       defaultThinkingLevel: "high",
       enabledModels: [
+        "zai/glm-5.3",
         "openai-codex/gpt-5.4",
         "opencode-go/deepseek-v4-pro",
         "opencode-go/glm-5.2",

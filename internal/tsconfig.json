@@ -10,5 +10,10 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  // usage-status.test.ts imports the pi extension distributed to
+  // ~/.pi/agent/extensions/, which is written against the pi runtime's own
+  // coding style (not @tsconfig/strictest) and depends on types provided by
+  // the pi runtime. It is exercised via `npx vitest run`, not tsc.
+  "exclude": ["src/pi-agent/usage-status.test.ts"]
 }

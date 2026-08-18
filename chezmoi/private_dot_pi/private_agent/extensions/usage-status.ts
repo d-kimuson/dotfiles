@@ -1,9 +1,10 @@
 /**
  * Usage Status Extension
  *
- * Shows subscription quota as a 2-line widget (below the editor):
+ * Shows subscription quota as a 3-line widget (below the editor):
  *   - OpenCode Go  : rolling / weekly / monthly usage (undocumented API)
  *   - Codex        : ChatGPT subscription rate-limit windows (undocumented API)
+ *   - Z.ai         : GLM Coding Plan quota windows (undocumented API)
  *
  * Each quota window shows the utilization % colored by pace against the
  * elapsed % of the window (same idea as ~/.claude/statusline.sh):
@@ -20,6 +21,11 @@
  *     Bearer access_token from ~/.codex/auth.json (+ ChatGPT-Account-Id).
  *     On 401/403 the token is refreshed via auth.openai.com/oauth/token and
  *     saved back. Response: { plan_type, rate_limit, additional_rate_limits, ... }.
+ *   - Z.ai: GET https://api.z.ai/api/monitor/usage/quota/limit
+ *     Bearer key from ~/.pi/agent/auth.json (zai), then ZAI_API_KEY.
+ *     Response: { data: { limits: [{ type, unit, percentage, nextResetTime }], level } }.
+ *     Quota windows are identified by `unit` regardless of limit type:
+ *     unit 3 = rolling 5h, unit 6 = weekly, unit 5 = monthly web tools.
  *
  * Both endpoints are undocumented and may change without notice.
  * A browser-like User-Agent is required (Cloudflare / WAF).
@@ -48,6 +54,21 @@ const GO_MONTHLY_WINDOW_SECONDS = 30 * 24 * 60 * 60; // $60 / month
 const CODEX_USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
 const CODEX_TOKEN_URL = "https://auth.openai.com/oauth/token";
 const CODEX_CLIENT_ID = "app_EMoamEEZ73f0CkXaXp7hrann";
+
+// --- Z.ai / GLM Coding Plan ---
+const ZAI_USAGE_URL = "https://api.z.ai/api/monitor/usage/quota/limit";
+
+// Window kinds are encoded by `unit` regardless of the limit type
+// (TOKENS_LIMIT / CREDIT_LIMIT / TIME_LIMIT):
+//   unit 3 = rolling 5-hour quota, unit 6 = weekly, unit 5 = monthly web tools.
+const ZAI_UNIT_FIVE_HOUR = 3;
+const ZAI_UNIT_WEEKLY = 6;
+const ZAI_UNIT_MONTHLY_TOOLS = 5;
+
+// Window durations for elapsed % calculation (GLM Coding Plan).
+const ZAI_FIVE_HOUR_WINDOW_SECONDS = 5 * 60 * 60;
+const ZAI_WEEKLY_WINDOW_SECONDS = 7 * 24 * 60 * 60;
+const ZAI_MONTHLY_TOOLS_WINDOW_SECONDS = 30 * 24 * 60 * 60;
 
 // --- Types ---
 
@@ -78,6 +99,28 @@ type CodexAuthRecord = {
 	accessToken: string;
 	refreshToken?: string;
 	accountId?: string;
+};
+
+type ZaiLimit = {
+	type: string;
+	unit: number;
+	percentage?: number;
+	nextResetTime?: number;
+};
+
+type ZaiUsageResponse = {
+	success?: boolean;
+	msg?: string;
+	data?: { limits?: ZaiLimit[]; level?: string } | null;
+};
+
+type ZaiWindow = { percent: number; resetAtMs: number | null };
+
+type ZaiUsage = {
+	level?: string;
+	fiveHour: ZaiWindow | null;
+	weekly: ZaiWindow | null;
+	monthlyTools: ZaiWindow | null;
 };
 
 // --- Key / auth resolution ---
@@ -135,6 +178,16 @@ async function resolveCodexAuth(): Promise<CodexAuthRecord | null> {
 		return { path, accessToken, refreshToken, accountId };
 	}
 	return null;
+}
+
+/**
+ * Z.ai (GLM Coding Plan) API key from pi's auth store.
+ */
+async function resolveZaiKey(): Promise<string | null> {
+	if (process.env.ZAI_API_KEY) return process.env.ZAI_API_KEY;
+	const data = await readJson(join(homedir(), ".pi", "agent", "auth.json"));
+	if (!data) return null;
+	return extractKey(data["zai"]);
 }
 
 // --- Fetch helpers ---
@@ -223,6 +276,37 @@ async function fetchCodexUsage(record: CodexAuthRecord): Promise<CodexUsage> {
 	return usage;
 }
 
+function toZaiWindow(limits: ZaiLimit[], unit: number): ZaiWindow | null {
+	const limit = limits.find((entry) => entry.unit === unit);
+	if (!limit || typeof limit.percentage !== "number") return null;
+	return {
+		percent: Math.round(limit.percentage),
+		resetAtMs: typeof limit.nextResetTime === "number" ? limit.nextResetTime : null,
+	};
+}
+
+async function fetchZaiUsage(apiKey: string): Promise<ZaiUsage> {
+	const json = (await fetchJson(ZAI_USAGE_URL, {
+		Authorization: `Bearer ${apiKey}`,
+		Accept: "application/json",
+		"User-Agent": BROWSER_USER_AGENT,
+	})) as ZaiUsageResponse;
+	// Z.ai returns HTTP 200 with an error body: { success: false, msg: ... }
+	if (json.success === false) {
+		throw new Error(`z.ai api error: ${json.msg ?? "unknown"}`);
+	}
+	const limits = json.data?.limits;
+	if (!Array.isArray(limits)) throw new Error("z.ai usage response missing limits");
+	const usage: ZaiUsage = {
+		fiveHour: toZaiWindow(limits, ZAI_UNIT_FIVE_HOUR),
+		weekly: toZaiWindow(limits, ZAI_UNIT_WEEKLY),
+		monthlyTools: toZaiWindow(limits, ZAI_UNIT_MONTHLY_TOOLS),
+	};
+	if (!usage.fiveHour && !usage.weekly) throw new Error("z.ai usage response missing quota windows");
+	if (typeof json.data?.level === "string" && json.data.level.length > 0) usage.level = json.data.level;
+	return usage;
+}
+
 // --- Pace / formatting helpers (mirrors ~/.claude/statusline.sh) ---
 
 /**
@@ -307,6 +391,8 @@ export const __usageStatusInternals = {
 	fetchCodexUsage,
 	resolveOpenCodeGoKey,
 	resolveCodexAuth,
+	fetchZaiUsage,
+	resolveZaiKey,
 	calcElapsedPercent,
 	paceTone,
 	formatWindowSeconds,
@@ -316,12 +402,27 @@ export const __usageStatusInternals = {
 export default function usageStatusExtension(pi: ExtensionAPI) {
 	let timer: ReturnType<typeof setInterval> | null = null;
 	let refreshing = false;
-	let last: { go: OpenCodeGoUsage | null; codex: CodexUsage | null } = { go: null, codex: null };
+	let last: { go: OpenCodeGoUsage | null; codex: CodexUsage | null; zai: ZaiUsage | null } = {
+		go: null,
+		codex: null,
+		zai: null,
+	};
 
-	const fetchAll = async (): Promise<{ go: OpenCodeGoUsage | null; codex: CodexUsage | null; errors: string[] }> => {
-		const result: { go: OpenCodeGoUsage | null; codex: CodexUsage | null; errors: string[] } = {
+	const fetchAll = async (): Promise<{
+		go: OpenCodeGoUsage | null;
+		codex: CodexUsage | null;
+		zai: ZaiUsage | null;
+		errors: string[];
+	}> => {
+		const result: {
+			go: OpenCodeGoUsage | null;
+			codex: CodexUsage | null;
+			zai: ZaiUsage | null;
+			errors: string[];
+		} = {
 			go: null,
 			codex: null,
+			zai: null,
 			errors: [],
 		};
 
@@ -345,6 +446,17 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 			}
 		} else {
 			result.errors.push("codex: no auth");
+		}
+
+		const zaiKey = await resolveZaiKey();
+		if (zaiKey) {
+			try {
+				result.zai = await fetchZaiUsage(zaiKey);
+			} catch (error) {
+				result.errors.push(`zai: ${error instanceof Error ? error.message : String(error)}`);
+			}
+		} else {
+			result.errors.push("zai: no key");
 		}
 
 		return result;
@@ -423,6 +535,46 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 			lines.push(theme.fg("dim", "codex n/a"));
 		}
 
+		// --- Line 3: Z.ai / GLM Coding Plan (labels = window length: 5h / 7d / tools 1m) ---
+		const zai = last.zai;
+		if (zai) {
+			const zaiParts: string[] = [];
+			if (zai.fiveHour) {
+				zaiParts.push(
+					renderWindow(theme, "5h", zai.fiveHour.percent, zai.fiveHour.resetAtMs, ZAI_FIVE_HOUR_WINDOW_SECONDS, {
+						showReset: zai.fiveHour.percent > 0,
+						showElapsed: true,
+					}),
+				);
+			}
+			if (zai.weekly) {
+				zaiParts.push(
+					renderWindow(theme, "7d", zai.weekly.percent, zai.weekly.resetAtMs, ZAI_WEEKLY_WINDOW_SECONDS, {
+						showReset: true,
+						showElapsed: true,
+					}),
+				);
+			}
+			if (zai.monthlyTools) {
+				zaiParts.push(
+					renderWindow(
+						theme,
+						"tools1m",
+						zai.monthlyTools.percent,
+						zai.monthlyTools.resetAtMs,
+						ZAI_MONTHLY_TOOLS_WINDOW_SECONDS,
+						{ showReset: true, showElapsed: true },
+					),
+				);
+			}
+			const tier = zai.level ? ` ${theme.fg("dim", `(${zai.level})`)}` : "";
+			lines.push(
+				theme.fg("dim", "zai ") + tier + (zaiParts.length > 0 ? zaiParts.join(theme.fg("dim", " · ")) : theme.fg("dim", "n/a")),
+			);
+		} else {
+			lines.push(theme.fg("dim", "zai n/a"));
+		}
+
 		ctx.ui.setWidget(WIDGET_KEY, lines, { placement: "belowEditor" });
 	};
 
@@ -430,11 +582,12 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 		if (refreshing) return;
 		refreshing = true;
 		try {
-			const { go, codex, errors } = await fetchAll();
+			const { go, codex, zai, errors } = await fetchAll();
 			if (go) last.go = go;
 			if (codex) last.codex = codex;
-			if (errors.length > 0 && !go && !codex) {
-				// Both sources failed: fall back to whatever we had before.
+			if (zai) last.zai = zai;
+			if (errors.length > 0 && !go && !codex && !zai) {
+				// All sources failed: fall back to whatever we had before.
 			}
 			renderWidget(ctx);
 		} finally {
@@ -464,13 +617,14 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 	});
 
 		pi.registerCommand("usage", {
-		description: "Refresh and show subscription usage quota (OpenCode Go / Codex)",
+		description: "Refresh and show subscription usage quota (OpenCode Go / Codex / Z.ai)",
 		handler: async (_args, ctx) => {
 			await refresh(ctx);
 			const theme = ctx.ui.theme;
 			const lines: string[] = [];
 			const go = last.go;
 			const codex = last.codex;
+			const zai = last.zai;
 
 			lines.push(theme.fg("dim", "each window: <used%> (🔄 reset, <elapsed%>) — colored by pace (green=ok, yellow=on pace, red=ahead)"));
 
@@ -499,6 +653,23 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 				}
 			} else {
 				lines.push(theme.fg("accent", "Codex"), theme.fg("dim", "  n/a"));
+			}
+
+			if (zai) {
+				lines.push(theme.fg("accent", `Z.ai${zai.level ? ` (${zai.level})` : ""}`));
+				const zaiRows: [string, ZaiWindow | null][] = [
+					["5h (rolling):", zai.fiveHour],
+					["7d (weekly): ", zai.weekly],
+					["tools (1m):  ", zai.monthlyTools],
+				];
+				for (const [label, window] of zaiRows) {
+					if (!window) continue;
+					const reset =
+						window.resetAtMs !== null ? ` (reset ${new Date(window.resetAtMs).toLocaleString("ja-JP")})` : "";
+					lines.push(`  ${label} ${window.percent}% used${reset}`);
+				}
+			} else {
+				lines.push(theme.fg("accent", "Z.ai"), theme.fg("dim", "  n/a"));
 			}
 
 			ctx.ui.notify(lines.join("\n"), "info");

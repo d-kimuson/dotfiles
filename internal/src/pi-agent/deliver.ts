@@ -38,6 +38,7 @@ const SUPPORTED_PROVIDERS = [
   "opencode-go",
   "openai-codex",
   "anthropic",
+  "zai",
 ] as const
 
 const AGENT_MODEL_PROFILES = {
