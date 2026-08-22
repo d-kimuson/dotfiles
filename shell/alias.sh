@@ -24,15 +24,15 @@ function srtx() {
 # pi (srt sandbox 経由)
 # ====================
 function pi-low() {
-  srtx -- pi --models 'opencode-go/deepseek-v4-flash,openai-codex/gpt-5.4-mini' --thinking off "$@"
+  srtx -- pi --models 'opencode-go/deepseek-v4-flash' --thinking off "$@"
 }
 
 function pi-mid() {
-  srtx -- pi --models 'opencode-go/deepseek-v4-pro,openai-codex/gpt-5.4,openai-codex/gpt-5.3-codex-spark' --thinking low "$@"
+  srtx -- pi --models 'opencode-go/deepseek-v4-flash' --thinking low "$@"
 }
 
 function pi-high() {
-  srtx -- pi --models 'openai-codex/gpt-5.5,opencode-go/kimi2.6' --thinking medium "$@"
+  srtx -- pi --models 'opencode-go/deepseek-v4-flash' --thinking medium "$@"
 }
 
 function c() {
