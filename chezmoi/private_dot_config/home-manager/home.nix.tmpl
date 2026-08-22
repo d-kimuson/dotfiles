@@ -52,6 +52,13 @@ let
           sourceProvenance = [ sourceTypes.binaryNativeCode ];
         };
       };
+
+  ghosttyTerminfo = pkgs.runCommand "ghostty-terminfo" {
+    nativeBuildInputs = [ pkgs.ncurses ];
+  } ''
+    mkdir -p "$out"
+    tic -x -o "$out" ${./ghostty.terminfo}
+  '';
 in
 {
   home.username = "{{ .chezmoi.username }}";
@@ -134,6 +141,11 @@ in
   ] ++ [
     braveSearchCli
   ];
+
+  # Ghostty が設定する TERM=xterm-ghostty を、ncurses が標準で検索する
+  # ~/.terminfo から解決できるようにする。
+  home.file.".terminfo/x/xterm-ghostty".source =
+    "${ghosttyTerminfo}/x/xterm-ghostty";
 
   # Pueue: CLI process scheduler and manager
   # `pueue add <command>` でタスク投入、`pueue status` で確認。
