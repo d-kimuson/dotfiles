@@ -1,20 +1,32 @@
 {
   "scoped": [
-    "opencode-go/deepseek-v4-flash"
+    "zai/glm-5.3",
+    "opencode-go/deepseek-v4-flash",
+    "openai-codex/gpt-5.6-terra",
+    "openai-codex/gpt-5.6-sol"
   ],
   "hard": [
-    "opencode-go/deepseek-v4-flash:xhigh"
+    "openai-codex/gpt-5.6-sol:xhigh",
+    "anthropic/claude-fable-5:high"
   ],
   "medium": [
-    "opencode-go/deepseek-v4-flash:high"
+    "zai/glm-5.3:high",
+    "opencode-go/deepseek-v4-flash:high",
+    "openai-codex/gpt-5.6-terra:medium",
+    "anthropic/claude-opus-4-8:high"
   ],
   "light": [
-    "opencode-go/deepseek-v4-flash:off"
+    "opencode-go/deepseek-v4-flash:off",
+    "openai-codex/gpt-5.6-luna:off",
+    "anthropic/claude-haiku-4-5:off"
   ],
   "reasoning": [
-    "opencode-go/deepseek-v4-flash:xhigh"
+    "opencode-go/deepseek-v4-flash:xhigh",
+    "openai-codex/gpt-5.6-luna:xhigh",
+    "anthropic/claude-opus-4-8:high"
   ],
   "design": [
-    "opencode-go/deepseek-v4-flash:medium"
+    "opencode-go/deepseek-v4-flash:medium",
+    "anthropic/claude-sonnet-4-6:medium"
   ]
 }
