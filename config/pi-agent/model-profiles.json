@@ -3,7 +3,9 @@
     "zai/glm-5.3",
     "opencode-go/deepseek-v4-flash",
     "openai-codex/gpt-5.6-terra",
-    "openai-codex/gpt-5.6-sol"
+    "openai-codex/gpt-5.6-sol",
+    "xai/grok-4.6",
+    "xai/grok-4.5"
   ],
   "hard": [
     "openai-codex/gpt-5.6-sol:xhigh",

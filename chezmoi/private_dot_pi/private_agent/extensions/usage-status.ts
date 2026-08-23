@@ -1,10 +1,11 @@
 /**
  * Usage Status Extension
  *
- * Shows subscription quota as a 3-line widget (below the editor):
+ * Shows subscription quota as a 4-line widget (below the editor):
  *   - OpenCode Go  : rolling / weekly / monthly usage (undocumented API)
  *   - Codex        : ChatGPT subscription rate-limit windows (undocumented API)
  *   - Z.ai         : GLM Coding Plan quota windows (undocumented API)
+ *   - Grok / xAI   : SuperGrok weekly (or monthly) usage pool (undocumented CLI billing API)
  *
  * Each quota window shows the utilization % colored by pace against the
  * elapsed % of the window (same idea as ~/.claude/statusline.sh):
@@ -26,6 +27,12 @@
  *     Response: { data: { limits: [{ type, unit, percentage, nextResetTime }], level } }.
  *     Quota windows are identified by `unit` regardless of limit type:
  *     unit 3 = rolling 5h, unit 6 = weekly, unit 5 = monthly web tools.
+ *   - Grok: GET https://cli-chat-proxy.grok.com/v1/billing?format=credits
+ *     Bearer access token from ~/.pi/agent/auth.json (xai OAuth), then ~/.grok/auth.json.
+ *     On 401/403 the token is refreshed via auth.x.ai/oauth2/token and saved back.
+ *     Response: { config: { creditUsagePercent, currentPeriod: { type, start, end } } }.
+ *     proto3 omits zero scalars, so a missing creditUsagePercent with a period is 0%.
+ *     Plan label comes from GET /v1/settings (subscription_tier_display).
  *
  * Both endpoints are undocumented and may change without notice.
  * A browser-like User-Agent is required (Cloudflare / WAF).
@@ -69,6 +76,17 @@ const ZAI_UNIT_MONTHLY_TOOLS = 5;
 const ZAI_FIVE_HOUR_WINDOW_SECONDS = 5 * 60 * 60;
 const ZAI_WEEKLY_WINDOW_SECONDS = 7 * 24 * 60 * 60;
 const ZAI_MONTHLY_TOOLS_WINDOW_SECONDS = 30 * 24 * 60 * 60;
+
+// --- Grok / SuperGrok subscription ---
+const GROK_BILLING_URL = "https://cli-chat-proxy.grok.com/v1/billing?format=credits";
+const GROK_SETTINGS_URL = "https://cli-chat-proxy.grok.com/v1/settings";
+const GROK_TOKEN_URL = "https://auth.x.ai/oauth2/token";
+const GROK_CLIENT_ID = "b1a00492-073a-47ea-816f-4c329264a828";
+const GROK_TOKEN_AUTH = "xai-grok-cli";
+const GROK_REFRESH_SKEW_MS = 5 * 60 * 1000;
+const GROK_DEFAULT_TOKEN_LIFETIME_SECONDS = 3600;
+const GROK_WEEKLY_WINDOW_SECONDS = 7 * 24 * 60 * 60;
+const GROK_MONTHLY_WINDOW_SECONDS = 30 * 24 * 60 * 60;
 
 // --- Types ---
 
@@ -121,6 +139,20 @@ type ZaiUsage = {
 	fiveHour: ZaiWindow | null;
 	weekly: ZaiWindow | null;
 	monthlyTools: ZaiWindow | null;
+};
+
+type XaiAuthRecord = {
+	path: string;
+	accessToken: string;
+	refreshToken?: string;
+	expires?: number;
+};
+
+type GrokUsage = {
+	percent: number;
+	resetAtMs: number | null;
+	windowSeconds: number;
+	level?: string;
 };
 
 // --- Key / auth resolution ---
@@ -188,6 +220,79 @@ async function resolveZaiKey(): Promise<string | null> {
 	const data = await readJson(join(homedir(), ".pi", "agent", "auth.json"));
 	if (!data) return null;
 	return extractKey(data["zai"]);
+}
+
+function oauthFromPiXai(entry: unknown, path: string): XaiAuthRecord | null {
+	if (!entry || typeof entry !== "object") return null;
+	const value = entry as Record<string, unknown>;
+	if (value.type !== "oauth") return null;
+	const accessToken = value.access;
+	if (typeof accessToken !== "string" || accessToken.length <= 8) return null;
+	const record: XaiAuthRecord = { path, accessToken };
+	if (typeof value.refresh === "string" && value.refresh.length > 0) record.refreshToken = value.refresh;
+	if (typeof value.expires === "number" && Number.isFinite(value.expires)) record.expires = value.expires;
+	return record;
+}
+
+function oauthFromGrokCliEntry(entry: unknown, path: string): XaiAuthRecord | null {
+	if (!entry || typeof entry !== "object") return null;
+	const value = entry as Record<string, unknown>;
+	const accessToken = typeof value.key === "string" ? value.key : typeof value.access === "string" ? value.access : null;
+	if (accessToken === null || accessToken.length <= 8) return null;
+	const refreshToken =
+		typeof value.refresh_token === "string"
+			? value.refresh_token
+			: typeof value.refresh === "string"
+				? value.refresh
+				: undefined;
+	const expires =
+		typeof value.expires_at === "number"
+			? value.expires_at
+			: typeof value.expires === "number"
+				? value.expires
+				: undefined;
+	const record: XaiAuthRecord = { path, accessToken };
+	if (refreshToken && refreshToken.length > 0) record.refreshToken = refreshToken;
+	if (typeof expires === "number" && Number.isFinite(expires)) record.expires = expires;
+	return record;
+}
+
+function oauthFromGrokCliFile(data: Record<string, unknown>, path: string): XaiAuthRecord | null {
+	const direct = oauthFromGrokCliEntry(data, path);
+	if (direct) return direct;
+	const preferred: XaiAuthRecord[] = [];
+	const rest: XaiAuthRecord[] = [];
+	for (const [name, entry] of Object.entries(data)) {
+		const record = oauthFromGrokCliEntry(entry, path);
+		if (!record) continue;
+		(name.includes("auth.x.ai") ? preferred : rest).push(record);
+	}
+	return preferred[0] ?? rest[0] ?? null;
+}
+
+/**
+ * SuperGrok / xAI subscription OAuth from pi's auth store, then Grok CLI.
+ * API keys cannot read the CLI billing backend.
+ */
+async function resolveXaiAuth(): Promise<XaiAuthRecord | null> {
+	const piAuthPath = join(homedir(), ".pi", "agent", "auth.json");
+	const piAuth = await readJson(piAuthPath);
+	if (piAuth) {
+		const record = oauthFromPiXai(piAuth["xai"], piAuthPath);
+		if (record) return record;
+	}
+
+	const grokCandidates = [
+		...(process.env.GROK_HOME ? [join(process.env.GROK_HOME, "auth.json")] : []),
+		join(homedir(), ".grok", "auth.json"),
+	];
+	for (const path of grokCandidates) {
+		const data = await readJson(path);
+		if (!data) continue;
+		const record = oauthFromGrokCliFile(data, path);
+		if (record) return record;
+	}
+	return null;
 }
 
 // --- Fetch helpers ---
@@ -307,6 +412,185 @@ async function fetchZaiUsage(apiKey: string): Promise<ZaiUsage> {
 	return usage;
 }
 
+function grokHeaders(token: string): Record<string, string> {
+	return {
+		Authorization: `Bearer ${token}`,
+		Accept: "application/json",
+		"User-Agent": BROWSER_USER_AGENT,
+		"X-XAI-Token-Auth": GROK_TOKEN_AUTH,
+	};
+}
+
+async function callGrokJson(url: string, token: string): Promise<unknown | null> {
+	try {
+		return await fetchJson(url, grokHeaders(token));
+	} catch (error) {
+		const status = error instanceof Error && /returned (\d+)/.exec(error.message)?.[1];
+		if (status === "401" || status === "403") return null;
+		throw error;
+	}
+}
+
+async function refreshXaiToken(
+	refreshToken: string,
+): Promise<{ access: string; refresh?: string; expires: number } | null> {
+	const params = new URLSearchParams({
+		grant_type: "refresh_token",
+		client_id: GROK_CLIENT_ID,
+		refresh_token: refreshToken,
+	});
+	try {
+		const response = await fetch(GROK_TOKEN_URL, {
+			method: "POST",
+			headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+			body: params.toString(),
+		});
+		if (!response.ok) return null;
+		const body = (await response.json()) as Record<string, unknown>;
+		if (typeof body.access_token !== "string" || body.access_token.length === 0) return null;
+		const expiresIn =
+			typeof body.expires_in === "number" && Number.isFinite(body.expires_in) && body.expires_in > 0
+				? body.expires_in
+				: GROK_DEFAULT_TOKEN_LIFETIME_SECONDS;
+		const refreshed: { access: string; refresh?: string; expires: number } = {
+			access: body.access_token,
+			expires: Date.now() + expiresIn * 1000 - GROK_REFRESH_SKEW_MS,
+		};
+		if (typeof body.refresh_token === "string" && body.refresh_token.length > 0) {
+			refreshed.refresh = body.refresh_token;
+		}
+		return refreshed;
+	} catch {
+		return null;
+	}
+}
+
+async function saveXaiAuth(
+	record: XaiAuthRecord,
+	refreshed: { access: string; refresh?: string; expires: number },
+): Promise<void> {
+	try {
+		const data = (await readJson(record.path)) ?? {};
+		const existing = data["xai"];
+		if (existing && typeof existing === "object" && !Array.isArray(existing)) {
+			const current = existing as Record<string, unknown>;
+			if (current.type === "oauth" || typeof current.access === "string") {
+				data["xai"] = {
+					...current,
+					type: "oauth",
+					access: refreshed.access,
+					refresh: refreshed.refresh ?? current.refresh,
+					expires: refreshed.expires,
+				};
+				await writeFile(record.path, JSON.stringify(data, null, 2), { mode: 0o600 });
+				return;
+			}
+		}
+	} catch {
+		// Non-fatal; the next call can refresh again.
+	}
+}
+
+function parseIsoMs(value: unknown): number | null {
+	if (typeof value !== "string" || value.length === 0) return null;
+	const ms = Date.parse(value);
+	return Number.isFinite(ms) ? ms : null;
+}
+
+function centVal(value: unknown): number | null {
+	if (typeof value === "number" && Number.isFinite(value)) return value;
+	if (!value || typeof value !== "object") return null;
+	const val = (value as Record<string, unknown>).val;
+	return typeof val === "number" && Number.isFinite(val) ? val : null;
+}
+
+function grokWindowSeconds(
+	periodType: string | undefined,
+	startMs: number | null,
+	endMs: number | null,
+): number {
+	if (startMs !== null && endMs !== null && endMs > startMs) {
+		return Math.round((endMs - startMs) / 1000);
+	}
+	if (periodType?.includes("MONTHLY")) return GROK_MONTHLY_WINDOW_SECONDS;
+	return GROK_WEEKLY_WINDOW_SECONDS;
+}
+
+function parseGrokUsage(billing: unknown, settings: unknown): GrokUsage {
+	if (!billing || typeof billing !== "object") throw new Error("grok usage response missing config");
+	const config = (billing as Record<string, unknown>).config;
+	if (!config || typeof config !== "object") throw new Error("grok usage response missing config");
+	const cfg = config as Record<string, unknown>;
+	const period =
+		cfg.currentPeriod && typeof cfg.currentPeriod === "object" && !Array.isArray(cfg.currentPeriod)
+			? (cfg.currentPeriod as Record<string, unknown>)
+			: null;
+	const periodType = period && typeof period.type === "string" ? period.type : undefined;
+	const startMs = parseIsoMs(period?.start ?? cfg.billingPeriodStart);
+	const resetAtMs = parseIsoMs(period?.end ?? cfg.billingPeriodEnd);
+
+	let percent: number | null = null;
+	if (typeof cfg.creditUsagePercent === "number" && Number.isFinite(cfg.creditUsagePercent)) {
+		percent = Math.round(Math.min(100, Math.max(0, cfg.creditUsagePercent)));
+	} else {
+		const used = centVal(cfg.used);
+		const limit = centVal(cfg.monthlyLimit);
+		if (used !== null && limit !== null && limit > 0) {
+			percent = Math.round(Math.min(100, Math.max(0, (used / limit) * 100)));
+		} else if (resetAtMs !== null) {
+			// proto3 JSON omits zero-valued scalars; a live period with no percent is 0%.
+			percent = 0;
+		}
+	}
+	if (percent === null) throw new Error("grok usage response missing quota windows");
+
+	const usage: GrokUsage = {
+		percent,
+		resetAtMs,
+		windowSeconds: grokWindowSeconds(periodType, startMs, resetAtMs),
+	};
+	if (settings && typeof settings === "object") {
+		const display = (settings as Record<string, unknown>).subscription_tier_display;
+		if (typeof display === "string" && display.length > 0) usage.level = display;
+	}
+	return usage;
+}
+
+async function applyXaiRefresh(
+	record: XaiAuthRecord,
+): Promise<string | null> {
+	if (!record.refreshToken) return null;
+	const refreshed = await refreshXaiToken(record.refreshToken);
+	if (!refreshed) return null;
+	record.accessToken = refreshed.access;
+	record.refreshToken = refreshed.refresh ?? record.refreshToken;
+	record.expires = refreshed.expires;
+	await saveXaiAuth(record, refreshed);
+	return refreshed.access;
+}
+
+async function fetchGrokUsage(record: XaiAuthRecord): Promise<GrokUsage> {
+	const expired = typeof record.expires === "number" && record.expires <= Date.now();
+	let token = record.accessToken;
+	if (expired) {
+		const refreshed = await applyXaiRefresh(record);
+		if (!refreshed) throw new Error("grok usage requires auth");
+		token = refreshed;
+	}
+
+	let billing = await callGrokJson(GROK_BILLING_URL, token);
+	if (billing === null) {
+		const refreshed = await applyXaiRefresh(record);
+		if (!refreshed) throw new Error("grok usage requires auth");
+		token = refreshed;
+		billing = await callGrokJson(GROK_BILLING_URL, token);
+	}
+	if (billing === null) throw new Error("grok usage requires auth");
+
+	const settings = await callGrokJson(GROK_SETTINGS_URL, token);
+	return parseGrokUsage(billing, settings);
+}
+
 // --- Pace / formatting helpers (mirrors ~/.claude/statusline.sh) ---
 
 /**
@@ -393,6 +677,9 @@ export const __usageStatusInternals = {
 	resolveCodexAuth,
 	fetchZaiUsage,
 	resolveZaiKey,
+	fetchGrokUsage,
+	resolveXaiAuth,
+	parseGrokUsage,
 	calcElapsedPercent,
 	paceTone,
 	formatWindowSeconds,
@@ -402,27 +689,31 @@ export const __usageStatusInternals = {
 export default function usageStatusExtension(pi: ExtensionAPI) {
 	let timer: ReturnType<typeof setInterval> | null = null;
 	let refreshing = false;
-	let last: { go: OpenCodeGoUsage | null; codex: CodexUsage | null; zai: ZaiUsage | null } = {
+	let last: { go: OpenCodeGoUsage | null; codex: CodexUsage | null; zai: ZaiUsage | null; grok: GrokUsage | null } = {
 		go: null,
 		codex: null,
 		zai: null,
+		grok: null,
 	};
 
 	const fetchAll = async (): Promise<{
 		go: OpenCodeGoUsage | null;
 		codex: CodexUsage | null;
 		zai: ZaiUsage | null;
+		grok: GrokUsage | null;
 		errors: string[];
 	}> => {
 		const result: {
 			go: OpenCodeGoUsage | null;
 			codex: CodexUsage | null;
 			zai: ZaiUsage | null;
+			grok: GrokUsage | null;
 			errors: string[];
 		} = {
 			go: null,
 			codex: null,
 			zai: null,
+			grok: null,
 			errors: [],
 		};
 
@@ -457,6 +748,17 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 			}
 		} else {
 			result.errors.push("zai: no key");
+		}
+
+		const xaiAuth = await resolveXaiAuth();
+		if (xaiAuth) {
+			try {
+				result.grok = await fetchGrokUsage(xaiAuth);
+			} catch (error) {
+				result.errors.push(`grok: ${error instanceof Error ? error.message : String(error)}`);
+			}
+		} else {
+			result.errors.push("grok: no auth");
 		}
 
 		return result;
@@ -575,6 +877,25 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 			lines.push(theme.fg("dim", "zai n/a"));
 		}
 
+		// --- Line 4: Grok / SuperGrok weekly (or monthly) pool ---
+		const grok = last.grok;
+		if (grok) {
+			const grokParts = [
+				renderWindow(
+					theme,
+					formatWindowSeconds(grok.windowSeconds),
+					grok.percent,
+					grok.resetAtMs,
+					grok.windowSeconds,
+					{ showReset: true, showElapsed: true },
+				),
+			];
+			const tier = grok.level ? ` ${theme.fg("dim", `(${grok.level})`)}` : "";
+			lines.push(theme.fg("dim", "grok ") + tier + grokParts.join(theme.fg("dim", " · ")));
+		} else {
+			lines.push(theme.fg("dim", "grok n/a"));
+		}
+
 		ctx.ui.setWidget(WIDGET_KEY, lines, { placement: "belowEditor" });
 	};
 
@@ -582,11 +903,12 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 		if (refreshing) return;
 		refreshing = true;
 		try {
-			const { go, codex, zai, errors } = await fetchAll();
+			const { go, codex, zai, grok, errors } = await fetchAll();
 			if (go) last.go = go;
 			if (codex) last.codex = codex;
 			if (zai) last.zai = zai;
-			if (errors.length > 0 && !go && !codex && !zai) {
+			if (grok) last.grok = grok;
+			if (errors.length > 0 && !go && !codex && !zai && !grok) {
 				// All sources failed: fall back to whatever we had before.
 			}
 			renderWidget(ctx);
@@ -617,7 +939,7 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 	});
 
 		pi.registerCommand("usage", {
-		description: "Refresh and show subscription usage quota (OpenCode Go / Codex / Z.ai)",
+		description: "Refresh and show subscription usage quota (OpenCode Go / Codex / Z.ai / Grok)",
 		handler: async (_args, ctx) => {
 			await refresh(ctx);
 			const theme = ctx.ui.theme;
@@ -625,6 +947,7 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 			const go = last.go;
 			const codex = last.codex;
 			const zai = last.zai;
+			const grok = last.grok;
 
 			lines.push(theme.fg("dim", "each window: <used%> (🔄 reset, <elapsed%>) — colored by pace (green=ok, yellow=on pace, red=ahead)"));
 
@@ -670,6 +993,17 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 				}
 			} else {
 				lines.push(theme.fg("accent", "Z.ai"), theme.fg("dim", "  n/a"));
+			}
+
+			if (grok) {
+				const reset =
+					grok.resetAtMs !== null ? ` (reset ${new Date(grok.resetAtMs).toLocaleString("ja-JP")})` : "";
+				lines.push(
+					theme.fg("accent", `Grok${grok.level ? ` (${grok.level})` : ""}`),
+					`  ${formatWindowSeconds(grok.windowSeconds)} window: ${grok.percent}% used${reset}`,
+				);
+			} else {
+				lines.push(theme.fg("accent", "Grok"), theme.fg("dim", "  n/a"));
 			}
 
 			ctx.ui.notify(lines.join("\n"), "info");

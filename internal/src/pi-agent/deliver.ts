@@ -39,6 +39,7 @@ const SUPPORTED_PROVIDERS = [
   "openai-codex",
   "anthropic",
   "zai",
+  "xai",
 ] as const
 
 const AGENT_MODEL_PROFILES = {
