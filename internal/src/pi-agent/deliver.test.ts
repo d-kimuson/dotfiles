@@ -19,8 +19,7 @@ beforeEach(async () => {
   process.env["HOME"] = homeDir
   configDir = path.join(homeDir, ".local/share/chezmoi/config/pi-agent")
   targetDir = path.join(homeDir, ".pi/agent")
-
-  await mkdir(path.join(configDir, "agents"), { recursive: true })
+  await mkdir(configDir, { recursive: true })
 })
 
 afterEach(async () => {
@@ -43,6 +42,7 @@ const writeBaseFiles = async (): Promise<void> => {
           "opencode-go/kimi-k2.6:high",
           "anthropic/claude-fable-5:high",
         ],
+        oracle: ["openai-codex/gpt-5.5:xhigh"],
         medium: [
           "zai/glm-5.3:high",
           "opencode-go/deepseek-v4-pro:high",
@@ -59,11 +59,6 @@ const writeBaseFiles = async (): Promise<void> => {
           "openai-codex/gpt-5.4-mini:xhigh",
           "anthropic/claude-opus-4-8:high",
         ],
-        design: [
-          "opencode-go/kimi-k2.6:medium",
-          "opencode-go/glm-5.2:medium",
-          "anthropic/claude-sonnet-4-6:medium",
-        ],
       },
       null,
       2
@@ -77,6 +72,11 @@ const writeBaseFiles = async (): Promise<void> => {
       {
         lastChangelogVersion: "0.74.0",
         packages: ["npm:pi-subagents"],
+        subagents: {
+          agentOverrides: {
+            worker: { disabled: true },
+          },
+        },
       },
       null,
       2
@@ -93,24 +93,6 @@ const writeBaseFiles = async (): Promise<void> => {
       null,
       2
     ),
-    "utf-8"
-  )
-
-  await writeFile(
-    path.join(configDir, "agents/frontend_worker.md"),
-    [
-      "---",
-      "name: frontend_worker",
-      "description: Frontend UI implementation agent.",
-      "systemPromptMode: replace",
-      "skills: frontend-design",
-      "output: .agents/tmp/context.md",
-      "defaultReads: .agents/tmp/context.md",
-      "---",
-      "",
-      "You are `frontend_worker`.",
-      "",
-    ].join("\n"),
     "utf-8"
   )
 }
@@ -152,15 +134,10 @@ describe("deliverPiAgentConfig", () => {
             fallbackModels: ["opencode-go/kimi-k2.6", "anthropic/claude-fable-5"],
           },
           oracle: {
-            model: "opencode-go/deepseek-v4-flash",
+            model: "openai-codex/gpt-5.5",
             thinking: "xhigh",
-            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-opus-4-8"],
           },
-          worker: {
-            model: "opencode-go/deepseek-v4-flash",
-            thinking: "xhigh",
-            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-opus-4-8"],
-          },
+          worker: { disabled: true },
           researcher: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "xhigh",
@@ -179,17 +156,6 @@ describe("deliverPiAgentConfig", () => {
         },
       },
     })
-
-    const frontendWorker = await readFile(
-      path.join(targetDir, "agents/frontend_worker.md"),
-      "utf-8"
-    )
-    expect(frontendWorker).toContain("model: opencode-go/kimi-k2.6")
-    expect(frontendWorker).toContain("thinking: medium")
-    expect(frontendWorker).toContain("fallbackModels: opencode-go/glm-5.2")
-    expect(frontendWorker).toContain("output: .agents/tmp/context.md")
-    expect(frontendWorker).toContain("defaultReads: .agents/tmp/context.md")
-    expect(frontendWorker).toContain("You are `frontend_worker`.")
   })
 
   it("preserves existing models when managed models.json is empty", async () => {
@@ -271,7 +237,7 @@ describe("deliverPiAgentConfig", () => {
 
     await deliverPiAgentConfig({
       dryRun: false,
-      availableProviders: ["opencode-go"],
+      availableProviders: ["opencode-go", "openai-codex"],
     })
 
     expect(await readJson(path.join(targetDir, "settings.json"))).toEqual({
@@ -282,42 +248,42 @@ describe("deliverPiAgentConfig", () => {
       subagents: {
         agentOverrides: {
           reviewer: {
-            model: "opencode-go/kimi-k2.6",
-            thinking: "high",
+            model: "openai-codex/gpt-5.5",
+            thinking: "xhigh",
+            fallbackModels: ["opencode-go/kimi-k2.6"],
           },
           oracle: {
-            model: "opencode-go/deepseek-v4-flash",
+            model: "openai-codex/gpt-5.5",
             thinking: "xhigh",
           },
-          worker: {
-            model: "opencode-go/deepseek-v4-flash",
-            thinking: "xhigh",
-          },
+          worker: { disabled: true },
           researcher: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "xhigh",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
           scout: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
           delegate: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
+            fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
         },
       },
       defaultModel: "deepseek-v4-pro",
-      enabledModels: ["opencode-go/deepseek-v4-pro", "opencode-go/glm-5.2"],
+      enabledModels: [
+        "openai-codex/gpt-5.4",
+        "opencode-go/deepseek-v4-pro",
+        "opencode-go/glm-5.2",
+      ],
     })
 
-    const frontendWorker = await readFile(
-      path.join(targetDir, "agents/frontend_worker.md"),
-      "utf-8"
-    )
-    expect(frontendWorker).toContain("name: frontend_worker")
-    expect(frontendWorker).toContain("model: opencode-go/kimi-k2.6")
-    expect(frontendWorker).not.toContain("localOnly: keep")
-    expect(frontendWorker).not.toContain("old body")
+    await expect(
+      readFile(path.join(targetDir, "agents/frontend_worker.md"), "utf-8")
+    ).rejects.toMatchObject({ code: "ENOENT" })
   })
 })

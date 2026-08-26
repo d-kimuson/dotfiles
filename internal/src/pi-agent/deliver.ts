@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import path, { dirname } from "node:path"
 
@@ -11,14 +11,6 @@ type JsonValue =
   | { readonly [key: string]: JsonValue }
 
 type JsonObject = Record<string, JsonValue>
-
-type FrontmatterValue = string | number | boolean | readonly string[]
-type Frontmatter = Record<string, FrontmatterValue>
-
-type MarkdownAgent = {
-  readonly frontmatter: Frontmatter
-  readonly body: string
-}
 
 type ModelChoice = {
   readonly provider: string
@@ -44,7 +36,8 @@ const SUPPORTED_PROVIDERS = [
 
 const AGENT_MODEL_PROFILES = {
   hard: ["reviewer"],
-  reasoning: ["oracle", "worker", "researcher"],
+  oracle: ["oracle"],
+  reasoning: ["researcher"],
   light: ["scout", "delegate"],
 } as const
 
@@ -64,14 +57,6 @@ const getPaths = () => {
     modelsSource: path.join(piAgentConfigRoot, "models.json"),
     modelsLocal: path.join(piAgentConfigRoot, "models.local.json"),
     modelsTarget: path.join(homedir(), ".pi/agent/models.json"),
-    frontendWorkerSource: path.join(
-      piAgentConfigRoot,
-      "agents/frontend_worker.md"
-    ),
-    frontendWorkerLocal: path.join(
-      piAgentConfigRoot,
-      "agents/frontend_worker.local.json"
-    ),
     frontendWorkerTarget: path.join(
       homedir(),
       ".pi/agent/agents/frontend_worker.md"
@@ -483,27 +468,6 @@ const buildGeneratedSettings = (
   }
 }
 
-const buildGeneratedFrontendWorker = (
-  profiles: ModelProfiles,
-  availableProviders: readonly string[]
-): Frontmatter => {
-  const design = filterProfileChoices(profiles, "design", availableProviders)
-  const primary = firstChoice(design, "design")
-  const thinking = getThinking(primary, "design")
-
-  const fallbackModels = design.slice(1).map((choice) => choice.modelId)
-  return fallbackModels.length === 0
-    ? {
-        model: primary.modelId,
-        thinking,
-      }
-    : {
-        model: primary.modelId,
-        thinking,
-        fallbackModels,
-      }
-}
-
 const materializeSettingsConfig = async (
   sourcePath: string,
   localPath: string,
@@ -565,109 +529,17 @@ const materializeModelsConfig = async (
   console.log(`${targetExists ? "Updated" : "Created"}: ${targetPath}`)
 }
 
-const parseFrontmatter = (content: string, filePath: string): MarkdownAgent => {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(content)
-  if (match === null) {
-    throw new Error(`Expected frontmatter block in ${filePath}`)
-  }
-
-  const rawFrontmatter = match[1]
-  const body = match[2]
-  if (rawFrontmatter === undefined || body === undefined) {
-    throw new Error(`Failed to parse frontmatter block in ${filePath}`)
-  }
-
-  const frontmatter: Frontmatter = {}
-  for (const line of rawFrontmatter.split(/\r?\n/)) {
-    if (line.trim() === "") continue
-
-    const lineMatch = /^([A-Za-z0-9_-]+):\s*(.*)$/.exec(line)
-    if (lineMatch === null) {
-      throw new Error(`Unsupported frontmatter line in ${filePath}: ${line}`)
-    }
-
-    const key = lineMatch[1]
-    const value = lineMatch[2]
-    if (key === undefined || value === undefined) {
-      throw new Error(`Unsupported frontmatter line in ${filePath}: ${line}`)
-    }
-    frontmatter[key] = value
-  }
-
-  return { frontmatter, body }
-}
-
-const readMarkdownAgent = async (filePath: string): Promise<MarkdownAgent> => {
-  return parseFrontmatter(await readFile(filePath, "utf-8"), filePath)
-}
-
-const readOptionalFrontmatterOverride = async (
-  filePath: string
-): Promise<Frontmatter | null> => {
-  const parsed = await readOptionalJsonObject(filePath)
-  if (parsed === null) return null
-
-  for (const [key, value] of Object.entries(parsed)) {
-    const isValidArray =
-      Array.isArray(value) && value.every((item) => typeof item === "string")
-    if (
-      typeof value !== "string" &&
-      typeof value !== "number" &&
-      typeof value !== "boolean" &&
-      !isValidArray
-    ) {
-      throw new Error(
-        `Expected string, number, boolean, or string[] for ${key} in ${filePath}`
-      )
-    }
-  }
-
-  return parsed as Frontmatter
-}
-
-const serializeFrontmatterValue = (value: FrontmatterValue): string => {
-  if (Array.isArray(value)) return value.join(", ")
-  return String(value)
-}
-
-const serializeMarkdownAgent = (agent: MarkdownAgent): string => {
-  const frontmatter = Object.entries(agent.frontmatter)
-    .map(([key, value]) => `${key}: ${serializeFrontmatterValue(value)}`)
-    .join("\n")
-
-  return `---\n${frontmatter}\n---\n${agent.body}`
-}
-
-const materializeMarkdownAgent = async (
-  sourcePath: string,
-  localPath: string,
+const removeManagedFrontendWorker = async (
   targetPath: string,
-  generated: Frontmatter,
   dryRun: boolean
 ): Promise<void> => {
-  const base = await readMarkdownAgent(sourcePath)
-  const local = await readOptionalFrontmatterOverride(localPath)
-  const built: MarkdownAgent = {
-    frontmatter: {
-      ...base.frontmatter,
-      ...generated,
-      ...(local ?? {}),
-    },
-    body: base.body,
-  }
-
-  const targetExists = (await readOptionalText(targetPath)) !== null
-  const output = serializeMarkdownAgent(built)
-
   if (dryRun) {
-    console.log(`  [dry-run] Would write to: ${targetPath}`)
-    console.log(output)
+    console.log(`  [dry-run] Would remove: ${targetPath}`)
     return
   }
 
-  await mkdir(dirname(targetPath), { recursive: true })
-  await writeFile(targetPath, output, "utf-8")
-  console.log(`${targetExists ? "Updated" : "Created"}: ${targetPath}`)
+  await rm(targetPath, { force: true })
+  console.log(`Removed if present: ${targetPath}`)
 }
 
 export const deliverPiAgentConfig = async (
@@ -704,13 +576,7 @@ export const deliverPiAgentConfig = async (
   )
 
   console.log("\npi-agent frontend_worker")
-  await materializeMarkdownAgent(
-    paths.frontendWorkerSource,
-    paths.frontendWorkerLocal,
-    paths.frontendWorkerTarget,
-    buildGeneratedFrontendWorker(profiles, availableProviders),
-    options.dryRun
-  )
+  await removeManagedFrontendWorker(paths.frontendWorkerTarget, options.dryRun)
 
   console.log("\nDone.")
 }

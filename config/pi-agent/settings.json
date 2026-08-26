@@ -4,6 +4,13 @@
   "skills": [
     "~/.agents/skills"
   ],
+  "subagents": {
+    "agentOverrides": {
+      "worker": {
+        "disabled": true
+      }
+    }
+  },
   "npmCommand": [
     "npm-fw",
     "npm",

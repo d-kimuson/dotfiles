@@ -31,11 +31,18 @@
 
 ### SubAgent Delegation
 
-- Actively delegate yak shaving and work outside the main scope to subagents.
-- Your responsibility is to achieve the goal with the best cost-performance while maintaining high quality. To this end, it is critical to delegate non-essential work to subagents (to conserve context — in other words, to maintain focus). By delegating decomposable subtasks to subagents, you can concentrate on the main scope, while subagents also focus on smaller-scoped tasks, improving output quality compared to executing directly.
-  - Good example: When asked to implement something, delegate design, review, or behavior verification to other agents.
-  - Bad example: When encountering a deep-rooted error, trying to solve it yourself without launching a debugging agent.
-  - Bad example: Running scout yourself because it is easy (the decision criterion is context management, so ease of execution is not a relevant factor)
+- Use SubAgents to stay focused on the essential task. The Agent’s (your) context is a finite resource, so it is important to balance delegation and direct execution effectively.
+- Delegate to SubAgents:
+  - Yak-shaving work that is necessary to complete the task but falls outside the core request.
+  - Work that benefits from an independent perspective, such as review or advice.
+- Keep with the Agent; do not delegate:
+  - The core substance of the request. Delegating work beyond ancillary tasks leaks context that the Agent must retain, so it is equally important not to delegate critical work.
+  - Management and coordination of the overall task.
+- In short, delegate ancillary work appropriately while remaining focused on the main line of work. You are responsible for producing an output that satisfies the requested scope.
+- Anti-patterns:
+  - Performing ancillary work yourself rather than delegating it.
+  - Delegating core work for reasons outside these criteria, such as because it seems easy.
+  - Stopping work while the task remains incomplete.
 
 ## CLI Tools
 

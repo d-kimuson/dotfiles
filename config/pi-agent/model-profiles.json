@@ -11,6 +11,9 @@
     "openai-codex/gpt-5.6-sol:xhigh",
     "anthropic/claude-fable-5:high"
   ],
+  "oracle": [
+    "openai-codex/gpt-5.6-sol:xhigh"
+  ],
   "medium": [
     "zai/glm-5.3:high",
     "opencode-go/deepseek-v4-flash:high",
@@ -26,9 +29,5 @@
     "opencode-go/deepseek-v4-flash:xhigh",
     "openai-codex/gpt-5.6-luna:xhigh",
     "anthropic/claude-opus-4-8:high"
-  ],
-  "design": [
-    "opencode-go/deepseek-v4-flash:medium",
-    "anthropic/claude-sonnet-4-6:medium"
   ]
 }
