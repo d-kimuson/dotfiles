@@ -51,7 +51,7 @@ Nix daemon を使えないリモート環境では `scripts/setup-nix-flakes-for
 ./scripts/update.sh
 ```
 
-このスクリプトは Nix を利用可能にしてから、chezmoi apply、flake update、移行済みの nix profile パッケージ削除、home-manager switch、mise 対象 CLI の更新、mise 設定の source state への同期、reshim を実行する。
+このスクリプトは Nix を利用可能にしてから、chezmoi apply、flake update、移行済みの nix profile パッケージ削除、home-manager switch、mise 対象 CLI の更新、mise 設定の source state への同期、`mise prune`、reshim を実行する。
 
 ## 検証
 

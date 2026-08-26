@@ -37,6 +37,11 @@ home-manager を反映する場合は activation hook がこの処理を行う�
 ## 更新
 
 Nix の入力と mise の対象 CLI を更新する場合は `./scripts/update.sh` を使う。
-このスクリプトは chezmoi apply、flake update、移行済み profile パッケージの削除、home-manager switch、mise update、mise 設定の source state への同期を順に実行する。
+このスクリプトは chezmoi apply、flake update、移行済み profile パッケージの削除、home-manager switch、mise update、mise 設定の source state への同期、`mise prune` を順に実行する。
+
+`mise prune` は tracked-configs の死んだリンクと、どの config からも参照されなくなったツールバージョンを削除する。
+稼働中のプロジェクトの `.node-version` などが参照するバージョンは残るため、既存プロジェクトには影響しない。
+削除対象を事前に確認する場合は `mise ls --prunable` と `mise prune --dry-run` を使う。
+npm CLI を `npm i -g` でインストールすると、その node バージョンの bin が mise の npm バックエンドをシャドウしてプロジェクトごとに古いバイナリが使われるため、npm CLI は必ず mise で管理する。
 
 パッケージを追加しただけなら、設定を適用して `home-manager switch` または `mise install && mise reshim` を実行する。

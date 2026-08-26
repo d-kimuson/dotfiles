@@ -82,6 +82,13 @@ export PATH="$(dirname "$MISE_BIN"):$PATH"
   npm:agent-browser || \
   echo "Warning: some mise upgrades failed (newer version may be within min-release-age window)" >&2
 cp "${HOME}/.config/mise/config.toml" "$MISE_CONFIG_PATH"
+
+echo ""
+echo "Pruning unused mise tool versions..."
+# tracked-configs の死んだリンクと、どの config からも参照されなくなった
+# ツールバージョンを削除する。稼働中の config が参照するバージョンは残る。
+"$MISE_BIN" prune -y || echo "Warning: mise prune failed" >&2
+
 "$MISE_BIN" reshim
 
 echo ""
