@@ -1,0 +1,3 @@
+# Per-machine observations and identity are local-only.
+state/*
+!state/.gitkeep

@@ -13,7 +13,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { __usageStatusInternals } from "../../../chezmoi/private_dot_pi/private_agent/extensions/usage-status.ts"
 
-const { fetchZaiUsage, resolveZaiKey, fetchGrokUsage, resolveXaiAuth, parseGrokUsage } =
+const { fetchZaiUsage, resolveZaiKey, fetchGrokUsage, resolveXaiAuth, parseGrokUsage, quotaObservations } =
   __usageStatusInternals
 
 const testRootPrefix = path.join(tmpdir(), "usage-status-test-")
@@ -147,10 +147,72 @@ describe("fetchZaiUsage", () => {
 
 		const usage = await fetchZaiUsage("test-key")
 
-		expect(usage.fiveHour).toEqual({ percent: 6, resetAtMs: 1786961964113 })
+		expect(usage.fiveHour).toEqual({ percent: 6.4, resetAtMs: 1786961964113 })
 		expect(usage.weekly).toBeNull()
 		expect(usage.monthlyTools).toBeNull()
 		expect(usage.level).toBeUndefined()
+	})
+})
+
+describe("quotaObservations", () => {
+	it("preserves raw quota percentages for ledger output", () => {
+		const observations = quotaObservations(
+			null,
+			null,
+			{
+				fiveHour: { percent: 6.4, resetAtMs: 1786961964113 },
+				weekly: null,
+				monthlyTools: null,
+			},
+			null,
+			"2026-08-17T00:00:00.000Z",
+		)
+
+		expect(observations).toEqual([
+			{
+				schemaVersion: 1,
+				kind: "quota_observation",
+				observedAt: "2026-08-17T00:00:00.000Z",
+				provider: "zai",
+				accountAlias: "default",
+				windows: [{
+					kind: "rolling-5h",
+					usedPercent: 6.4,
+					resetAt: new Date(1786961964113).toISOString(),
+				}],
+			},
+		])
+	})
+
+	it("records every Codex quota window under the configured account alias", () => {
+		const observations = quotaObservations(
+			null,
+			{
+				rate_limit: {
+					primary_window: { used_percent: 1.5, reset_at: 1787000000 },
+					secondary_window: { used_percent: 2.5, reset_at: 1787600000 },
+				},
+				code_review_rate_limit: { primary_window: { used_percent: 3.5, reset_at: 1787600000 } },
+				additional_rate_limits: [
+					{ limit_name: "GPT-5.4-Codex", rate_limit: { primary_window: { used_percent: 4.5, reset_at: 1787600000 } } },
+				],
+			},
+			null,
+			null,
+			"2026-08-17T00:00:00.000Z",
+			{ "openai-codex": "personal" },
+		)
+
+		expect(observations[0]).toMatchObject({
+			provider: "openai-codex",
+			accountAlias: "personal",
+			windows: [
+				{ kind: "primary", usedPercent: 1.5 },
+				{ kind: "secondary", usedPercent: 2.5 },
+				{ kind: "code-review", usedPercent: 3.5 },
+				{ kind: "additional:GPT-5.4-Codex", usedPercent: 4.5 },
+			],
+		})
 	})
 })
 
@@ -264,7 +326,7 @@ describe("fetchGrokUsage", () => {
 
 		const usage = await fetchGrokUsage(grokAuthRecord("/tmp"))
 
-		expect(usage.percent).toBe(43)
+		expect(usage.percent).toBe(42.5)
 		expect(usage.resetAtMs).toBe(Date.parse("2026-08-30T04:51:01.146719+00:00"))
 		expect(usage.windowSeconds).toBe(7 * 24 * 60 * 60)
 		expect(usage.level).toBe("SuperGrok")
@@ -295,7 +357,7 @@ describe("fetchGrokUsage", () => {
 
 		const usage = await fetchGrokUsage(grokAuthRecord("/tmp"))
 
-		expect(usage.percent).toBe(7)
+		expect(usage.percent).toBeCloseTo(7.128333333333334)
 		expect(usage.resetAtMs).toBe(Date.parse("2026-06-01T00:00:00+00:00"))
 		expect(usage.windowSeconds).toBe(31 * 24 * 60 * 60)
 	})
@@ -335,7 +397,7 @@ describe("fetchGrokUsage", () => {
 		vi.stubGlobal("fetch", fetchMock)
 
 		const usage = await fetchGrokUsage(grokAuthRecord("/tmp"))
-		expect(usage.percent).toBe(43)
+		expect(usage.percent).toBe(42.5)
 		expect(
 			fetchMock.mock.calls.some(([url]) => String(url).includes("oauth2/token")),
 		).toBe(true)

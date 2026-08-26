@@ -1,0 +1,297 @@
+{
+  "schemaVersion": 1,
+  "currency": "USD",
+  "prices": [
+    {
+      "modelIdentifier": "openai-codex/gpt-5.4",
+      "applyFrom": "2026-04-23",
+      "inputPerMillionUsd": 2.5,
+      "outputPerMillionUsd": 15,
+      "cacheReadPerMillionUsd": 0.25,
+      "cacheWritePerMillionUsd": 0,
+      "tiers": [{ "inputTokensAbove": 272000, "inputPerMillionUsd": 5, "outputPerMillionUsd": 22.5, "cacheReadPerMillionUsd": 0.5, "cacheWritePerMillionUsd": 0 }]
+    },
+    {
+      "modelIdentifier": "openai-codex/gpt-5.5",
+      "applyFrom": "2026-04-26",
+      "inputPerMillionUsd": 5,
+      "outputPerMillionUsd": 30,
+      "cacheReadPerMillionUsd": 0.5,
+      "cacheWritePerMillionUsd": 0,
+      "tiers": [{ "inputTokensAbove": 272000, "inputPerMillionUsd": 10, "outputPerMillionUsd": 45, "cacheReadPerMillionUsd": 1, "cacheWritePerMillionUsd": 0 }]
+    },
+    {
+      "modelIdentifier": "openai-codex/gpt-5.4-mini",
+      "applyFrom": "2026-07-24",
+      "inputPerMillionUsd": 0.75,
+      "outputPerMillionUsd": 4.5,
+      "cacheReadPerMillionUsd": 0.075,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "openai-codex/gpt-5.6-sol",
+      "applyFrom": "2026-07-15",
+      "inputPerMillionUsd": 5,
+      "outputPerMillionUsd": 30,
+      "cacheReadPerMillionUsd": 0.5,
+      "cacheWritePerMillionUsd": 6.25,
+      "tiers": [{ "inputTokensAbove": 272000, "inputPerMillionUsd": 10, "outputPerMillionUsd": 45, "cacheReadPerMillionUsd": 1, "cacheWritePerMillionUsd": 12.5 }]
+    },
+    {
+      "modelIdentifier": "openai-codex/gpt-5.6-terra",
+      "applyFrom": "2026-07-16",
+      "inputPerMillionUsd": 2.5,
+      "outputPerMillionUsd": 15,
+      "cacheReadPerMillionUsd": 0.25,
+      "cacheWritePerMillionUsd": 2.5,
+      "tiers": [{ "inputTokensAbove": 272000, "inputPerMillionUsd": 5, "outputPerMillionUsd": 22.5, "cacheReadPerMillionUsd": 0.5, "cacheWritePerMillionUsd": 5 }]
+    },
+    {
+      "modelIdentifier": "openai-codex/gpt-5.6-terra",
+      "applyFrom": "2026-08-10",
+      "inputPerMillionUsd": 2,
+      "outputPerMillionUsd": 12,
+      "cacheReadPerMillionUsd": 0.2,
+      "cacheWritePerMillionUsd": 2.5,
+      "tiers": [{ "inputTokensAbove": 272000, "inputPerMillionUsd": 4, "outputPerMillionUsd": 18, "cacheReadPerMillionUsd": 0.4, "cacheWritePerMillionUsd": 5 }]
+    },
+    {
+      "modelIdentifier": "openai-codex/gpt-5.6-luna",
+      "applyFrom": "2026-08-16",
+      "inputPerMillionUsd": 0.2,
+      "outputPerMillionUsd": 1.2,
+      "cacheReadPerMillionUsd": 0.02,
+      "cacheWritePerMillionUsd": 0.25,
+      "tiers": [{ "inputTokensAbove": 272000, "inputPerMillionUsd": 0.4, "outputPerMillionUsd": 1.8, "cacheReadPerMillionUsd": 0.04, "cacheWritePerMillionUsd": 0.5 }]
+    },
+    {
+      "modelIdentifier": "opencode-go/qwen3.6-plus",
+      "applyFrom": "2026-04-30",
+      "inputPerMillionUsd": 0.5,
+      "outputPerMillionUsd": 3,
+      "cacheReadPerMillionUsd": 0.05,
+      "cacheWritePerMillionUsd": 0.625
+    },
+    {
+      "modelIdentifier": "opencode-go/deepseek-v4-pro",
+      "applyFrom": "2026-05-06",
+      "inputPerMillionUsd": 1.74,
+      "outputPerMillionUsd": 3.48,
+      "cacheReadPerMillionUsd": 0.0145,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/deepseek-v4-flash",
+      "applyFrom": "2026-05-07",
+      "inputPerMillionUsd": 0.14,
+      "outputPerMillionUsd": 0.28,
+      "cacheReadPerMillionUsd": 0.0028,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/glm-5.1",
+      "applyFrom": "2026-05-13",
+      "inputPerMillionUsd": 1.4,
+      "outputPerMillionUsd": 4.4,
+      "cacheReadPerMillionUsd": 0.26,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/kimi-k2.6",
+      "applyFrom": "2026-05-13",
+      "inputPerMillionUsd": 0.32,
+      "outputPerMillionUsd": 1.34,
+      "cacheReadPerMillionUsd": 0.054,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/mimo-v2.5-pro",
+      "applyFrom": "2026-05-13",
+      "inputPerMillionUsd": 1,
+      "outputPerMillionUsd": 3,
+      "cacheReadPerMillionUsd": 0.2,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/minimax-m2.7",
+      "applyFrom": "2026-05-13",
+      "inputPerMillionUsd": 0.3,
+      "outputPerMillionUsd": 1.2,
+      "cacheReadPerMillionUsd": 0.06,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/kimi-k2.6",
+      "applyFrom": "2026-05-22",
+      "inputPerMillionUsd": 0.95,
+      "outputPerMillionUsd": 4,
+      "cacheReadPerMillionUsd": 0.16,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/glm-5.2",
+      "applyFrom": "2026-06-22",
+      "inputPerMillionUsd": 1.4,
+      "outputPerMillionUsd": 4.4,
+      "cacheReadPerMillionUsd": 0.26,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/kimi-k2.7-code",
+      "applyFrom": "2026-06-15",
+      "inputPerMillionUsd": 0.95,
+      "outputPerMillionUsd": 4,
+      "cacheReadPerMillionUsd": 0.19,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/deepseek-v4-pro",
+      "applyFrom": "2026-07-24",
+      "inputPerMillionUsd": 0.435,
+      "outputPerMillionUsd": 0.87,
+      "cacheReadPerMillionUsd": 0.003625,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/grok-4.5",
+      "applyFrom": "2026-07-24",
+      "inputPerMillionUsd": 2,
+      "outputPerMillionUsd": 6,
+      "cacheReadPerMillionUsd": 0.5,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/deepseek-v4-flash",
+      "applyFrom": "2026-08-01",
+      "inputPerMillionUsd": 0.14,
+      "outputPerMillionUsd": 0.28,
+      "cacheReadPerMillionUsd": 0.0028,
+      "cacheWritePerMillionUsd": 0,
+      "quotaMultiplier": 0.5,
+      "conditions": [{
+        "kind": "utc-weekly-time-window",
+        "weekdays": [1, 2, 3, 4, 5],
+        "startUtc": "01:00",
+        "endUtc": "04:00",
+        "inputPerMillionUsd": 0.28,
+        "outputPerMillionUsd": 0.56,
+        "cacheReadPerMillionUsd": 0.0056,
+        "cacheWritePerMillionUsd": 0,
+        "quotaMultiplier": 0.5
+      }, {
+        "kind": "utc-weekly-time-window",
+        "weekdays": [1, 2, 3, 4, 5],
+        "startUtc": "06:00",
+        "endUtc": "10:00",
+        "inputPerMillionUsd": 0.28,
+        "outputPerMillionUsd": 0.56,
+        "cacheReadPerMillionUsd": 0.0056,
+        "cacheWritePerMillionUsd": 0,
+        "quotaMultiplier": 0.5
+      }]
+    },
+    {
+      "modelIdentifier": "opencode-go/deepseek-v4-flash",
+      "applyFrom": "2026-08-17",
+      "inputPerMillionUsd": 0.22,
+      "outputPerMillionUsd": 0.66,
+      "cacheReadPerMillionUsd": 0.007,
+      "cacheWritePerMillionUsd": 0,
+      "quotaMultiplier": 4,
+      "conditions": [{
+        "kind": "utc-weekly-time-window",
+        "weekdays": [1, 2, 3, 4, 5],
+        "startUtc": "01:00",
+        "endUtc": "04:00",
+        "inputPerMillionUsd": 0.44,
+        "outputPerMillionUsd": 1.32,
+        "cacheReadPerMillionUsd": 0.014,
+        "cacheWritePerMillionUsd": 0,
+        "quotaMultiplier": 4
+      }, {
+        "kind": "utc-weekly-time-window",
+        "weekdays": [1, 2, 3, 4, 5],
+        "startUtc": "06:00",
+        "endUtc": "10:00",
+        "inputPerMillionUsd": 0.44,
+        "outputPerMillionUsd": 1.32,
+        "cacheReadPerMillionUsd": 0.014,
+        "cacheWritePerMillionUsd": 0,
+        "quotaMultiplier": 4
+      }]
+    },
+    {
+      "modelIdentifier": "opencode-go/kimi-k3",
+      "applyFrom": "2026-08-14",
+      "inputPerMillionUsd": 3,
+      "outputPerMillionUsd": 15,
+      "cacheReadPerMillionUsd": 0.3,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "opencode-go/deepseek-v4-flash",
+      "applyFrom": "2026-08-18",
+      "inputPerMillionUsd": 0.22,
+      "outputPerMillionUsd": 0.66,
+      "cacheReadPerMillionUsd": 0.007,
+      "cacheWritePerMillionUsd": 0,
+      "quotaMultiplier": 2,
+      "conditions": [{
+        "kind": "utc-weekly-time-window",
+        "weekdays": [1, 2, 3, 4, 5],
+        "startUtc": "01:00",
+        "endUtc": "04:00",
+        "inputPerMillionUsd": 0.44,
+        "outputPerMillionUsd": 1.32,
+        "cacheReadPerMillionUsd": 0.014,
+        "cacheWritePerMillionUsd": 0,
+        "quotaMultiplier": 2
+      }, {
+        "kind": "utc-weekly-time-window",
+        "weekdays": [1, 2, 3, 4, 5],
+        "startUtc": "06:00",
+        "endUtc": "10:00",
+        "inputPerMillionUsd": 0.44,
+        "outputPerMillionUsd": 1.32,
+        "cacheReadPerMillionUsd": 0.014,
+        "cacheWritePerMillionUsd": 0,
+        "quotaMultiplier": 2
+      }]
+    },
+    {
+      "modelIdentifier": "zai/glm-5.3",
+      "applyFrom": "2026-08-17",
+      "inputPerMillionUsd": 1.4,
+      "outputPerMillionUsd": 4.4,
+      "cacheReadPerMillionUsd": 0.26,
+      "cacheWritePerMillionUsd": 0,
+      "conditions": [{
+        "kind": "utc-weekly-time-window",
+        "weekdays": [1, 2, 3, 4, 5],
+        "startUtc": "06:00",
+        "endUtc": "10:00",
+        "inputPerMillionUsd": 1.4,
+        "outputPerMillionUsd": 4.4,
+        "cacheReadPerMillionUsd": 0.26,
+        "cacheWritePerMillionUsd": 0,
+        "quotaMultiplier": 3
+      }]
+    },
+    {
+      "modelIdentifier": "xai/grok-4.5",
+      "applyFrom": "2026-08-23",
+      "inputPerMillionUsd": 2,
+      "outputPerMillionUsd": 6,
+      "cacheReadPerMillionUsd": 0.3,
+      "cacheWritePerMillionUsd": 0
+    },
+    {
+      "modelIdentifier": "xai/grok-4.6",
+      "applyFrom": "2026-08-23",
+      "inputPerMillionUsd": 2,
+      "outputPerMillionUsd": 6,
+      "cacheReadPerMillionUsd": 0.5,
+      "cacheWritePerMillionUsd": 0
+    }
+  ]
+}

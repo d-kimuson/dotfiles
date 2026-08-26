@@ -1,0 +1,1811 @@
+{
+  "schemaVersion": 1,
+  "machineId": "b6050420-de64-413b-8f2b-f7e06bf237f6",
+  "month": "2026-08",
+  "days": {
+    "2026-08-10": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 1320,
+        "pricedRequestCount": 1320,
+        "tokens": {
+          "input": 3253194,
+          "output": 475245,
+          "cacheRead": 94822784,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 46.6058977356,
+        "pricedQuotaEquivalentCostUsd": 46.4573851728,
+        "retailCostUsd": 46.6058977356,
+        "quotaEquivalentCostUsd": 46.4573851728,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4",
+            "requestCount": 8,
+            "pricedRequestCount": 8,
+            "tokens": {
+              "input": 43993,
+              "output": 3440,
+              "cacheRead": 138752,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.1962705,
+            "pricedQuotaEquivalentCostUsd": 0.1962705,
+            "retailCostUsd": 0.1962705,
+            "quotaEquivalentCostUsd": 0.1962705,
+            "pricingApplyFrom": [
+              "2026-04-23"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4-mini",
+            "requestCount": 13,
+            "pricedRequestCount": 13,
+            "tokens": {
+              "input": 53796,
+              "output": 7273,
+              "cacheRead": 148992,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.0842499,
+            "pricedQuotaEquivalentCostUsd": 0.0842499,
+            "retailCostUsd": 0.0842499,
+            "quotaEquivalentCostUsd": 0.0842499,
+            "pricingApplyFrom": [
+              "2026-07-24"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 557,
+            "pricedRequestCount": 557,
+            "tokens": {
+              "input": 1739083,
+              "output": 149063,
+              "cacheRead": 56904704,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 41.619657,
+            "pricedQuotaEquivalentCostUsd": 41.619657,
+            "retailCostUsd": 41.619657,
+            "quotaEquivalentCostUsd": 41.619657,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 116,
+            "pricedRequestCount": 116,
+            "tokens": {
+              "input": 379448,
+              "output": 17380,
+              "cacheRead": 6074880,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 2.182432,
+            "pricedQuotaEquivalentCostUsd": 2.182432,
+            "retailCostUsd": 2.182432,
+            "quotaEquivalentCostUsd": 2.182432,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 460,
+            "pricedRequestCount": 460,
+            "tokens": {
+              "input": 789083,
+              "output": 214835,
+              "cacheRead": 22829952,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.2970251256,
+            "pricedQuotaEquivalentCostUsd": 0.1485125628,
+            "retailCostUsd": 0.2970251256,
+            "quotaEquivalentCostUsd": 0.1485125628,
+            "pricingApplyFrom": [
+              "2026-08-01"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/kimi-k2.7-code",
+            "requestCount": 166,
+            "pricedRequestCount": 166,
+            "tokens": {
+              "input": 247791,
+              "output": 83254,
+              "cacheRead": 8725504,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 2.22626321,
+            "pricedQuotaEquivalentCostUsd": 2.22626321,
+            "retailCostUsd": 2.22626321,
+            "quotaEquivalentCostUsd": 2.22626321,
+            "pricingApplyFrom": [
+              "2026-06-15"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-11": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 4601,
+        "pricedRequestCount": 4601,
+        "tokens": {
+          "input": 11783956,
+          "output": 1766888,
+          "cacheRead": 476010624,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 321.4931103152,
+        "pricedQuotaEquivalentCostUsd": 321.2883571876,
+        "retailCostUsd": 321.4931103152,
+        "quotaEquivalentCostUsd": 321.2883571876,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4",
+            "requestCount": 456,
+            "pricedRequestCount": 456,
+            "tokens": {
+              "input": 1783524,
+              "output": 191619,
+              "cacheRead": 15072256,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 11.101159,
+            "pricedQuotaEquivalentCostUsd": 11.101159,
+            "retailCostUsd": 11.101159,
+            "quotaEquivalentCostUsd": 11.101159,
+            "pricingApplyFrom": [
+              "2026-04-23"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4-mini",
+            "requestCount": 824,
+            "pricedRequestCount": 824,
+            "tokens": {
+              "input": 2186355,
+              "output": 528846,
+              "cacheRead": 36233728,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 6.73710285,
+            "pricedQuotaEquivalentCostUsd": 6.73710285,
+            "retailCostUsd": 6.73710285,
+            "quotaEquivalentCostUsd": 6.73710285,
+            "pricingApplyFrom": [
+              "2026-07-24"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 2464,
+            "pricedRequestCount": 2464,
+            "tokens": {
+              "input": 6765242,
+              "output": 711825,
+              "cacheRead": 404689792,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 303.158853,
+            "pricedQuotaEquivalentCostUsd": 303.158853,
+            "retailCostUsd": 303.158853,
+            "quotaEquivalentCostUsd": 303.158853,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 848,
+            "pricedRequestCount": 848,
+            "tokens": {
+              "input": 1026012,
+              "output": 324768,
+              "cacheRead": 19880704,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.4095062552,
+            "pricedQuotaEquivalentCostUsd": 0.2047531276,
+            "retailCostUsd": 0.4095062552,
+            "quotaEquivalentCostUsd": 0.2047531276,
+            "pricingApplyFrom": [
+              "2026-08-01"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/kimi-k2.7-code",
+            "requestCount": 9,
+            "pricedRequestCount": 9,
+            "tokens": {
+              "input": 22823,
+              "output": 9830,
+              "cacheRead": 134144,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.08648921,
+            "pricedQuotaEquivalentCostUsd": 0.08648921,
+            "retailCostUsd": 0.08648921,
+            "quotaEquivalentCostUsd": 0.08648921,
+            "pricingApplyFrom": [
+              "2026-06-15"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-12": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 3857,
+        "pricedRequestCount": 3857,
+        "tokens": {
+          "input": 10314419,
+          "output": 1139210,
+          "cacheRead": 481243776,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 269.409497446,
+        "pricedQuotaEquivalentCostUsd": 269.212101072,
+        "retailCostUsd": 269.409497446,
+        "quotaEquivalentCostUsd": 269.212101072,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4",
+            "requestCount": 63,
+            "pricedRequestCount": 63,
+            "tokens": {
+              "input": 371502,
+              "output": 19033,
+              "cacheRead": 1268224,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.531306,
+            "pricedQuotaEquivalentCostUsd": 1.531306,
+            "retailCostUsd": 1.531306,
+            "quotaEquivalentCostUsd": 1.531306,
+            "pricingApplyFrom": [
+              "2026-04-23"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4-mini",
+            "requestCount": 18,
+            "pricedRequestCount": 18,
+            "tokens": {
+              "input": 42130,
+              "output": 18965,
+              "cacheRead": 243712,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.1352184,
+            "pricedQuotaEquivalentCostUsd": 0.1352184,
+            "retailCostUsd": 0.1352184,
+            "quotaEquivalentCostUsd": 0.1352184,
+            "pricingApplyFrom": [
+              "2026-07-24"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 2174,
+            "pricedRequestCount": 2174,
+            "tokens": {
+              "input": 6739753,
+              "output": 511913,
+              "cacheRead": 320481024,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 236.824654,
+            "pricedQuotaEquivalentCostUsd": 236.824654,
+            "retailCostUsd": 236.824654,
+            "quotaEquivalentCostUsd": 236.824654,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 804,
+            "pricedRequestCount": 804,
+            "tokens": {
+              "input": 1789053,
+              "output": 155406,
+              "cacheRead": 125202560,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 30.48349,
+            "pricedQuotaEquivalentCostUsd": 30.48349,
+            "retailCostUsd": 30.48349,
+            "quotaEquivalentCostUsd": 30.48349,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 777,
+            "pricedRequestCount": 777,
+            "tokens": {
+              "input": 1307103,
+              "output": 423437,
+              "cacheRead": 33298560,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.394792748,
+            "pricedQuotaEquivalentCostUsd": 0.197396374,
+            "retailCostUsd": 0.394792748,
+            "quotaEquivalentCostUsd": 0.197396374,
+            "pricingApplyFrom": [
+              "2026-08-01"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-pro",
+            "requestCount": 21,
+            "pricedRequestCount": 21,
+            "tokens": {
+              "input": 64878,
+              "output": 10456,
+              "cacheRead": 749696,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.040036298,
+            "pricedQuotaEquivalentCostUsd": 0.040036298,
+            "retailCostUsd": 0.040036298,
+            "quotaEquivalentCostUsd": 0.040036298,
+            "pricingApplyFrom": [
+              "2026-07-24"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-13": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 1072,
+        "pricedRequestCount": 1072,
+        "tokens": {
+          "input": 1746345,
+          "output": 622571,
+          "cacheRead": 267036032,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 3.4395775376,
+        "pricedQuotaEquivalentCostUsd": 2.8791684688,
+        "retailCostUsd": 3.4395775376,
+        "quotaEquivalentCostUsd": 2.8791684688,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 1,
+            "pricedRequestCount": 1,
+            "tokens": {
+              "input": 200989,
+              "output": 110,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.008245,
+            "pricedQuotaEquivalentCostUsd": 1.008245,
+            "retailCostUsd": 1.008245,
+            "quotaEquivalentCostUsd": 1.008245,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 19,
+            "pricedRequestCount": 19,
+            "tokens": {
+              "input": 238148,
+              "output": 3419,
+              "cacheRead": 3965952,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.3105144,
+            "pricedQuotaEquivalentCostUsd": 1.3105144,
+            "retailCostUsd": 1.3105144,
+            "quotaEquivalentCostUsd": 1.3105144,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 1052,
+            "pricedRequestCount": 1052,
+            "tokens": {
+              "input": 1307208,
+              "output": 619042,
+              "cacheRead": 263070080,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.1208181376,
+            "pricedQuotaEquivalentCostUsd": 0.5604090688,
+            "retailCostUsd": 1.1208181376,
+            "quotaEquivalentCostUsd": 0.5604090688,
+            "pricingApplyFrom": [
+              "2026-08-01"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-14": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 3645,
+        "pricedRequestCount": 3645,
+        "tokens": {
+          "input": 3947425,
+          "output": 2163545,
+          "cacheRead": 1066546304,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 8.2207390678,
+        "pricedQuotaEquivalentCostUsd": 5.3543499814,
+        "retailCostUsd": 8.2207390678,
+        "quotaEquivalentCostUsd": 5.3543499814,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 14,
+            "pricedRequestCount": 14,
+            "tokens": {
+              "input": 64938,
+              "output": 8908,
+              "cacheRead": 673280,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.92857,
+            "pricedQuotaEquivalentCostUsd": 0.92857,
+            "retailCostUsd": 0.92857,
+            "quotaEquivalentCostUsd": 0.92857,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 23,
+            "pricedRequestCount": 23,
+            "tokens": {
+              "input": 390046,
+              "output": 3386,
+              "cacheRead": 1336320,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.087988,
+            "pricedQuotaEquivalentCostUsd": 1.087988,
+            "retailCostUsd": 1.087988,
+            "quotaEquivalentCostUsd": 1.087988,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 3593,
+            "pricedRequestCount": 3593,
+            "tokens": {
+              "input": 3390284,
+              "output": 2138676,
+              "cacheRead": 1063946496,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 5.7327781728,
+            "pricedQuotaEquivalentCostUsd": 2.8663890864,
+            "retailCostUsd": 5.7327781728,
+            "quotaEquivalentCostUsd": 2.8663890864,
+            "pricingApplyFrom": [
+              "2026-08-01"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-pro",
+            "requestCount": 6,
+            "pricedRequestCount": 6,
+            "tokens": {
+              "input": 29473,
+              "output": 6750,
+              "cacheRead": 100480,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.019057495,
+            "pricedQuotaEquivalentCostUsd": 0.019057495,
+            "retailCostUsd": 0.019057495,
+            "quotaEquivalentCostUsd": 0.019057495,
+            "pricingApplyFrom": [
+              "2026-07-24"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/kimi-k3",
+            "requestCount": 9,
+            "pricedRequestCount": 9,
+            "tokens": {
+              "input": 72684,
+              "output": 5825,
+              "cacheRead": 489728,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.4523454,
+            "pricedQuotaEquivalentCostUsd": 0.4523454,
+            "retailCostUsd": 0.4523454,
+            "quotaEquivalentCostUsd": 0.4523454,
+            "pricingApplyFrom": [
+              "2026-08-14"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-16": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 3398,
+        "pricedRequestCount": 3398,
+        "tokens": {
+          "input": 10609629,
+          "output": 1605492,
+          "cacheRead": 717468288,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 186.780633008,
+        "pricedQuotaEquivalentCostUsd": 185.672228144,
+        "retailCostUsd": 186.780633008,
+        "quotaEquivalentCostUsd": 185.672228144,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-luna",
+            "requestCount": 181,
+            "pricedRequestCount": 181,
+            "tokens": {
+              "input": 770160,
+              "output": 34936,
+              "cacheRead": 10279424,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.40154368,
+            "pricedQuotaEquivalentCostUsd": 0.40154368,
+            "retailCostUsd": 0.40154368,
+            "quotaEquivalentCostUsd": 0.40154368,
+            "pricingApplyFrom": [
+              "2026-08-16"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 1283,
+            "pricedRequestCount": 1283,
+            "tokens": {
+              "input": 4428874,
+              "output": 443214,
+              "cacheRead": 209651328,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 174.781567,
+            "pricedQuotaEquivalentCostUsd": 174.781567,
+            "retailCostUsd": 174.781567,
+            "quotaEquivalentCostUsd": 174.781567,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 120,
+            "pricedRequestCount": 120,
+            "tokens": {
+              "input": 491620,
+              "output": 44638,
+              "cacheRead": 14461952,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 4.4112864,
+            "pricedQuotaEquivalentCostUsd": 4.4112864,
+            "retailCostUsd": 4.4112864,
+            "quotaEquivalentCostUsd": 4.4112864,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 1765,
+            "pricedRequestCount": 1765,
+            "tokens": {
+              "input": 4242692,
+              "output": 1043486,
+              "cacheRead": 475234560,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 2.216809728,
+            "pricedQuotaEquivalentCostUsd": 1.108404864,
+            "retailCostUsd": 2.216809728,
+            "quotaEquivalentCostUsd": 1.108404864,
+            "pricingApplyFrom": [
+              "2026-08-01"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/kimi-k3",
+            "requestCount": 49,
+            "pricedRequestCount": 49,
+            "tokens": {
+              "input": 676283,
+              "output": 39218,
+              "cacheRead": 7841024,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 4.9694262,
+            "pricedQuotaEquivalentCostUsd": 4.9694262,
+            "retailCostUsd": 4.9694262,
+            "quotaEquivalentCostUsd": 4.9694262,
+            "pricingApplyFrom": [
+              "2026-08-14"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-17": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 1411,
+        "pricedRequestCount": 1411,
+        "tokens": {
+          "input": 5285181,
+          "output": 603971,
+          "cacheRead": 221367872,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 71.609809988,
+        "pricedQuotaEquivalentCostUsd": 77.789067032,
+        "retailCostUsd": 71.609809988,
+        "quotaEquivalentCostUsd": 77.789067032,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-luna",
+            "requestCount": 9,
+            "pricedRequestCount": 9,
+            "tokens": {
+              "input": 65050,
+              "output": 4376,
+              "cacheRead": 459776,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.02745672,
+            "pricedQuotaEquivalentCostUsd": 0.02745672,
+            "retailCostUsd": 0.02745672,
+            "quotaEquivalentCostUsd": 0.02745672,
+            "pricingApplyFrom": [
+              "2026-08-16"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 525,
+            "pricedRequestCount": 525,
+            "tokens": {
+              "input": 2083015,
+              "output": 179100,
+              "cacheRead": 73033856,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 52.305003,
+            "pricedQuotaEquivalentCostUsd": 52.305003,
+            "retailCostUsd": 52.305003,
+            "quotaEquivalentCostUsd": 52.305003,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 393,
+            "pricedRequestCount": 393,
+            "tokens": {
+              "input": 1424285,
+              "output": 164500,
+              "cacheRead": 49471104,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 14.7167908,
+            "pricedQuotaEquivalentCostUsd": 14.7167908,
+            "retailCostUsd": 14.7167908,
+            "quotaEquivalentCostUsd": 14.7167908,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 375,
+            "pricedRequestCount": 375,
+            "tokens": {
+              "input": 1438304,
+              "output": 194187,
+              "cacheRead": 93045248,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 2.059752348,
+            "pricedQuotaEquivalentCostUsd": 8.239009392,
+            "retailCostUsd": 2.059752348,
+            "quotaEquivalentCostUsd": 8.239009392,
+            "pricingApplyFrom": [
+              "2026-08-17"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/kimi-k3",
+            "requestCount": 40,
+            "pricedRequestCount": 40,
+            "tokens": {
+              "input": 121173,
+              "output": 19397,
+              "cacheRead": 1299456,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.0443108,
+            "pricedQuotaEquivalentCostUsd": 1.0443108,
+            "retailCostUsd": 1.0443108,
+            "quotaEquivalentCostUsd": 1.0443108,
+            "pricingApplyFrom": [
+              "2026-08-14"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3",
+            "requestCount": 69,
+            "pricedRequestCount": 69,
+            "tokens": {
+              "input": 153354,
+              "output": 42411,
+              "cacheRead": 4058432,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.45649632,
+            "pricedQuotaEquivalentCostUsd": 1.45649632,
+            "retailCostUsd": 1.45649632,
+            "quotaEquivalentCostUsd": 1.45649632,
+            "pricingApplyFrom": [
+              "2026-08-17"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-18": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 717,
+        "pricedRequestCount": 717,
+        "tokens": {
+          "input": 3266472,
+          "output": 257831,
+          "cacheRead": 83169280,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 49.12093914,
+        "pricedQuotaEquivalentCostUsd": 49.3106776,
+        "retailCostUsd": 49.12093914,
+        "quotaEquivalentCostUsd": 49.3106776,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 325,
+            "pricedRequestCount": 325,
+            "tokens": {
+              "input": 1442153,
+              "output": 113070,
+              "cacheRead": 42634240,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 36.668158,
+            "pricedQuotaEquivalentCostUsd": 36.668158,
+            "retailCostUsd": 36.668158,
+            "quotaEquivalentCostUsd": 36.668158,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 127,
+            "pricedRequestCount": 127,
+            "tokens": {
+              "input": 1189514,
+              "output": 30394,
+              "cacheRead": 18870144,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 6.5177848,
+            "pricedQuotaEquivalentCostUsd": 6.5177848,
+            "retailCostUsd": 6.5177848,
+            "quotaEquivalentCostUsd": 6.5177848,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 68,
+            "pricedRequestCount": 68,
+            "tokens": {
+              "input": 355958,
+              "output": 58452,
+              "cacheRead": 2015488,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.18973846,
+            "pricedQuotaEquivalentCostUsd": 0.37947692,
+            "retailCostUsd": 0.18973846,
+            "quotaEquivalentCostUsd": 0.37947692,
+            "pricingApplyFrom": [
+              "2026-08-18"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3",
+            "requestCount": 197,
+            "pricedRequestCount": 197,
+            "tokens": {
+              "input": 278847,
+              "output": 55915,
+              "cacheRead": 19649408,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 5.74525788,
+            "pricedQuotaEquivalentCostUsd": 5.74525788,
+            "retailCostUsd": 5.74525788,
+            "quotaEquivalentCostUsd": 5.74525788,
+            "pricingApplyFrom": [
+              "2026-08-17"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-22": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 3846,
+        "pricedRequestCount": 3846,
+        "tokens": {
+          "input": 10255308,
+          "output": 2253112,
+          "cacheRead": 472709248,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 72.472348056,
+        "pricedQuotaEquivalentCostUsd": 76.717665072,
+        "retailCostUsd": 72.472348056,
+        "quotaEquivalentCostUsd": 76.717665072,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 238,
+            "pricedRequestCount": 238,
+            "tokens": {
+              "input": 1454645,
+              "output": 164919,
+              "cacheRead": 15798784,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 20.120187,
+            "pricedQuotaEquivalentCostUsd": 20.120187,
+            "retailCostUsd": 20.120187,
+            "quotaEquivalentCostUsd": 20.120187,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 1069,
+            "pricedRequestCount": 1069,
+            "tokens": {
+              "input": 3119146,
+              "output": 304328,
+              "cacheRead": 159386752,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 42.3307048,
+            "pricedQuotaEquivalentCostUsd": 42.3307048,
+            "retailCostUsd": 42.3307048,
+            "quotaEquivalentCostUsd": 42.3307048,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 2311,
+            "pricedRequestCount": 2311,
+            "tokens": {
+              "input": 5338568,
+              "output": 1697814,
+              "cacheRead": 278610688,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 4.245317016,
+            "pricedQuotaEquivalentCostUsd": 8.490634032,
+            "retailCostUsd": 4.245317016,
+            "quotaEquivalentCostUsd": 8.490634032,
+            "pricingApplyFrom": [
+              "2026-08-18"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3",
+            "requestCount": 228,
+            "pricedRequestCount": 228,
+            "tokens": {
+              "input": 342949,
+              "output": 86051,
+              "cacheRead": 18913024,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 5.77613924,
+            "pricedQuotaEquivalentCostUsd": 5.77613924,
+            "retailCostUsd": 5.77613924,
+            "quotaEquivalentCostUsd": 5.77613924,
+            "pricingApplyFrom": [
+              "2026-08-17"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-23": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 2709,
+        "pricedRequestCount": 2709,
+        "tokens": {
+          "input": 10103748,
+          "output": 1583295,
+          "cacheRead": 424528512,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 113.356683628,
+        "pricedQuotaEquivalentCostUsd": 115.557610496,
+        "retailCostUsd": 113.356683628,
+        "quotaEquivalentCostUsd": 115.557610496,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 211,
+            "pricedRequestCount": 211,
+            "tokens": {
+              "input": 1951106,
+              "output": 164295,
+              "cacheRead": 14955008,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 22.161884,
+            "pricedQuotaEquivalentCostUsd": 22.161884,
+            "retailCostUsd": 22.161884,
+            "quotaEquivalentCostUsd": 22.161884,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 901,
+            "pricedRequestCount": 901,
+            "tokens": {
+              "input": 3012428,
+              "output": 242211,
+              "cacheRead": 112413952,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 32.9734576,
+            "pricedQuotaEquivalentCostUsd": 32.9734576,
+            "retailCostUsd": 32.9734576,
+            "quotaEquivalentCostUsd": 32.9734576,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 827,
+            "pricedRequestCount": 827,
+            "tokens": {
+              "input": 2763590,
+              "output": 708415,
+              "cacheRead": 160769024,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 2.200926868,
+            "pricedQuotaEquivalentCostUsd": 4.401853736,
+            "retailCostUsd": 2.200926868,
+            "quotaEquivalentCostUsd": 4.401853736,
+            "pricingApplyFrom": [
+              "2026-08-18"
+            ]
+          },
+          {
+            "modelIdentifier": "xai/grok-4.5",
+            "requestCount": 190,
+            "pricedRequestCount": 190,
+            "tokens": {
+              "input": 759934,
+              "output": 142457,
+              "cacheRead": 44690944,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 15.7818932,
+            "pricedQuotaEquivalentCostUsd": 15.7818932,
+            "retailCostUsd": 15.7818932,
+            "quotaEquivalentCostUsd": 15.7818932,
+            "pricingApplyFrom": [
+              "2026-08-23"
+            ]
+          },
+          {
+            "modelIdentifier": "xai/grok-4.6",
+            "requestCount": 232,
+            "pricedRequestCount": 232,
+            "tokens": {
+              "input": 1010963,
+              "output": 162816,
+              "cacheRead": 49300608,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 27.649126,
+            "pricedQuotaEquivalentCostUsd": 27.649126,
+            "retailCostUsd": 27.649126,
+            "quotaEquivalentCostUsd": 27.649126,
+            "pricingApplyFrom": [
+              "2026-08-23"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3",
+            "requestCount": 348,
+            "pricedRequestCount": 348,
+            "tokens": {
+              "input": 605727,
+              "output": 163101,
+              "cacheRead": 42398976,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 12.58939596,
+            "pricedQuotaEquivalentCostUsd": 12.58939596,
+            "retailCostUsd": 12.58939596,
+            "quotaEquivalentCostUsd": 12.58939596,
+            "pricingApplyFrom": [
+              "2026-08-17"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-24": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 175,
+        "pricedRequestCount": 175,
+        "tokens": {
+          "input": 781508,
+          "output": 64853,
+          "cacheRead": 11066624,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 4.070479812,
+        "pricedQuotaEquivalentCostUsd": 4.213891224,
+        "retailCostUsd": 4.070479812,
+        "quotaEquivalentCostUsd": 4.213891224,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 21,
+            "pricedRequestCount": 21,
+            "tokens": {
+              "input": 82458,
+              "output": 5622,
+              "cacheRead": 781312,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.971606,
+            "pricedQuotaEquivalentCostUsd": 0.971606,
+            "retailCostUsd": 0.971606,
+            "quotaEquivalentCostUsd": 0.971606,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 81,
+            "pricedRequestCount": 81,
+            "tokens": {
+              "input": 480088,
+              "output": 30756,
+              "cacheRead": 8131072,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 2.9554624,
+            "pricedQuotaEquivalentCostUsd": 2.9554624,
+            "retailCostUsd": 2.9554624,
+            "quotaEquivalentCostUsd": 2.9554624,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 73,
+            "pricedRequestCount": 73,
+            "tokens": {
+              "input": 218962,
+              "output": 28475,
+              "cacheRead": 2154240,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.143411412,
+            "pricedQuotaEquivalentCostUsd": 0.286822824,
+            "retailCostUsd": 0.143411412,
+            "quotaEquivalentCostUsd": 0.286822824,
+            "pricingApplyFrom": [
+              "2026-08-18"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-25": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 3142,
+        "pricedRequestCount": 3142,
+        "tokens": {
+          "input": 11889874,
+          "output": 1208220,
+          "cacheRead": 330841856,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 128.007819076,
+        "pricedQuotaEquivalentCostUsd": 134.660093032,
+        "retailCostUsd": 128.007819076,
+        "quotaEquivalentCostUsd": 134.660093032,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4",
+            "requestCount": 4,
+            "pricedRequestCount": 4,
+            "tokens": {
+              "input": 155638,
+              "output": 363,
+              "cacheRead": 454656,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.508204,
+            "pricedQuotaEquivalentCostUsd": 0.508204,
+            "retailCostUsd": 0.508204,
+            "quotaEquivalentCostUsd": 0.508204,
+            "pricingApplyFrom": [
+              "2026-04-23"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-luna",
+            "requestCount": 351,
+            "pricedRequestCount": 351,
+            "tokens": {
+              "input": 1991027,
+              "output": 140024,
+              "cacheRead": 13194752,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.83012924,
+            "pricedQuotaEquivalentCostUsd": 0.83012924,
+            "retailCostUsd": 0.83012924,
+            "quotaEquivalentCostUsd": 0.83012924,
+            "pricingApplyFrom": [
+              "2026-08-16"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 414,
+            "pricedRequestCount": 414,
+            "tokens": {
+              "input": 2772250,
+              "output": 305442,
+              "cacheRead": 26495872,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 37.494121,
+            "pricedQuotaEquivalentCostUsd": 37.494121,
+            "retailCostUsd": 37.494121,
+            "quotaEquivalentCostUsd": 37.494121,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 1906,
+            "pricedRequestCount": 1906,
+            "tokens": {
+              "input": 6104385,
+              "output": 529365,
+              "cacheRead": 239374336,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 66.4360172,
+            "pricedQuotaEquivalentCostUsd": 66.4360172,
+            "retailCostUsd": 66.4360172,
+            "quotaEquivalentCostUsd": 66.4360172,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/deepseek-v4-flash",
+            "requestCount": 153,
+            "pricedRequestCount": 153,
+            "tokens": {
+              "input": 408805,
+              "output": 114142,
+              "cacheRead": 4324736,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.367133316,
+            "pricedQuotaEquivalentCostUsd": 0.734266632,
+            "retailCostUsd": 0.367133316,
+            "quotaEquivalentCostUsd": 0.734266632,
+            "pricingApplyFrom": [
+              "2026-08-18"
+            ]
+          },
+          {
+            "modelIdentifier": "xai/grok-4.6",
+            "requestCount": 165,
+            "pricedRequestCount": 165,
+            "tokens": {
+              "input": 349901,
+              "output": 90131,
+              "cacheRead": 35978112,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 19.229644,
+            "pricedQuotaEquivalentCostUsd": 19.229644,
+            "retailCostUsd": 19.229644,
+            "quotaEquivalentCostUsd": 19.229644,
+            "pricingApplyFrom": [
+              "2026-08-23"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3",
+            "requestCount": 149,
+            "pricedRequestCount": 149,
+            "tokens": {
+              "input": 107868,
+              "output": 28753,
+              "cacheRead": 11019392,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 3.14257032,
+            "pricedQuotaEquivalentCostUsd": 9.42771096,
+            "retailCostUsd": 3.14257032,
+            "quotaEquivalentCostUsd": 9.42771096,
+            "pricingApplyFrom": [
+              "2026-08-17"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-26": {
+      "quota": {
+        "observationCount": 32,
+        "windows": [
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-26T15:04:24.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-26T15:04:26.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-26T15:04:29.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-26T15:56:39.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-26T15:56:41.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-26T15:56:43.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-26T18:13:03.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-26T18:23:05.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "primary",
+            "resetAt": "2026-09-01T14:27:12.000Z",
+            "firstUsedPercent": 20,
+            "lastUsedPercent": 22,
+            "minUsedPercent": 20,
+            "maxUsedPercent": 22
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "primary",
+            "resetAt": "2026-09-01T14:27:13.000Z",
+            "firstUsedPercent": 20,
+            "lastUsedPercent": 25,
+            "minUsedPercent": 20,
+            "maxUsedPercent": 25
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:25.036Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:25.046Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:25.315Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:25.568Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:25.620Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:25.640Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:25.891Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:25.991Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-26T15:04:24.315Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-26T15:04:25.991Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-26T15:04:28.568Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-26T15:56:39.036Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-26T15:56:40.640Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-26T15:56:43.046Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-26T18:13:02.891Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-26T18:23:04.620Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.036Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.046Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.315Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.568Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.620Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.640Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.891Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.991Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3
+          },
+          {
+            "provider": "xai",
+            "accountAlias": "default",
+            "kind": "7d",
+            "resetAt": "2026-08-30T04:51:01.146Z",
+            "firstUsedPercent": 51,
+            "lastUsedPercent": 51,
+            "minUsedPercent": 51,
+            "maxUsedPercent": 51
+          },
+          {
+            "provider": "zai",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": null,
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0
+          },
+          {
+            "provider": "zai",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T05:13:20.996Z",
+            "firstUsedPercent": 20,
+            "lastUsedPercent": 20,
+            "minUsedPercent": 20,
+            "maxUsedPercent": 20
+          }
+        ]
+      },
+      "usage": {
+        "requestCount": 1412,
+        "pricedRequestCount": 1412,
+        "tokens": {
+          "input": 5506359,
+          "output": 389247,
+          "cacheRead": 123399424,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 36.07082464,
+        "pricedQuotaEquivalentCostUsd": 36.07082464,
+        "retailCostUsd": 36.07082464,
+        "quotaEquivalentCostUsd": 36.07082464,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-luna",
+            "requestCount": 703,
+            "pricedRequestCount": 703,
+            "tokens": {
+              "input": 1862505,
+              "output": 167674,
+              "cacheRead": 29768704,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.36350004,
+            "pricedQuotaEquivalentCostUsd": 1.36350004,
+            "retailCostUsd": 1.36350004,
+            "quotaEquivalentCostUsd": 1.36350004,
+            "pricingApplyFrom": [
+              "2026-08-16"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 127,
+            "pricedRequestCount": 127,
+            "tokens": {
+              "input": 634855,
+              "output": 63187,
+              "cacheRead": 9975552,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 10.057661,
+            "pricedQuotaEquivalentCostUsd": 10.057661,
+            "retailCostUsd": 10.057661,
+            "quotaEquivalentCostUsd": 10.057661,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 582,
+            "pricedRequestCount": 582,
+            "tokens": {
+              "input": 3008999,
+              "output": 158386,
+              "cacheRead": 83655168,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 24.6496636,
+            "pricedQuotaEquivalentCostUsd": 24.6496636,
+            "retailCostUsd": 24.6496636,
+            "quotaEquivalentCostUsd": 24.6496636,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    }
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "schemaVersion": 1,
+  "machineId": "b6050420-de64-413b-8f2b-f7e06bf237f6",
+  "month": "2026-04",
+  "days": {
+    "2026-04-23": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 314,
+        "pricedRequestCount": 239,
+        "tokens": {
+          "input": 1486537,
+          "output": 159464,
+          "cacheRead": 14878976,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 7.854074,
+        "pricedQuotaEquivalentCostUsd": 7.854074,
+        "retailCostUsd": null,
+        "quotaEquivalentCostUsd": null,
+        "models": [
+          {
+            "modelIdentifier": "ai-kimuson/gemma-4-26b",
+            "requestCount": 75,
+            "pricedRequestCount": 0,
+            "tokens": {
+              "input": 659437,
+              "output": 21692,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0,
+            "pricedQuotaEquivalentCostUsd": 0,
+            "retailCostUsd": null,
+            "quotaEquivalentCostUsd": null,
+            "pricingApplyFrom": []
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4",
+            "requestCount": 239,
+            "pricedRequestCount": 239,
+            "tokens": {
+              "input": 827100,
+              "output": 137772,
+              "cacheRead": 14878976,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 7.854074,
+            "pricedQuotaEquivalentCostUsd": 7.854074,
+            "retailCostUsd": 7.854074,
+            "quotaEquivalentCostUsd": 7.854074,
+            "pricingApplyFrom": [
+              "2026-04-23"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": [
+          "ai-kimuson/gemma-4-26b"
+        ]
+      }
+    },
+    "2026-04-26": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 829,
+        "pricedRequestCount": 829,
+        "tokens": {
+          "input": 2457093,
+          "output": 192043,
+          "cacheRead": 59706240,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 39.300272,
+        "pricedQuotaEquivalentCostUsd": 39.300272,
+        "retailCostUsd": 39.300272,
+        "quotaEquivalentCostUsd": 39.300272,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4",
+            "requestCount": 220,
+            "pricedRequestCount": 220,
+            "tokens": {
+              "input": 897396,
+              "output": 77119,
+              "cacheRead": 20797312,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 8.599603,
+            "pricedQuotaEquivalentCostUsd": 8.599603,
+            "retailCostUsd": 8.599603,
+            "quotaEquivalentCostUsd": 8.599603,
+            "pricingApplyFrom": [
+              "2026-04-23"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.5",
+            "requestCount": 609,
+            "pricedRequestCount": 609,
+            "tokens": {
+              "input": 1559697,
+              "output": 114924,
+              "cacheRead": 38908928,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 30.700669,
+            "pricedQuotaEquivalentCostUsd": 30.700669,
+            "retailCostUsd": 30.700669,
+            "quotaEquivalentCostUsd": 30.700669,
+            "pricingApplyFrom": [
+              "2026-04-26"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-04-28": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 4,
+        "pricedRequestCount": 4,
+        "tokens": {
+          "input": 8731,
+          "output": 1011,
+          "cacheRead": 3072,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 0.0377605,
+        "pricedQuotaEquivalentCostUsd": 0.0377605,
+        "retailCostUsd": 0.0377605,
+        "quotaEquivalentCostUsd": 0.0377605,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4",
+            "requestCount": 4,
+            "pricedRequestCount": 4,
+            "tokens": {
+              "input": 8731,
+              "output": 1011,
+              "cacheRead": 3072,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.0377605,
+            "pricedQuotaEquivalentCostUsd": 0.0377605,
+            "retailCostUsd": 0.0377605,
+            "quotaEquivalentCostUsd": 0.0377605,
+            "pricingApplyFrom": [
+              "2026-04-23"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-04-30": {
+      "quota": {
+        "observationCount": 0,
+        "windows": []
+      },
+      "usage": {
+        "requestCount": 1256,
+        "pricedRequestCount": 1256,
+        "tokens": {
+          "input": 908857,
+          "output": 588805,
+          "cacheRead": 53746713,
+          "cacheWrite": 2231726
+        },
+        "pricedRetailCostUsd": 13.2069077,
+        "pricedQuotaEquivalentCostUsd": 13.2069077,
+        "retailCostUsd": 13.2069077,
+        "quotaEquivalentCostUsd": 13.2069077,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.4",
+            "requestCount": 65,
+            "pricedRequestCount": 65,
+            "tokens": {
+              "input": 245161,
+              "output": 14040,
+              "cacheRead": 2129920,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.3559825,
+            "pricedQuotaEquivalentCostUsd": 1.3559825,
+            "retailCostUsd": 1.3559825,
+            "quotaEquivalentCostUsd": 1.3559825,
+            "pricingApplyFrom": [
+              "2026-04-23"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.5",
+            "requestCount": 174,
+            "pricedRequestCount": 174,
+            "tokens": {
+              "input": 635316,
+              "output": 48393,
+              "cacheRead": 3674624,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 6.465682,
+            "pricedQuotaEquivalentCostUsd": 6.465682,
+            "retailCostUsd": 6.465682,
+            "quotaEquivalentCostUsd": 6.465682,
+            "pricingApplyFrom": [
+              "2026-04-26"
+            ]
+          },
+          {
+            "modelIdentifier": "opencode-go/qwen3.6-plus",
+            "requestCount": 1017,
+            "pricedRequestCount": 1017,
+            "tokens": {
+              "input": 28380,
+              "output": 526372,
+              "cacheRead": 47942169,
+              "cacheWrite": 2231726
+            },
+            "pricedRetailCostUsd": 5.3852432,
+            "pricedQuotaEquivalentCostUsd": 5.3852432,
+            "retailCostUsd": 5.3852432,
+            "quotaEquivalentCostUsd": 5.3852432,
+            "pricingApplyFrom": [
+              "2026-04-30"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    }
+  }
+}

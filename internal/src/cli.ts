@@ -1,8 +1,11 @@
+import { randomUUID } from "node:crypto"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import path from "node:path"
 import { Command } from "commander"
 import { mergeConfigs } from "./merge-config/merge.ts"
 import { deliverMcpConfig } from "./mcp/deliver.ts"
+import { aggregateLlmUsage } from "./llm-usage/aggregate.ts"
 import { deliverPiAgentConfig } from "./pi-agent/deliver.ts"
 
 const VALID_TARGETS = ["claude-code", "claude-desktop", "codex", "pi-agent"] as const
@@ -86,6 +89,58 @@ piAgent
       )
     }
   )
+
+const LLM_USAGE_ROOT = path.join(DOTFILES_ROOT, "observe", "llm-usage")
+const MACHINE_ID_PATH = path.join(LLM_USAGE_ROOT, "state", "machine-id")
+
+const isMachineId = (value: string): boolean => /^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(value)
+
+const resolveMachineId = async (configured: string | undefined): Promise<string> => {
+  if (configured !== undefined) return configured
+  try {
+    const machineId = (await readFile(MACHINE_ID_PATH, "utf-8")).trim()
+    if (machineId.length === 0) throw new Error("empty machine ID")
+    return machineId
+  } catch {
+    throw new Error(`Machine ID is not initialized. Run: node internal/src/cli.ts llm-usage init`)
+  }
+}
+
+const llmUsage = program.command("llm-usage").description("Aggregate local Pi usage and subscription quota observations")
+
+llmUsage
+  .command("init")
+  .description("Initialize this machine's stable identifier in ignored state")
+  .option("--machine-id <machineId>", "Stable machine identifier (defaults to a generated UUID)")
+  .action(async (opts: { readonly machineId?: string }) => {
+    const machineId = opts.machineId ?? randomUUID()
+    if (!isMachineId(machineId)) {
+      throw new Error("machineId must contain only letters, numbers, hyphens, and underscores")
+    }
+    await mkdir(path.dirname(MACHINE_ID_PATH), { recursive: true, mode: 0o700 })
+    await writeFile(MACHINE_ID_PATH, `${machineId}\n`, { encoding: "utf-8", mode: 0o600, flag: "wx" })
+    console.log(`Initialized machine ID: ${machineId}`)
+  })
+
+llmUsage
+  .command("aggregate")
+  .description("Aggregate ignored quota observations and Pi session JSONL into committed daily data")
+  .option("--machine-id <machineId>", "Override the initialized machine identifier")
+  .option("--sessions-dir <path>", "Pi session JSONL directory", path.join(homedir(), ".pi", "agent", "sessions"))
+  .action(async (opts: { readonly machineId?: string; readonly sessionsDir: string }) => {
+    const machineId = await resolveMachineId(opts.machineId)
+    const outputPaths = await aggregateLlmUsage({
+      usageRoot: LLM_USAGE_ROOT,
+      sessionsRoot: opts.sessionsDir,
+      machineId,
+    })
+    if (outputPaths.length === 0) {
+      console.log("No quota observations or Pi usage events found.")
+      return
+    }
+    console.log(`Updated ${outputPaths.length} aggregate file(s):`)
+    for (const outputPath of outputPaths) console.log(`  ${outputPath}`)
+  })
 
 const mcp = program.command("mcp").description("MCP configuration management")
 

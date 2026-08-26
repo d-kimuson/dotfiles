@@ -38,13 +38,16 @@
  * A browser-like User-Agent is required (Cloudflare / WAF).
  */
 
-import { readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 const WIDGET_KEY = "usage";
 const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+const QUOTA_OBSERVATION_ROOT = join(homedir(), ".local", "share", "chezmoi", "observe", "llm-usage", "state", "quota");
+const QUOTA_CONFIG_PATH = join(homedir(), ".local", "share", "chezmoi", "observe", "llm-usage", "state", "quota-config.json");
+const QUOTA_ACCOUNT_ALIAS = "default";
 
 const BROWSER_USER_AGENT =
 	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
@@ -153,6 +156,21 @@ type GrokUsage = {
 	resetAtMs: number | null;
 	windowSeconds: number;
 	level?: string;
+};
+
+type QuotaObservationWindow = {
+	kind: string;
+	usedPercent: number;
+	resetAt: string | null;
+};
+
+type QuotaObservation = {
+	schemaVersion: 1;
+	kind: "quota_observation";
+	observedAt: string;
+	provider: string;
+	accountAlias: string;
+	windows: QuotaObservationWindow[];
 };
 
 // --- Key / auth resolution ---
@@ -385,7 +403,7 @@ function toZaiWindow(limits: ZaiLimit[], unit: number): ZaiWindow | null {
 	const limit = limits.find((entry) => entry.unit === unit);
 	if (!limit || typeof limit.percentage !== "number") return null;
 	return {
-		percent: Math.round(limit.percentage),
+		percent: limit.percentage,
 		resetAtMs: typeof limit.nextResetTime === "number" ? limit.nextResetTime : null,
 	};
 }
@@ -531,12 +549,12 @@ function parseGrokUsage(billing: unknown, settings: unknown): GrokUsage {
 
 	let percent: number | null = null;
 	if (typeof cfg.creditUsagePercent === "number" && Number.isFinite(cfg.creditUsagePercent)) {
-		percent = Math.round(Math.min(100, Math.max(0, cfg.creditUsagePercent)));
+		percent = Math.min(100, Math.max(0, cfg.creditUsagePercent));
 	} else {
 		const used = centVal(cfg.used);
 		const limit = centVal(cfg.monthlyLimit);
 		if (used !== null && limit !== null && limit > 0) {
-			percent = Math.round(Math.min(100, Math.max(0, (used / limit) * 100)));
+			percent = Math.min(100, Math.max(0, (used / limit) * 100));
 		} else if (resetAtMs !== null) {
 			// proto3 JSON omits zero-valued scalars; a live period with no percent is 0%.
 			percent = 0;
@@ -590,6 +608,113 @@ async function fetchGrokUsage(record: XaiAuthRecord): Promise<GrokUsage> {
 	const settings = await callGrokJson(GROK_SETTINGS_URL, token);
 	return parseGrokUsage(billing, settings);
 }
+
+const toObservationTimestamp = (resetAtMs: number | null): string | null =>
+	resetAtMs === null ? null : new Date(resetAtMs).toISOString();
+
+const toCodexObservationWindow = (
+	kind: string,
+	window: CodexRateWindow,
+): QuotaObservationWindow | null => {
+	if (!window || typeof window.used_percent !== "number" || !Number.isFinite(window.used_percent)) return null;
+	return {
+		kind,
+		usedPercent: window.used_percent,
+		resetAt: typeof window.reset_at === "number" ? new Date(window.reset_at * 1000).toISOString() : null,
+	};
+};
+
+const quotaObservations = (
+	go: OpenCodeGoUsage | null,
+	codex: CodexUsage | null,
+	zai: ZaiUsage | null,
+	grok: GrokUsage | null,
+	observedAt: string,
+	accountAliases: Readonly<Record<string, string>> = {},
+): QuotaObservation[] => {
+	const observations: QuotaObservation[] = [];
+	const create = (provider: string, windows: QuotaObservationWindow[]): void => {
+		if (windows.length === 0) return;
+		observations.push({
+			schemaVersion: 1,
+			kind: "quota_observation",
+			observedAt,
+			provider,
+			accountAlias: accountAliases[provider] ?? QUOTA_ACCOUNT_ALIAS,
+			windows,
+		});
+	};
+
+	if (go) {
+		create("opencode-go", [
+			{ kind: "rolling-5h", usedPercent: go.rolling.percent, resetAt: go.rolling.resetsAt },
+			{ kind: "weekly", usedPercent: go.weekly.percent, resetAt: go.weekly.resetsAt },
+			{ kind: "monthly", usedPercent: go.monthly.percent, resetAt: go.monthly.resetsAt },
+		]);
+	}
+	if (codex) {
+		const windows: QuotaObservationWindow[] = [];
+		const primary = toCodexObservationWindow("primary", codex.rate_limit?.primary_window);
+		if (primary) windows.push(primary);
+		const secondary = toCodexObservationWindow("secondary", codex.rate_limit?.secondary_window);
+		if (secondary) windows.push(secondary);
+		const codeReview = toCodexObservationWindow("code-review", codex.code_review_rate_limit?.primary_window);
+		if (codeReview) windows.push(codeReview);
+		for (const additional of codex.additional_rate_limits ?? []) {
+			if (!additional.limit_name) continue;
+			const window = toCodexObservationWindow(
+				`additional:${additional.limit_name}`,
+				additional.rate_limit?.primary_window,
+			);
+			if (window) windows.push(window);
+		}
+		create("openai-codex", windows);
+	}
+	if (zai) {
+		const windows: QuotaObservationWindow[] = [];
+		if (zai.fiveHour) {
+			windows.push({ kind: "rolling-5h", usedPercent: zai.fiveHour.percent, resetAt: toObservationTimestamp(zai.fiveHour.resetAtMs) });
+		}
+		if (zai.weekly) {
+			windows.push({ kind: "weekly", usedPercent: zai.weekly.percent, resetAt: toObservationTimestamp(zai.weekly.resetAtMs) });
+		}
+		if (zai.monthlyTools) {
+			windows.push({ kind: "monthly-tools", usedPercent: zai.monthlyTools.percent, resetAt: toObservationTimestamp(zai.monthlyTools.resetAtMs) });
+		}
+		create("zai", windows);
+	}
+	if (grok) {
+		create("xai", [{
+			kind: formatWindowSeconds(grok.windowSeconds),
+			usedPercent: grok.percent,
+			resetAt: toObservationTimestamp(grok.resetAtMs),
+		}]);
+	}
+	return observations;
+};
+
+const resolveQuotaAccountAliases = async (): Promise<Record<string, string>> => {
+	const config = await readJson(QUOTA_CONFIG_PATH);
+	const aliases = config?.accountAliases;
+	if (!aliases || typeof aliases !== "object" || Array.isArray(aliases)) return {};
+	const configured: Record<string, string> = {};
+	for (const [provider, alias] of Object.entries(aliases)) {
+		if (typeof alias === "string" && alias.length > 0) configured[provider] = alias;
+	}
+	return configured;
+};
+
+const appendQuotaObservations = async (observations: QuotaObservation[]): Promise<void> => {
+	if (observations.length === 0) return;
+	const observedDate = observations[0]?.observedAt.slice(0, 10);
+	if (!observedDate) return;
+	const outputPath = join(QUOTA_OBSERVATION_ROOT, `${observedDate}.jsonl`);
+	await mkdir(QUOTA_OBSERVATION_ROOT, { recursive: true, mode: 0o700 });
+	await appendFile(outputPath, observations.map((observation) => JSON.stringify(observation)).join("\n") + "\n", {
+		encoding: "utf-8",
+		mode: 0o600,
+	});
+};
 
 // --- Pace / formatting helpers (mirrors ~/.claude/statusline.sh) ---
 
@@ -657,7 +782,8 @@ function renderWindow(
 	opts: { showReset?: boolean; showElapsed?: boolean } = {},
 ): string {
 	const elapsed = resetAtMs !== null ? calcElapsedPercent(resetAtMs, windowSeconds) : null;
-	const pctText = theme.fg(paceTone(percent, elapsed ?? 0), `${percent}%`);
+	const displayPercent = Math.round(percent);
+	const pctText = theme.fg(paceTone(percent, elapsed ?? 0), `${displayPercent}%`);
 	const meta: string[] = [];
 	if (opts.showReset && resetAtMs !== null) {
 		meta.push(`🔄${formatDate(Math.floor(resetAtMs / 1000))}`);
@@ -680,6 +806,7 @@ export const __usageStatusInternals = {
 	fetchGrokUsage,
 	resolveXaiAuth,
 	parseGrokUsage,
+	quotaObservations,
 	calcElapsedPercent,
 	paceTone,
 	formatWindowSeconds,
@@ -904,6 +1031,13 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 		refreshing = true;
 		try {
 			const { go, codex, zai, grok, errors } = await fetchAll();
+			try {
+				await appendQuotaObservations(
+					quotaObservations(go, codex, zai, grok, new Date().toISOString(), await resolveQuotaAccountAliases()),
+				);
+			} catch (error) {
+				console.warn(`usage quota observation write failed: ${error instanceof Error ? error.message : String(error)}`);
+			}
 			if (go) last.go = go;
 			if (codex) last.codex = codex;
 			if (zai) last.zai = zai;
