@@ -2,7 +2,7 @@
   "scoped": [
     "zai/glm-5.3",
     "opencode-go/deepseek-v4-flash",
-    "openai-codex/gpt-5.6-terra",
+    "openai-codex/gpt-5.6-luna",
     "openai-codex/gpt-5.6-sol",
     "xai/grok-4.6",
     "xai/grok-4.5"
@@ -17,7 +17,7 @@
   "medium": [
     "zai/glm-5.3:high",
     "opencode-go/deepseek-v4-flash:high",
-    "openai-codex/gpt-5.6-terra:medium",
+    "openai-codex/gpt-5.6-luna:medium",
     "anthropic/claude-opus-4-8:high"
   ],
   "light": [
