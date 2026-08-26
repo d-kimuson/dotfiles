@@ -5,6 +5,9 @@
 memo.local.*
 tmp.local.*
 
+# Pi subagent artifacts
+**/.pi/subagents/
+
 # claude code
 **/.kimuson/**
 .claude/trash/

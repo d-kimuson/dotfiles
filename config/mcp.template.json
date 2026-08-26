@@ -17,6 +17,11 @@
       "url": "https://mcp.atlassian.com/v1/mcp",
       "excludeTargets": ["claude-code", "claude-desktop"]
     },
+    "linear": {
+      "type": "http",
+      "url": "https://mcp.linear.app/mcp",
+      "excludeTargets": ["claude-code", "claude-desktop"]
+    },
     "esa": {
       "type": "stdio",
       "command": "npx",
