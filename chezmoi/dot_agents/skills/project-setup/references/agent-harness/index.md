@@ -48,7 +48,7 @@ Keep this document as the stable system overview. Implementation details belong 
 
 ### 4. Project Coding Guideline Skill
 
-Copy `.agents/skills/coding-guideline/` into the project.
+Copy `agents/skills/coding-guideline/` into the project as `.agents/skills/coding-guideline/`.
 
 Customize the references based on selected setup references:
 

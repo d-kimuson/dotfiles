@@ -10,6 +10,8 @@ Knowledge base for project setup, configuration, and conventions.
 
 Provides reference documents for tooling, frameworks, and workflows. Read the relevant `index.md` for each topic, then copy and customize template files as documented.
 
+Template files in `references/` never start with a dot; each `index.md` states the destination filename (e.g. `core/envrc` → `.envrc`). When adding a template for a dotfile, name it without the leading dot and document the destination.
+
 ## Workflows
 
 If the user's request matches a workflow, read the workflow file and follow its procedure.
@@ -28,7 +30,7 @@ All paths are relative to this skill's directory (`references/`).
 
 | Reference | Description |
 |-----------|-------------|
-| `core/` | Nix flakes, direnv, GitHub Actions Nix setup, LICENSE, .gitignore — cross-language project foundation |
+| `core/` | Nix flakes, direnv, dotenv (`.env` / `.env.secret` / `.env.overrides`), GitHub Actions Nix setup, LICENSE, .gitignore — cross-language project foundation |
 | `typescript-package/` | npm + TypeScript + oxc + vitest + dev-tools + CI — all-in-one for TS projects |
 | `workspace/` | Monorepo — `pnpm-workspace.yaml`, `turbo.json`, root `tsconfig.json` |
 | `hono/` | Backend API — Hono app/context, route composition, workflow/service/domain structure, typed client |

@@ -35,6 +35,37 @@ user-invocable: true
    npm のグローバルインストールや手動ダウンロードより home-manager を優先する。
 5. Node.js などのランタイムバージョンは `chezmoi/private_dot_config/mise/config.toml` で管理する。
 
+## Skill / Agent 設定を chezmoi で配布するときの注意
+
+`chezmoi/dot_agents/skills/`、`chezmoi/dot_claude/`、`chezmoi/dot_codex/` 配下は chezmoi の source state である。
+source state のルールがそのまま効くため、**普通のディレクトリのつもりでファイルを置くと配布されない**。
+
+- **ドット始まりのファイル・ディレクトリは配布されない。**
+  chezmoi は source state 内の `.` 始まりエントリを chezmoi 自身の特殊ファイル (`.chezmoiignore` など) として扱い、
+  それ以外は無視する。`references/core/.envrc` のようにコミットしても `~/.agents/.../core/.envrc` は生成されない。
+  Git 上には存在するので `ls` では気付けない。
+  - dotfile を配布したい場合は `dot_` 属性を使う (`dot_envrc` → `.envrc`)。
+  - **skill の reference テンプレート**は、そのまま使う dotfile ではなくコピー元なので、
+    ドットなしの名前 (`envrc`、`oxfmtrc.json`、`agents/`) にして、コピー先を index.md に明記する方を優先する。
+    配布後も可視ファイルとして残り、skill を使うエージェントが発見できる。
+- `README` のような普通の名前でも、`.chezmoiignore` の対象に入っていないか確認する。
+- 属性付きの名前 (`private_`、`executable_`、`symlink_`、`literal_` など) は意図せず解釈されることがある。
+  ファイル名そのものを残したいときは `literal_` を使う。
+
+`chezmoi verify` は「chezmoi が管理していると認識しているターゲット」しか見ないため、
+無視されて配布されなかったファイルは検出できない。
+ファイルを追加・リネームしたら、次の 2 つで確認する。
+
+```bash
+# 1. source state 内に配布されないドット始まりエントリがないか
+find chezmoi -name '.*' -not -name '.chezmoi*'
+
+# 2. 追加したファイルが管理対象に入っているか (出力があれば配布される)
+chezmoi managed | grep '<配布先の相対パス>'
+```
+
+1 が何かを出力したら、意図的な chezmoi 特殊ファイルでない限りバグである。
+
 ## テンプレート
 
 - 環境差分が必要な部分だけ `.tmpl` を使う。

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+if has nix; then
+  use flake
+fi
+
+dotenv_if_exists .env
+dotenv_if_exists .env.secret
+dotenv_if_exists .env.overrides
+
+watch_file .env .env.secret .env.overrides

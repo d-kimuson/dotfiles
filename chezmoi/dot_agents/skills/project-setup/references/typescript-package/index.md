@@ -79,7 +79,7 @@ Add scripts to `package.json`:
 }
 ```
 
-Copy `oxlint.config.ts`, `.oxfmtrc.json`, `lefthook.yml` to project root.
+Copy `oxlint.config.ts`, `lefthook.yml` to project root, and `oxfmtrc.json` to project root as `.oxfmtrc.json`.
 
 The oxlint template includes these architecture rules:
 
@@ -188,7 +188,7 @@ For web apps, add Playwright browser install and E2E steps when `test:e2e` exist
 | `pnpm-workspace.yaml` | None — use as-is |
 | `tsconfig.json` | `include` paths. Add React/Node types per project |
 | `oxlint.config.ts` | Remove irrelevant fullstack overrides per project type |
-| `.oxfmtrc.json` | Ignore generated files and migration outputs as needed |
+| `oxfmtrc.json` | Copy to `.oxfmtrc.json`. Ignore generated files and migration outputs as needed |
 | `lefthook.yml` | None — use as-is unless hooks differ |
 | `gatecheck.yaml` | Changed-file check commands |
 | `vitest.config.ts` | Remove unused projects per project type |
