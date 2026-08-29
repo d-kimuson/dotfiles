@@ -29,6 +29,7 @@
     "npm:pi-web-access",
     "npm:pi-notify-agent",
     "npm:@narumitw/pi-goal",
-    "npm:@kimuson/pi-ralph"
+    "npm:@kimuson/pi-ralph",
+    "npm:@ff-labs/pi-fff"
   ]
 }
