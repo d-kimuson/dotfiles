@@ -12,3 +12,4 @@ shell/env-secrets.sh
 .env
 
 .pi-subagents/
+node_modules/

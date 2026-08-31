@@ -6,6 +6,7 @@
     "openai-codex/gpt-5.6-sol",
     "openrouter/deepseek/deepseek-v4-flash-0731",
     "openrouter/moonshotai/kimi-k3",
+    "openrouter/z-ai/glm-5.3-flash",
     "xai/grok-4.6",
     "xai/grok-4.5"
   ],
