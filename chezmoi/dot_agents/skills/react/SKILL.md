@@ -9,6 +9,12 @@ user-invocable: true
 You are implementing React components following modern best practices. Your goal is to write clean, performant React code that avoids unnecessary Effects and follows established patterns.
 </role>
 
+<shadcn_ui>
+## shadcn/ui
+
+When using shadcn/ui in a React project, read [`references/shadcn-ui.md`](references/shadcn-ui.md) for component acquisition, customization, and generated-file handling patterns.
+</shadcn_ui>
+
 <core_principles>
 ## Core Principles
 

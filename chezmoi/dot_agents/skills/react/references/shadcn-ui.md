@@ -1,9 +1,4 @@
----
-name: shadcn-ui
-description: Must always be enabled when working with shadcn-ui.
-disable-model-invocation: false
-user-invocable: true
----
+# shadcn/ui Component Patterns
 
 <fundamental_concept>
 ## What is shadcn-ui?
