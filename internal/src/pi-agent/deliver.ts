@@ -29,6 +29,7 @@ export type DeliverPiAgentOptions = {
 const SUPPORTED_PROVIDERS = [
   "opencode-go",
   "openai-codex",
+  "openrouter",
   "anthropic",
   "zai",
   "xai",

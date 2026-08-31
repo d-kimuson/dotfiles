@@ -36,6 +36,8 @@ const writeBaseFiles = async (): Promise<void> => {
           "openai-codex/gpt-5.4:medium",
           "opencode-go/deepseek-v4-pro:high",
           "opencode-go/glm-5.2",
+          "openrouter/deepseek/deepseek-v4-flash-0731",
+          "openrouter/moonshotai/kimi-k3",
         ],
         hard: [
           "openai-codex/gpt-5.5:xhigh",
@@ -155,6 +157,33 @@ describe("deliverPiAgentConfig", () => {
           },
         },
       },
+    })
+  })
+
+  it("includes openrouter scoped models when openrouter is available", async () => {
+    await writeBaseFiles()
+    await writeFile(
+      path.join(configDir, "providers.local.json"),
+      JSON.stringify(
+        {
+          availableProviders: ["openai-codex", "openrouter"],
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+
+    await deliverPiAgentConfig({ dryRun: false })
+
+    expect(await readJson(path.join(targetDir, "settings.json"))).toMatchObject({
+      defaultProvider: "openai-codex",
+      defaultModel: "gpt-5.4",
+      enabledModels: [
+        "openai-codex/gpt-5.4",
+        "openrouter/deepseek/deepseek-v4-flash-0731",
+        "openrouter/moonshotai/kimi-k3",
+      ],
     })
   })
 
