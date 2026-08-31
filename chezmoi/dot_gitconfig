@@ -13,6 +13,8 @@
   ff = only
 [fetch]
   prune = true
+[credential "https://github.com"]
+  helper = !gh auth git-credential
 [hub]
   protocol = ssh
 [core]
