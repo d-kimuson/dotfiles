@@ -1,0 +1,347 @@
+{
+  "schemaVersion": 1,
+  "machineId": "b6050420-de64-413b-8f2b-f7e06bf237f6",
+  "estimates": [
+    {
+      "provider": "openai-codex",
+      "accountAlias": "default",
+      "kind": "primary",
+      "resetAt": "2026-09-01T14:27:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-26T10:04:25.570Z",
+      "usageEndAt": "2026-08-27T16:18:44.008Z",
+      "firstObservedAt": "2026-08-26T10:04:25.570Z",
+      "lastObservedAt": "2026-08-27T16:18:44.008Z",
+      "firstUsedPercent": 20,
+      "lastUsedPercent": 36,
+      "usedPercentDelta": 16,
+      "usage": {
+        "requestCount": 2464,
+        "pricedRequestCount": 2464,
+        "tokens": {
+          "input": 8566636,
+          "output": 826215,
+          "cacheRead": 275230976,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 77.47597708,
+        "pricedQuotaEquivalentCostUsd": 77.47597708,
+        "retailCostUsd": 77.47597708,
+        "quotaEquivalentCostUsd": 77.47597708,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 484.22485675,
+      "intervals": []
+    },
+    {
+      "provider": "openai-codex",
+      "accountAlias": "default",
+      "kind": "primary",
+      "resetAt": "2026-09-03T16:27:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-27T16:27:10.115Z",
+      "usageEndAt": "2026-08-29T06:26:31.020Z",
+      "firstObservedAt": "2026-08-27T16:27:10.115Z",
+      "lastObservedAt": "2026-08-29T06:26:31.020Z",
+      "firstUsedPercent": 0,
+      "lastUsedPercent": 4,
+      "usedPercentDelta": 4,
+      "usage": {
+        "requestCount": 970,
+        "pricedRequestCount": 970,
+        "tokens": {
+          "input": 4235979,
+          "output": 489408,
+          "cacheRead": 126285312,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 14.64484708,
+        "pricedQuotaEquivalentCostUsd": 14.64484708,
+        "retailCostUsd": 14.64484708,
+        "quotaEquivalentCostUsd": 14.64484708,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 366.121177,
+      "intervals": []
+    },
+    {
+      "provider": "opencode-go",
+      "accountAlias": "default",
+      "kind": "monthly",
+      "resetAt": "2026-08-29T15:18:00.000Z",
+      "estimationMethod": "at-limit-observed-usage",
+      "usageStartAt": "2026-07-29T15:18:00.000Z",
+      "usageEndAt": "2026-08-29T06:26:31.020Z",
+      "firstObservedAt": "2026-08-26T10:04:25.570Z",
+      "lastObservedAt": "2026-08-29T06:26:31.020Z",
+      "firstUsedPercent": 100,
+      "lastUsedPercent": 100,
+      "usedPercentDelta": 0,
+      "usage": {
+        "requestCount": 12602,
+        "pricedRequestCount": 12602,
+        "tokens": {
+          "input": 23821674,
+          "output": 7740459,
+          "cacheRead": 2438519808,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 28.2159382002,
+        "pricedQuotaEquivalentCostUsd": 36.4558572326,
+        "retailCostUsd": 28.2159382002,
+        "quotaEquivalentCostUsd": 36.4558572326,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 36.4558572326,
+      "intervals": []
+    },
+    {
+      "provider": "xai",
+      "accountAlias": "default",
+      "kind": "7d",
+      "resetAt": "2026-08-30T04:51:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-26T10:04:25.570Z",
+      "usageEndAt": "2026-08-29T06:26:31.020Z",
+      "firstObservedAt": "2026-08-26T10:04:25.570Z",
+      "lastObservedAt": "2026-08-29T06:26:31.020Z",
+      "firstUsedPercent": 51,
+      "lastUsedPercent": 77,
+      "usedPercentDelta": 26,
+      "usage": {
+        "requestCount": 373,
+        "pricedRequestCount": 373,
+        "tokens": {
+          "input": 2432208,
+          "output": 252939,
+          "cacheRead": 72281856,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 42.522978,
+        "pricedQuotaEquivalentCostUsd": 42.522978,
+        "retailCostUsd": 42.522978,
+        "quotaEquivalentCostUsd": 42.522978,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 163.549915384615,
+      "intervals": []
+    },
+    {
+      "provider": "zai",
+      "accountAlias": "default",
+      "kind": "rolling-5h",
+      "resetAt": "2026-08-26T18:33:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-26T10:04:25.570Z",
+      "usageEndAt": "2026-08-26T15:04:24.438Z",
+      "firstObservedAt": "2026-08-26T10:04:25.570Z",
+      "lastObservedAt": "2026-08-26T15:04:24.438Z",
+      "firstUsedPercent": 0,
+      "lastUsedPercent": 99,
+      "usedPercentDelta": 99,
+      "usage": {
+        "requestCount": 184,
+        "pricedRequestCount": 184,
+        "tokens": {
+          "input": 178777,
+          "output": 74777,
+          "cacheRead": 21336384,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 6.12676644,
+        "pricedQuotaEquivalentCostUsd": 6.12676644,
+        "retailCostUsd": 6.12676644,
+        "quotaEquivalentCostUsd": 6.12676644,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 6.188652969697,
+      "intervals": []
+    },
+    {
+      "provider": "zai",
+      "accountAlias": "default",
+      "kind": "rolling-5h",
+      "resetAt": "2026-08-27T00:17:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-26T15:07:02.710Z",
+      "usageEndAt": "2026-08-27T00:14:18.051Z",
+      "firstObservedAt": "2026-08-26T15:07:02.710Z",
+      "lastObservedAt": "2026-08-27T00:14:18.051Z",
+      "firstUsedPercent": 0,
+      "lastUsedPercent": 6,
+      "usedPercentDelta": 6,
+      "usage": {
+        "requestCount": 11,
+        "pricedRequestCount": 11,
+        "tokens": {
+          "input": 184740,
+          "output": 33098,
+          "cacheRead": 403712,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 0.50923232,
+        "pricedQuotaEquivalentCostUsd": 0.50923232,
+        "retailCostUsd": 0.50923232,
+        "quotaEquivalentCostUsd": 0.50923232,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 8.487205333333,
+      "intervals": []
+    },
+    {
+      "provider": "zai",
+      "accountAlias": "default",
+      "kind": "rolling-5h",
+      "resetAt": "2026-08-27T06:49:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-27T00:17:15.846Z",
+      "usageEndAt": "2026-08-27T06:45:22.784Z",
+      "firstObservedAt": "2026-08-27T00:17:15.846Z",
+      "lastObservedAt": "2026-08-27T06:45:22.784Z",
+      "firstUsedPercent": 0,
+      "lastUsedPercent": 5,
+      "usedPercentDelta": 5,
+      "usage": {
+        "requestCount": 13,
+        "pricedRequestCount": 13,
+        "tokens": {
+          "input": 77759,
+          "output": 10934,
+          "cacheRead": 849088,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 0.37773508,
+        "pricedQuotaEquivalentCostUsd": 0.37773508,
+        "retailCostUsd": 0.37773508,
+        "quotaEquivalentCostUsd": 0.37773508,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 7.5547016,
+      "intervals": []
+    },
+    {
+      "provider": "zai",
+      "accountAlias": "default",
+      "kind": "rolling-5h",
+      "resetAt": "2026-08-27T15:02:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-27T07:00:29.917Z",
+      "usageEndAt": "2026-08-27T15:01:13.192Z",
+      "firstObservedAt": "2026-08-27T07:00:29.917Z",
+      "lastObservedAt": "2026-08-27T15:01:13.192Z",
+      "firstUsedPercent": 0,
+      "lastUsedPercent": 100,
+      "usedPercentDelta": 100,
+      "usage": {
+        "requestCount": 322,
+        "pricedRequestCount": 322,
+        "tokens": {
+          "input": 350077,
+          "output": 161222,
+          "cacheRead": 67695808,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 2.16399679,
+        "pricedQuotaEquivalentCostUsd": 6.197775049878,
+        "retailCostUsd": 2.16399679,
+        "quotaEquivalentCostUsd": 6.197775049878,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 6.197775049878,
+      "intervals": []
+    },
+    {
+      "provider": "zai",
+      "accountAlias": "default",
+      "kind": "rolling-5h",
+      "resetAt": "2026-08-29T09:50:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-27T15:08:43.950Z",
+      "usageEndAt": "2026-08-29T06:26:31.020Z",
+      "firstObservedAt": "2026-08-27T15:08:43.950Z",
+      "lastObservedAt": "2026-08-29T06:26:31.020Z",
+      "firstUsedPercent": 0,
+      "lastUsedPercent": 72,
+      "usedPercentDelta": 72,
+      "usage": {
+        "requestCount": 257,
+        "pricedRequestCount": 257,
+        "tokens": {
+          "input": 806612,
+          "output": 98008,
+          "cacheRead": 47025536,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 1.58076188,
+        "pricedQuotaEquivalentCostUsd": 4.547762847999,
+        "retailCostUsd": 1.58076188,
+        "quotaEquivalentCostUsd": 4.547762847999,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 6.316337288888,
+      "intervals": []
+    },
+    {
+      "provider": "zai",
+      "accountAlias": "default",
+      "kind": "weekly",
+      "resetAt": "2026-08-31T05:13:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-26T10:04:25.570Z",
+      "usageEndAt": "2026-08-26T15:04:24.438Z",
+      "firstObservedAt": "2026-08-26T10:04:25.570Z",
+      "lastObservedAt": "2026-08-26T15:04:24.438Z",
+      "firstUsedPercent": 20,
+      "lastUsedPercent": 40,
+      "usedPercentDelta": 20,
+      "usage": {
+        "requestCount": 184,
+        "pricedRequestCount": 184,
+        "tokens": {
+          "input": 178777,
+          "output": 74777,
+          "cacheRead": 21336384,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 6.12676644,
+        "pricedQuotaEquivalentCostUsd": 6.12676644,
+        "retailCostUsd": 6.12676644,
+        "quotaEquivalentCostUsd": 6.12676644,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 30.6338322,
+      "intervals": []
+    },
+    {
+      "provider": "zai",
+      "accountAlias": "default",
+      "kind": "weekly",
+      "resetAt": "2026-08-31T05:13:00.000Z",
+      "estimationMethod": "usage-percentage-delta",
+      "usageStartAt": "2026-08-26T15:07:02.710Z",
+      "usageEndAt": "2026-08-29T06:26:31.020Z",
+      "firstObservedAt": "2026-08-26T15:07:02.710Z",
+      "lastObservedAt": "2026-08-29T06:26:31.020Z",
+      "firstUsedPercent": 0,
+      "lastUsedPercent": 36,
+      "usedPercentDelta": 36,
+      "usage": {
+        "requestCount": 603,
+        "pricedRequestCount": 603,
+        "tokens": {
+          "input": 1419188,
+          "output": 303262,
+          "cacheRead": 115974144,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 4.63172607,
+        "pricedQuotaEquivalentCostUsd": 11.632505297877,
+        "retailCostUsd": 4.63172607,
+        "quotaEquivalentCostUsd": 11.632505297877,
+        "unpricedModelIdentifiers": []
+      },
+      "estimatedQuotaBudgetUsd": 32.312514716325,
+      "intervals": []
+    }
+  ]
+}

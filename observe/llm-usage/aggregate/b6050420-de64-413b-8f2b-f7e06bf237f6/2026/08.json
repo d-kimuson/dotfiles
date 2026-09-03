@@ -1361,357 +1361,517 @@
     },
     "2026-08-26": {
       "quota": {
-        "observationCount": 32,
+        "observationCount": 2028,
         "windows": [
           {
             "provider": "openai-codex",
             "accountAlias": "default",
             "kind": "additional:GPT-5.3-Codex-Spark",
-            "resetAt": "2026-08-26T15:04:24.000Z",
+            "resetAt": "2026-08-27T04:59:00.000Z",
             "firstUsedPercent": 0,
             "lastUsedPercent": 0,
             "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "openai-codex",
-            "accountAlias": "default",
-            "kind": "additional:GPT-5.3-Codex-Spark",
-            "resetAt": "2026-08-26T15:04:26.000Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "openai-codex",
-            "accountAlias": "default",
-            "kind": "additional:GPT-5.3-Codex-Spark",
-            "resetAt": "2026-08-26T15:04:29.000Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "openai-codex",
-            "accountAlias": "default",
-            "kind": "additional:GPT-5.3-Codex-Spark",
-            "resetAt": "2026-08-26T15:56:39.000Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "openai-codex",
-            "accountAlias": "default",
-            "kind": "additional:GPT-5.3-Codex-Spark",
-            "resetAt": "2026-08-26T15:56:41.000Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "openai-codex",
-            "accountAlias": "default",
-            "kind": "additional:GPT-5.3-Codex-Spark",
-            "resetAt": "2026-08-26T15:56:43.000Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "openai-codex",
-            "accountAlias": "default",
-            "kind": "additional:GPT-5.3-Codex-Spark",
-            "resetAt": "2026-08-26T18:13:03.000Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "openai-codex",
-            "accountAlias": "default",
-            "kind": "additional:GPT-5.3-Codex-Spark",
-            "resetAt": "2026-08-26T18:23:05.000Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-26T10:04:25.570Z",
+            "lastObservedAt": "2026-08-26T23:59:06.483Z"
           },
           {
             "provider": "openai-codex",
             "accountAlias": "default",
             "kind": "primary",
-            "resetAt": "2026-09-01T14:27:12.000Z",
+            "resetAt": "2026-09-01T14:27:00.000Z",
             "firstUsedPercent": 20,
-            "lastUsedPercent": 22,
+            "lastUsedPercent": 36,
             "minUsedPercent": 20,
-            "maxUsedPercent": 22
-          },
-          {
-            "provider": "openai-codex",
-            "accountAlias": "default",
-            "kind": "primary",
-            "resetAt": "2026-09-01T14:27:13.000Z",
-            "firstUsedPercent": 20,
-            "lastUsedPercent": 25,
-            "minUsedPercent": 20,
-            "maxUsedPercent": 25
+            "maxUsedPercent": 36,
+            "firstObservedAt": "2026-08-26T10:04:25.570Z",
+            "lastObservedAt": "2026-08-26T23:59:06.483Z"
           },
           {
             "provider": "opencode-go",
             "accountAlias": "default",
             "kind": "monthly",
-            "resetAt": "2026-08-29T15:18:25.036Z",
+            "resetAt": "2026-08-29T15:18:00.000Z",
             "firstUsedPercent": 100,
             "lastUsedPercent": 100,
             "minUsedPercent": 100,
-            "maxUsedPercent": 100
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "monthly",
-            "resetAt": "2026-08-29T15:18:25.046Z",
-            "firstUsedPercent": 100,
-            "lastUsedPercent": 100,
-            "minUsedPercent": 100,
-            "maxUsedPercent": 100
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "monthly",
-            "resetAt": "2026-08-29T15:18:25.315Z",
-            "firstUsedPercent": 100,
-            "lastUsedPercent": 100,
-            "minUsedPercent": 100,
-            "maxUsedPercent": 100
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "monthly",
-            "resetAt": "2026-08-29T15:18:25.568Z",
-            "firstUsedPercent": 100,
-            "lastUsedPercent": 100,
-            "minUsedPercent": 100,
-            "maxUsedPercent": 100
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "monthly",
-            "resetAt": "2026-08-29T15:18:25.620Z",
-            "firstUsedPercent": 100,
-            "lastUsedPercent": 100,
-            "minUsedPercent": 100,
-            "maxUsedPercent": 100
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "monthly",
-            "resetAt": "2026-08-29T15:18:25.640Z",
-            "firstUsedPercent": 100,
-            "lastUsedPercent": 100,
-            "minUsedPercent": 100,
-            "maxUsedPercent": 100
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "monthly",
-            "resetAt": "2026-08-29T15:18:25.891Z",
-            "firstUsedPercent": 100,
-            "lastUsedPercent": 100,
-            "minUsedPercent": 100,
-            "maxUsedPercent": 100
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "monthly",
-            "resetAt": "2026-08-29T15:18:25.991Z",
-            "firstUsedPercent": 100,
-            "lastUsedPercent": 100,
-            "minUsedPercent": 100,
-            "maxUsedPercent": 100
+            "maxUsedPercent": 100,
+            "firstObservedAt": "2026-08-26T10:04:25.570Z",
+            "lastObservedAt": "2026-08-26T23:59:06.483Z"
           },
           {
             "provider": "opencode-go",
             "accountAlias": "default",
             "kind": "rolling-5h",
-            "resetAt": "2026-08-26T15:04:24.315Z",
+            "resetAt": "2026-08-27T04:59:00.000Z",
             "firstUsedPercent": 0,
             "lastUsedPercent": 0,
             "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "rolling-5h",
-            "resetAt": "2026-08-26T15:04:25.991Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "rolling-5h",
-            "resetAt": "2026-08-26T15:04:28.568Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "rolling-5h",
-            "resetAt": "2026-08-26T15:56:39.036Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "rolling-5h",
-            "resetAt": "2026-08-26T15:56:40.640Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "rolling-5h",
-            "resetAt": "2026-08-26T15:56:43.046Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "rolling-5h",
-            "resetAt": "2026-08-26T18:13:02.891Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "rolling-5h",
-            "resetAt": "2026-08-26T18:23:04.620Z",
-            "firstUsedPercent": 0,
-            "lastUsedPercent": 0,
-            "minUsedPercent": 0,
-            "maxUsedPercent": 0
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-26T10:04:25.570Z",
+            "lastObservedAt": "2026-08-26T23:59:06.483Z"
           },
           {
             "provider": "opencode-go",
             "accountAlias": "default",
             "kind": "weekly",
-            "resetAt": "2026-08-31T00:00:00.036Z",
+            "resetAt": "2026-08-31T00:00:00.000Z",
             "firstUsedPercent": 3,
             "lastUsedPercent": 3,
             "minUsedPercent": 3,
-            "maxUsedPercent": 3
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "weekly",
-            "resetAt": "2026-08-31T00:00:00.046Z",
-            "firstUsedPercent": 3,
-            "lastUsedPercent": 3,
-            "minUsedPercent": 3,
-            "maxUsedPercent": 3
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "weekly",
-            "resetAt": "2026-08-31T00:00:00.315Z",
-            "firstUsedPercent": 3,
-            "lastUsedPercent": 3,
-            "minUsedPercent": 3,
-            "maxUsedPercent": 3
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "weekly",
-            "resetAt": "2026-08-31T00:00:00.568Z",
-            "firstUsedPercent": 3,
-            "lastUsedPercent": 3,
-            "minUsedPercent": 3,
-            "maxUsedPercent": 3
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "weekly",
-            "resetAt": "2026-08-31T00:00:00.620Z",
-            "firstUsedPercent": 3,
-            "lastUsedPercent": 3,
-            "minUsedPercent": 3,
-            "maxUsedPercent": 3
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "weekly",
-            "resetAt": "2026-08-31T00:00:00.640Z",
-            "firstUsedPercent": 3,
-            "lastUsedPercent": 3,
-            "minUsedPercent": 3,
-            "maxUsedPercent": 3
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "weekly",
-            "resetAt": "2026-08-31T00:00:00.891Z",
-            "firstUsedPercent": 3,
-            "lastUsedPercent": 3,
-            "minUsedPercent": 3,
-            "maxUsedPercent": 3
-          },
-          {
-            "provider": "opencode-go",
-            "accountAlias": "default",
-            "kind": "weekly",
-            "resetAt": "2026-08-31T00:00:00.991Z",
-            "firstUsedPercent": 3,
-            "lastUsedPercent": 3,
-            "minUsedPercent": 3,
-            "maxUsedPercent": 3
+            "maxUsedPercent": 3,
+            "firstObservedAt": "2026-08-26T10:04:25.570Z",
+            "lastObservedAt": "2026-08-26T23:59:06.483Z"
           },
           {
             "provider": "xai",
             "accountAlias": "default",
             "kind": "7d",
-            "resetAt": "2026-08-30T04:51:01.146Z",
+            "resetAt": "2026-08-30T04:51:00.000Z",
             "firstUsedPercent": 51,
-            "lastUsedPercent": 51,
+            "lastUsedPercent": 73,
             "minUsedPercent": 51,
-            "maxUsedPercent": 51
+            "maxUsedPercent": 73,
+            "firstObservedAt": "2026-08-26T10:04:25.570Z",
+            "lastObservedAt": "2026-08-26T23:59:06.483Z"
+          },
+          {
+            "provider": "zai",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-27T00:17:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 6,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 99,
+            "firstObservedAt": "2026-08-26T10:04:25.570Z",
+            "lastObservedAt": "2026-08-26T23:59:06.483Z"
+          },
+          {
+            "provider": "zai",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T05:13:00.000Z",
+            "firstUsedPercent": 20,
+            "lastUsedPercent": 1,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 40,
+            "firstObservedAt": "2026-08-26T10:04:25.570Z",
+            "lastObservedAt": "2026-08-26T23:59:06.483Z"
+          }
+        ]
+      },
+      "usage": {
+        "requestCount": 3141,
+        "pricedRequestCount": 3141,
+        "tokens": {
+          "input": 12137730,
+          "output": 1152474,
+          "cacheRead": 362997056,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 130.93525848,
+        "pricedQuotaEquivalentCostUsd": 130.93525848,
+        "retailCostUsd": 130.93525848,
+        "quotaEquivalentCostUsd": 130.93525848,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-luna",
+            "requestCount": 1280,
+            "pricedRequestCount": 1280,
+            "tokens": {
+              "input": 3756110,
+              "output": 352603,
+              "cacheRead": 107791360,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 3.53190912,
+            "pricedQuotaEquivalentCostUsd": 3.53190912,
+            "retailCostUsd": 3.53190912,
+            "quotaEquivalentCostUsd": 3.53190912,
+            "pricingApplyFrom": [
+              "2026-08-16"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 585,
+            "pricedRequestCount": 585,
+            "tokens": {
+              "input": 3163029,
+              "output": 332371,
+              "cacheRead": 58981120,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 55.276835,
+            "pricedQuotaEquivalentCostUsd": 55.276835,
+            "retailCostUsd": 55.276835,
+            "quotaEquivalentCostUsd": 55.276835,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 876,
+            "pricedRequestCount": 876,
+            "tokens": {
+              "input": 3975598,
+              "output": 248480,
+              "cacheRead": 117035008,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 34.3399576,
+            "pricedQuotaEquivalentCostUsd": 34.3399576,
+            "retailCostUsd": 34.3399576,
+            "quotaEquivalentCostUsd": 34.3399576,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "xai/grok-4.6",
+            "requestCount": 205,
+            "pricedRequestCount": 205,
+            "tokens": {
+              "input": 879476,
+              "output": 111145,
+              "cacheRead": 57449472,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 31.150558,
+            "pricedQuotaEquivalentCostUsd": 31.150558,
+            "retailCostUsd": 31.150558,
+            "quotaEquivalentCostUsd": 31.150558,
+            "pricingApplyFrom": [
+              "2026-08-23"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3",
+            "requestCount": 195,
+            "pricedRequestCount": 195,
+            "tokens": {
+              "input": 363517,
+              "output": 107875,
+              "cacheRead": 21740096,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 6.63599876,
+            "pricedQuotaEquivalentCostUsd": 6.63599876,
+            "retailCostUsd": 6.63599876,
+            "quotaEquivalentCostUsd": 6.63599876,
+            "pricingApplyFrom": [
+              "2026-08-17"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-27": {
+      "quota": {
+        "observationCount": 2659,
+        "windows": [
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-28T04:59:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-27T00:00:41.368Z",
+            "lastObservedAt": "2026-08-27T23:59:54.590Z"
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "primary",
+            "resetAt": "2026-09-03T16:27:00.000Z",
+            "firstUsedPercent": 36,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 36,
+            "firstObservedAt": "2026-08-27T00:00:41.368Z",
+            "lastObservedAt": "2026-08-27T23:59:54.590Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:00.000Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100,
+            "firstObservedAt": "2026-08-27T00:00:41.368Z",
+            "lastObservedAt": "2026-08-27T23:59:54.590Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-28T04:59:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-27T00:00:41.368Z",
+            "lastObservedAt": "2026-08-27T23:59:54.590Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.000Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3,
+            "firstObservedAt": "2026-08-27T00:00:41.368Z",
+            "lastObservedAt": "2026-08-27T23:59:54.590Z"
+          },
+          {
+            "provider": "xai",
+            "accountAlias": "default",
+            "kind": "7d",
+            "resetAt": "2026-08-30T04:51:00.000Z",
+            "firstUsedPercent": 73,
+            "lastUsedPercent": 77,
+            "minUsedPercent": 73,
+            "maxUsedPercent": 77,
+            "firstObservedAt": "2026-08-27T00:00:41.368Z",
+            "lastObservedAt": "2026-08-27T23:59:54.590Z"
+          },
+          {
+            "provider": "zai",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": null,
+            "firstUsedPercent": 6,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 100,
+            "firstObservedAt": "2026-08-27T00:00:41.368Z",
+            "lastObservedAt": "2026-08-27T23:59:54.590Z"
+          },
+          {
+            "provider": "zai",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T05:13:00.000Z",
+            "firstUsedPercent": 1,
+            "lastUsedPercent": 22,
+            "minUsedPercent": 1,
+            "maxUsedPercent": 22,
+            "firstObservedAt": "2026-08-27T00:00:41.368Z",
+            "lastObservedAt": "2026-08-27T23:59:54.590Z"
+          }
+        ]
+      },
+      "usage": {
+        "requestCount": 1314,
+        "pricedRequestCount": 1314,
+        "tokens": {
+          "input": 4501726,
+          "output": 519839,
+          "cacheRead": 158524416,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 17.74270995,
+        "pricedQuotaEquivalentCostUsd": 21.776488209878,
+        "retailCostUsd": 17.74270995,
+        "quotaEquivalentCostUsd": 21.776488209878,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-luna",
+            "requestCount": 783,
+            "pricedRequestCount": 783,
+            "tokens": {
+              "input": 2263225,
+              "output": 196707,
+              "cacheRead": 73313664,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 2.15496668,
+            "pricedQuotaEquivalentCostUsd": 2.15496668,
+            "retailCostUsd": 2.15496668,
+            "quotaEquivalentCostUsd": 2.15496668,
+            "pricingApplyFrom": [
+              "2026-08-16"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 18,
+            "pricedRequestCount": 18,
+            "tokens": {
+              "input": 144577,
+              "output": 9048,
+              "cacheRead": 314880,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.151765,
+            "pricedQuotaEquivalentCostUsd": 1.151765,
+            "retailCostUsd": 1.151765,
+            "quotaEquivalentCostUsd": 1.151765,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 13,
+            "pricedRequestCount": 13,
+            "tokens": {
+              "input": 140430,
+              "output": 992,
+              "cacheRead": 1569792,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.6067224,
+            "pricedQuotaEquivalentCostUsd": 0.6067224,
+            "retailCostUsd": 0.6067224,
+            "quotaEquivalentCostUsd": 0.6067224,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "xai/grok-4.6",
+            "requestCount": 165,
+            "pricedRequestCount": 165,
+            "tokens": {
+              "input": 1525658,
+              "output": 140936,
+              "cacheRead": 14781184,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 11.287524,
+            "pricedQuotaEquivalentCostUsd": 11.287524,
+            "retailCostUsd": 11.287524,
+            "quotaEquivalentCostUsd": 11.287524,
+            "pricingApplyFrom": [
+              "2026-08-23"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3",
+            "requestCount": 13,
+            "pricedRequestCount": 13,
+            "tokens": {
+              "input": 77759,
+              "output": 10934,
+              "cacheRead": 849088,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.37773508,
+            "pricedQuotaEquivalentCostUsd": 0.37773508,
+            "retailCostUsd": 0.37773508,
+            "quotaEquivalentCostUsd": 0.37773508,
+            "pricingApplyFrom": [
+              "2026-08-17"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3-flash",
+            "requestCount": 322,
+            "pricedRequestCount": 322,
+            "tokens": {
+              "input": 350077,
+              "output": 161222,
+              "cacheRead": 67695808,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 2.16399679,
+            "pricedQuotaEquivalentCostUsd": 6.197775049878,
+            "retailCostUsd": 2.16399679,
+            "quotaEquivalentCostUsd": 6.197775049878,
+            "pricingApplyFrom": [
+              "2026-08-27"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-28": {
+      "quota": {
+        "observationCount": 3060,
+        "windows": [
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-29T04:46:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-28T00:03:03.418Z",
+            "lastObservedAt": "2026-08-28T23:46:21.934Z"
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "primary",
+            "resetAt": "2026-09-03T16:27:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 2,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 2,
+            "firstObservedAt": "2026-08-28T00:03:03.418Z",
+            "lastObservedAt": "2026-08-28T23:46:21.934Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:00.000Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100,
+            "firstObservedAt": "2026-08-28T00:03:03.418Z",
+            "lastObservedAt": "2026-08-28T23:46:21.934Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-29T04:46:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-28T00:03:03.418Z",
+            "lastObservedAt": "2026-08-28T23:46:21.934Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.000Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3,
+            "firstObservedAt": "2026-08-28T00:03:03.418Z",
+            "lastObservedAt": "2026-08-28T23:46:21.934Z"
+          },
+          {
+            "provider": "xai",
+            "accountAlias": "default",
+            "kind": "7d",
+            "resetAt": "2026-08-30T04:51:00.000Z",
+            "firstUsedPercent": 77,
+            "lastUsedPercent": 77,
+            "minUsedPercent": 77,
+            "maxUsedPercent": 77,
+            "firstObservedAt": "2026-08-28T00:03:03.418Z",
+            "lastObservedAt": "2026-08-28T23:46:21.934Z"
           },
           {
             "provider": "zai",
@@ -1721,86 +1881,300 @@
             "firstUsedPercent": 0,
             "lastUsedPercent": 0,
             "minUsedPercent": 0,
-            "maxUsedPercent": 0
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-28T00:03:03.418Z",
+            "lastObservedAt": "2026-08-28T23:46:21.934Z"
           },
           {
             "provider": "zai",
             "accountAlias": "default",
             "kind": "weekly",
-            "resetAt": "2026-08-31T05:13:20.996Z",
-            "firstUsedPercent": 20,
-            "lastUsedPercent": 20,
-            "minUsedPercent": 20,
-            "maxUsedPercent": 20
+            "resetAt": "2026-08-31T05:13:00.000Z",
+            "firstUsedPercent": 22,
+            "lastUsedPercent": 22,
+            "minUsedPercent": 22,
+            "maxUsedPercent": 22,
+            "firstObservedAt": "2026-08-28T00:03:03.418Z",
+            "lastObservedAt": "2026-08-28T23:46:21.934Z"
           }
         ]
       },
       "usage": {
-        "requestCount": 1412,
-        "pricedRequestCount": 1412,
+        "requestCount": 191,
+        "pricedRequestCount": 191,
         "tokens": {
-          "input": 5506359,
-          "output": 389247,
-          "cacheRead": 123399424,
+          "input": 776320,
+          "output": 62079,
+          "cacheRead": 19198080,
           "cacheWrite": 0
         },
-        "pricedRetailCostUsd": 36.07082464,
-        "pricedQuotaEquivalentCostUsd": 36.07082464,
-        "retailCostUsd": 36.07082464,
-        "quotaEquivalentCostUsd": 36.07082464,
+        "pricedRetailCostUsd": 5.43980036,
+        "pricedQuotaEquivalentCostUsd": 5.43980036,
+        "retailCostUsd": 5.43980036,
+        "quotaEquivalentCostUsd": 5.43980036,
         "models": [
           {
             "modelIdentifier": "openai-codex/gpt-5.6-luna",
-            "requestCount": 703,
-            "pricedRequestCount": 703,
+            "requestCount": 63,
+            "pricedRequestCount": 63,
             "tokens": {
-              "input": 1862505,
-              "output": 167674,
-              "cacheRead": 29768704,
+              "input": 153962,
+              "output": 29603,
+              "cacheRead": 4953088,
               "cacheWrite": 0
             },
-            "pricedRetailCostUsd": 1.36350004,
-            "pricedQuotaEquivalentCostUsd": 1.36350004,
-            "retailCostUsd": 1.36350004,
-            "quotaEquivalentCostUsd": 1.36350004,
+            "pricedRetailCostUsd": 0.16537776,
+            "pricedQuotaEquivalentCostUsd": 0.16537776,
+            "retailCostUsd": 0.16537776,
+            "quotaEquivalentCostUsd": 0.16537776,
             "pricingApplyFrom": [
               "2026-08-16"
             ]
           },
           {
             "modelIdentifier": "openai-codex/gpt-5.6-sol",
-            "requestCount": 127,
-            "pricedRequestCount": 127,
+            "requestCount": 11,
+            "pricedRequestCount": 11,
             "tokens": {
-              "input": 634855,
-              "output": 63187,
-              "cacheRead": 9975552,
+              "input": 67345,
+              "output": 14399,
+              "cacheRead": 1099264,
               "cacheWrite": 0
             },
-            "pricedRetailCostUsd": 10.057661,
-            "pricedQuotaEquivalentCostUsd": 10.057661,
-            "retailCostUsd": 10.057661,
-            "quotaEquivalentCostUsd": 10.057661,
+            "pricedRetailCostUsd": 1.318327,
+            "pricedQuotaEquivalentCostUsd": 1.318327,
+            "retailCostUsd": 1.318327,
+            "quotaEquivalentCostUsd": 1.318327,
             "pricingApplyFrom": [
               "2026-07-15"
             ]
           },
           {
             "modelIdentifier": "openai-codex/gpt-5.6-terra",
-            "requestCount": 582,
-            "pricedRequestCount": 582,
+            "requestCount": 117,
+            "pricedRequestCount": 117,
             "tokens": {
-              "input": 3008999,
-              "output": 158386,
-              "cacheRead": 83655168,
+              "input": 555013,
+              "output": 18077,
+              "cacheRead": 13145728,
               "cacheWrite": 0
             },
-            "pricedRetailCostUsd": 24.6496636,
-            "pricedQuotaEquivalentCostUsd": 24.6496636,
-            "retailCostUsd": 24.6496636,
-            "quotaEquivalentCostUsd": 24.6496636,
+            "pricedRetailCostUsd": 3.9560956,
+            "pricedQuotaEquivalentCostUsd": 3.9560956,
+            "retailCostUsd": 3.9560956,
+            "quotaEquivalentCostUsd": 3.9560956,
             "pricingApplyFrom": [
               "2026-08-10"
+            ]
+          }
+        ],
+        "unpricedModelIdentifiers": []
+      }
+    },
+    "2026-08-29": {
+      "quota": {
+        "observationCount": 1008,
+        "windows": [
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "additional:GPT-5.3-Codex-Spark",
+            "resetAt": "2026-08-29T11:26:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-29T00:11:35.603Z",
+            "lastObservedAt": "2026-08-29T06:26:31.020Z"
+          },
+          {
+            "provider": "openai-codex",
+            "accountAlias": "default",
+            "kind": "primary",
+            "resetAt": "2026-09-03T16:27:00.000Z",
+            "firstUsedPercent": 2,
+            "lastUsedPercent": 4,
+            "minUsedPercent": 2,
+            "maxUsedPercent": 4,
+            "firstObservedAt": "2026-08-29T00:11:35.603Z",
+            "lastObservedAt": "2026-08-29T06:26:31.020Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "monthly",
+            "resetAt": "2026-08-29T15:18:00.000Z",
+            "firstUsedPercent": 100,
+            "lastUsedPercent": 100,
+            "minUsedPercent": 100,
+            "maxUsedPercent": 100,
+            "firstObservedAt": "2026-08-29T00:11:35.603Z",
+            "lastObservedAt": "2026-08-29T06:26:31.020Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-29T11:26:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 0,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 0,
+            "firstObservedAt": "2026-08-29T00:11:35.603Z",
+            "lastObservedAt": "2026-08-29T06:26:31.020Z"
+          },
+          {
+            "provider": "opencode-go",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T00:00:00.000Z",
+            "firstUsedPercent": 3,
+            "lastUsedPercent": 3,
+            "minUsedPercent": 3,
+            "maxUsedPercent": 3,
+            "firstObservedAt": "2026-08-29T00:11:35.603Z",
+            "lastObservedAt": "2026-08-29T06:26:31.020Z"
+          },
+          {
+            "provider": "xai",
+            "accountAlias": "default",
+            "kind": "7d",
+            "resetAt": "2026-08-30T04:51:00.000Z",
+            "firstUsedPercent": 77,
+            "lastUsedPercent": 77,
+            "minUsedPercent": 77,
+            "maxUsedPercent": 77,
+            "firstObservedAt": "2026-08-29T00:11:35.603Z",
+            "lastObservedAt": "2026-08-29T06:26:31.020Z"
+          },
+          {
+            "provider": "zai",
+            "accountAlias": "default",
+            "kind": "rolling-5h",
+            "resetAt": "2026-08-29T09:50:00.000Z",
+            "firstUsedPercent": 0,
+            "lastUsedPercent": 72,
+            "minUsedPercent": 0,
+            "maxUsedPercent": 72,
+            "firstObservedAt": "2026-08-29T00:11:35.603Z",
+            "lastObservedAt": "2026-08-29T06:26:31.020Z"
+          },
+          {
+            "provider": "zai",
+            "accountAlias": "default",
+            "kind": "weekly",
+            "resetAt": "2026-08-31T05:13:00.000Z",
+            "firstUsedPercent": 22,
+            "lastUsedPercent": 36,
+            "minUsedPercent": 22,
+            "maxUsedPercent": 36,
+            "firstObservedAt": "2026-08-29T00:11:35.603Z",
+            "lastObservedAt": "2026-08-29T06:26:31.020Z"
+          }
+        ]
+      },
+      "usage": {
+        "requestCount": 943,
+        "pricedRequestCount": 943,
+        "tokens": {
+          "input": 3607396,
+          "output": 491255,
+          "cacheRead": 145529088,
+          "cacheWrite": 0
+        },
+        "pricedRetailCostUsd": 9.79148538,
+        "pricedQuotaEquivalentCostUsd": 12.823296652078,
+        "retailCostUsd": 9.79148538,
+        "quotaEquivalentCostUsd": 12.823296652078,
+        "models": [
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-luna",
+            "requestCount": 627,
+            "pricedRequestCount": 627,
+            "tokens": {
+              "input": 2278873,
+              "output": 339625,
+              "cacheRead": 94303232,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 3.05655112,
+            "pricedQuotaEquivalentCostUsd": 3.05655112,
+            "retailCostUsd": 3.05655112,
+            "quotaEquivalentCostUsd": 3.05655112,
+            "pricingApplyFrom": [
+              "2026-08-16"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-sol",
+            "requestCount": 51,
+            "pricedRequestCount": 51,
+            "tokens": {
+              "input": 338185,
+              "output": 50435,
+              "cacheRead": 3029504,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 4.718727,
+            "pricedQuotaEquivalentCostUsd": 4.718727,
+            "retailCostUsd": 4.718727,
+            "quotaEquivalentCostUsd": 4.718727,
+            "pricingApplyFrom": [
+              "2026-07-15"
+            ]
+          },
+          {
+            "modelIdentifier": "openai-codex/gpt-5.6-terra",
+            "requestCount": 1,
+            "pricedRequestCount": 1,
+            "tokens": {
+              "input": 153766,
+              "output": 681,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.315704,
+            "pricedQuotaEquivalentCostUsd": 0.315704,
+            "retailCostUsd": 0.315704,
+            "quotaEquivalentCostUsd": 0.315704,
+            "pricingApplyFrom": [
+              "2026-08-10"
+            ]
+          },
+          {
+            "modelIdentifier": "xai/grok-4.6",
+            "requestCount": 3,
+            "pricedRequestCount": 3,
+            "tokens": {
+              "input": 27074,
+              "output": 858,
+              "cacheRead": 51200,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 0.084896,
+            "pricedQuotaEquivalentCostUsd": 0.084896,
+            "retailCostUsd": 0.084896,
+            "quotaEquivalentCostUsd": 0.084896,
+            "pricingApplyFrom": [
+              "2026-08-23"
+            ]
+          },
+          {
+            "modelIdentifier": "zai/glm-5.3-flash",
+            "requestCount": 261,
+            "pricedRequestCount": 261,
+            "tokens": {
+              "input": 809498,
+              "output": 99656,
+              "cacheRead": 48145152,
+              "cacheWrite": 0
+            },
+            "pricedRetailCostUsd": 1.61560726,
+            "pricedQuotaEquivalentCostUsd": 4.647418532078,
+            "retailCostUsd": 1.61560726,
+            "quotaEquivalentCostUsd": 4.647418532078,
+            "pricingApplyFrom": [
+              "2026-08-27"
             ]
           }
         ],

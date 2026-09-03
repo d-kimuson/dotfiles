@@ -1,3 +1,40 @@
 {
-  "providers": {}
+  "providers": {
+    "zai": {
+      "models": [
+        {
+          "id": "glm-5.3-flash",
+          "name": "GLM-5.3-Flash",
+          "api": "openai-completions",
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "off": null,
+            "minimal": null,
+            "low": "low",
+            "medium": null,
+            "high": "high",
+            "xhigh": null,
+            "max": "max"
+          },
+          "input": ["text", "image"],
+          "cost": {
+            "input": 0.15,
+            "output": 0.5,
+            "cacheRead": 0.03,
+            "cacheWrite": 0
+          },
+          "compat": {
+            "supportsStore": false,
+            "supportsDeveloperRole": false,
+            "supportsReasoningEffort": true,
+            "maxTokensField": "max_tokens",
+            "thinkingFormat": "zai",
+            "zaiToolStream": true
+          },
+          "contextWindow": 1000000,
+          "maxTokens": 131072
+        }
+      ]
+    }
+  }
 }

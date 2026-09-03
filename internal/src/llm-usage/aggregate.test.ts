@@ -124,6 +124,8 @@ describe("aggregateLlmUsage", () => {
                   lastUsedPercent: 12.8,
                   minUsedPercent: 10.2,
                   maxUsedPercent: 12.8,
+                  firstObservedAt: "2026-01-15T09:00:00.000Z",
+                  lastObservedAt: "2026-01-15T20:00:00.000Z",
                 },
               ],
             },
@@ -162,6 +164,39 @@ describe("aggregateLlmUsage", () => {
             },
           },
         },
+      })
+
+      expect(
+        await readJson(path.join(usageRoot, "aggregate", "machine-a", "quota-estimates.json")),
+      ).toEqual({
+        schemaVersion: 1,
+        machineId: "machine-a",
+        estimates: [{
+          provider: "openai-codex",
+          accountAlias: "personal",
+          kind: "weekly",
+          resetAt: "2026-01-20T00:00:00.000Z",
+          estimationMethod: "usage-percentage-delta",
+          usageStartAt: "2026-01-15T09:00:00.000Z",
+          usageEndAt: "2026-01-15T20:00:00.000Z",
+          firstObservedAt: "2026-01-15T09:00:00.000Z",
+          lastObservedAt: "2026-01-15T20:00:00.000Z",
+          firstUsedPercent: 10.2,
+          lastUsedPercent: 12.8,
+          usedPercentDelta: 2.6,
+          usage: {
+            requestCount: 1,
+            pricedRequestCount: 1,
+            tokens: { input: 1_000_000, output: 1_000_000, cacheRead: 1_000_000, cacheWrite: 1_000_000 },
+            pricedRetailCostUsd: 13,
+            pricedQuotaEquivalentCostUsd: 13,
+            retailCostUsd: 13,
+            quotaEquivalentCostUsd: 13,
+            unpricedModelIdentifiers: [],
+          },
+          estimatedQuotaBudgetUsd: 500,
+          intervals: [],
+        }],
       })
 
       expect(
@@ -306,6 +341,92 @@ describe("aggregateLlmUsage", () => {
         },
       })
       expect(aggregate).toMatchObject({ days: { "2026-03-02": { preserved: true } } })
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it("keeps a rolling quota cycle together when resetAt moves between observations", async () => {
+    const root = await mkdtemp(testRootPrefix)
+    const usageRoot = path.join(root, "observe", "llm-usage")
+    const sessionsRoot = path.join(root, "sessions")
+    try {
+      await writeJson(path.join(usageRoot, "master", "pricing.json"), {
+        schemaVersion: 1, currency: "USD", prices: [{
+          modelIdentifier: "zai/glm-test", applyFrom: "2026-01-01",
+          inputPerMillionUsd: 1, outputPerMillionUsd: 1, cacheReadPerMillionUsd: 1, cacheWritePerMillionUsd: 1,
+        }],
+      })
+      await writeJsonl(path.join(sessionsRoot, "session.jsonl"), [
+        { type: "session", version: 3 },
+        {
+          type: "message", id: "rolling-1", timestamp: "2026-01-15T09:30:00.000Z",
+          message: { role: "assistant", provider: "zai", model: "glm-test", timestamp: Date.parse("2026-01-15T09:30:00.000Z"), usage: { input: 1_000_000, output: 0, cacheRead: 0, cacheWrite: 0 } },
+        },
+      ])
+      await writeJsonl(path.join(usageRoot, "state", "quota", "2026-01-15.jsonl"), [
+        { schemaVersion: 1, kind: "quota_observation", observedAt: "2026-01-15T09:00:00.000Z", provider: "zai", accountAlias: "personal", windows: [{ kind: "rolling-5h", usedPercent: 10, resetAt: "2026-01-15T14:00:00.000Z" }] },
+        { schemaVersion: 1, kind: "quota_observation", observedAt: "2026-01-15T10:00:00.000Z", provider: "zai", accountAlias: "personal", windows: [{ kind: "rolling-5h", usedPercent: 20, resetAt: "2026-01-15T15:00:00.000Z" }] },
+      ])
+      await aggregateLlmUsage({ usageRoot, sessionsRoot, machineId: "machine-rolling" })
+      const estimate = await readJson(path.join(usageRoot, "aggregate", "machine-rolling", "quota-estimates.json"))
+      expect(estimate).toMatchObject({ estimates: [{ firstObservedAt: "2026-01-15T09:00:00.000Z", lastObservedAt: "2026-01-15T10:00:00.000Z", usedPercentDelta: 10 }] })
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  it("prices GLM-5.3-Flash with its off-peak and peak quota coefficients", async () => {
+    const root = await mkdtemp(testRootPrefix)
+    const usageRoot = path.join(root, "observe", "llm-usage")
+    const sessionsRoot = path.join(root, "sessions")
+    try {
+      await writeJson(path.join(usageRoot, "master", "pricing.json"), {
+        schemaVersion: 1,
+        currency: "USD",
+        prices: [{
+          modelIdentifier: "zai/glm-5.3-flash",
+          applyFrom: "2026-08-27",
+          inputPerMillionUsd: 0.15,
+          outputPerMillionUsd: 0.5,
+          cacheReadPerMillionUsd: 0.03,
+          cacheWritePerMillionUsd: 0,
+          quotaMultiplier: 1,
+          quotaRates: { inputPerMillionUsd: 0.5, outputPerMillionUsd: 1.5, cacheReadPerMillionUsd: 0.1, cacheWritePerMillionUsd: 0 },
+          conditions: [{
+            kind: "utc-weekly-time-window",
+            weekdays: [1, 2, 3, 4, 5],
+            startUtc: "06:00",
+            endUtc: "10:00",
+            inputPerMillionUsd: 0.15,
+            outputPerMillionUsd: 0.5,
+            cacheReadPerMillionUsd: 0.03,
+            cacheWritePerMillionUsd: 0,
+            quotaMultiplier: 1,
+            quotaRates: { inputPerMillionUsd: 1.5, outputPerMillionUsd: 4.5, cacheReadPerMillionUsd: 0.3, cacheWritePerMillionUsd: 0 },
+          }],
+        }],
+      })
+      const message = (id: string, timestamp: string) => ({
+        type: "message", id, parentId: null, timestamp,
+        message: {
+          role: "assistant", provider: "zai", model: "glm-5.3-flash", timestamp: Date.parse(timestamp),
+          usage: { input: 1_000_000, output: 0, cacheRead: 0, cacheWrite: 0 },
+        },
+      })
+      await writeJsonl(path.join(sessionsRoot, "session.jsonl"), [
+        { type: "session", version: 3 },
+        message("peak", "2026-08-27T08:00:00.000Z"),
+        message("off-peak", "2026-08-29T08:00:00.000Z"),
+      ])
+      await aggregateLlmUsage({ usageRoot, sessionsRoot, machineId: "machine-glm" })
+      const aggregate = await readJson(path.join(usageRoot, "aggregate", "machine-glm", "2026", "08.json"))
+      expect(aggregate).toMatchObject({
+        days: {
+          "2026-08-27": { usage: { models: [{ pricedRetailCostUsd: 0.15, pricedQuotaEquivalentCostUsd: 1.5 }] } },
+          "2026-08-29": { usage: { models: [{ pricedRetailCostUsd: 0.15, pricedQuotaEquivalentCostUsd: 0.5 }] } },
+        },
+      })
     } finally {
       await rm(root, { recursive: true, force: true })
     }

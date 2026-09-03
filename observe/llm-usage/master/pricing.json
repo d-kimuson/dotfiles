@@ -259,6 +259,38 @@
       }]
     },
     {
+      "modelIdentifier": "zai/glm-5.3-flash",
+      "applyFrom": "2026-08-27",
+      "inputPerMillionUsd": 0.15,
+      "outputPerMillionUsd": 0.5,
+      "cacheReadPerMillionUsd": 0.03,
+      "cacheWritePerMillionUsd": 0,
+      "quotaMultiplier": 1,
+      "quotaRates": {
+        "inputPerMillionUsd": 0.4666666666666667,
+        "outputPerMillionUsd": 1.4666666666666668,
+        "cacheReadPerMillionUsd": 0.08564705882352941,
+        "cacheWritePerMillionUsd": 0
+      },
+      "conditions": [{
+        "kind": "utc-weekly-time-window",
+        "weekdays": [1, 2, 3, 4, 5],
+        "startUtc": "06:00",
+        "endUtc": "10:00",
+        "inputPerMillionUsd": 0.15,
+        "outputPerMillionUsd": 0.5,
+        "cacheReadPerMillionUsd": 0.03,
+        "cacheWritePerMillionUsd": 0,
+        "quotaMultiplier": 1,
+        "quotaRates": {
+          "inputPerMillionUsd": 1.4,
+          "outputPerMillionUsd": 4.4,
+          "cacheReadPerMillionUsd": 0.2569411764705882,
+          "cacheWritePerMillionUsd": 0
+        }
+      }]
+    },
+    {
       "modelIdentifier": "zai/glm-5.3",
       "applyFrom": "2026-08-17",
       "inputPerMillionUsd": 1.4,

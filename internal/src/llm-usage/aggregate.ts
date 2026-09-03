@@ -22,6 +22,8 @@ type PriceRates = {
   readonly cacheWritePerMillionUsd: number
 }
 
+type QuotaRates = PriceRates
+
 type PriceTier = PriceRates & {
   readonly inputTokensAbove: number
 }
@@ -31,12 +33,14 @@ type PriceCondition = PriceRates & {
   readonly startUtcMinute: number
   readonly endUtcMinute: number
   readonly quotaMultiplier: number
+  readonly quotaRates: QuotaRates | null
 }
 
 type PriceRevision = PriceRates & {
   readonly modelIdentifier: string
   readonly applyFrom: string
   readonly quotaMultiplier: number
+  readonly quotaRates: QuotaRates | null
   readonly tiers: readonly PriceTier[]
   readonly conditions: readonly PriceCondition[]
 }
@@ -44,6 +48,7 @@ type PriceRevision = PriceRates & {
 type EffectivePrice = PriceRates & {
   readonly applyFrom: string
   readonly quotaMultiplier: number
+  readonly quotaRates: QuotaRates | null
 }
 
 type Pricing = {
@@ -71,11 +76,25 @@ type QuotaObservation = {
   readonly windows: readonly QuotaWindow[]
 }
 
+type PricedUsageEvent = {
+  readonly event: UsageEvent
+  readonly price: EffectivePrice | null
+}
+
+type IntervalUsageAggregate = {
+  requestCount: number
+  pricedRequestCount: number
+  tokens: Tokens
+  retailCostUsd: number
+  quotaEquivalentCostUsd: number
+  readonly unpricedModelIdentifiers: Set<string>
+}
+
 type QuotaWindowAggregate = {
   readonly provider: string
   readonly accountAlias: string
   readonly kind: string
-  readonly resetAt: string | null
+  resetAt: string | null
   firstUsedPercent: number
   lastUsedPercent: number
   minUsedPercent: number
@@ -143,6 +162,9 @@ const toIsoTimestamp = (value: unknown, source: string): string => {
 
 const toUtcDate = (timestamp: string): string => timestamp.slice(0, 10)
 
+// Providers can return the same reset boundary with request-specific milliseconds.
+const normalizeResetAt = (timestamp: string): string => `${timestamp.slice(0, 16)}:00.000Z`
+
 const zeroTokens = (): Tokens => ({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0 })
 
 const addTokens = (target: Tokens, source: Tokens): void => {
@@ -165,6 +187,11 @@ const parsePriceRates = (value: JsonObject, source: string): PriceRates => ({
   cacheReadPerMillionUsd: requiredNumber(value, "cacheReadPerMillionUsd", source),
   cacheWritePerMillionUsd: requiredNumber(value, "cacheWritePerMillionUsd", source),
 })
+
+const parseOptionalQuotaRates = (value: JsonObject, source: string): QuotaRates | null => {
+  const candidate = property(value, "quotaRates")
+  return candidate === undefined || candidate === null ? null : parsePriceRates(requiredObject(candidate, `${source}.quotaRates`), `${source}.quotaRates`)
+}
 
 const parseUtcTime = (value: unknown, source: string): number => {
   if (typeof value !== "string" || !/^\d{2}:\d{2}$/.test(value)) {
@@ -200,6 +227,7 @@ const parsePriceCondition = (value: unknown, source: string): PriceCondition => 
     startUtcMinute: parseUtcTime(property(condition, "startUtc"), `${source}.startUtc`),
     endUtcMinute: parseUtcTime(property(condition, "endUtc"), `${source}.endUtc`),
     quotaMultiplier: property(condition, "quotaMultiplier") === undefined ? 1 : requiredNumber(condition, "quotaMultiplier", source),
+    quotaRates: parseOptionalQuotaRates(condition, source),
     ...parsePriceRates(condition, source),
   }
 }
@@ -249,6 +277,7 @@ const parsePricing = (value: unknown, source: string): Pricing => {
       applyFrom,
       ...parsePriceRates(price, entrySource),
       quotaMultiplier: property(price, "quotaMultiplier") === undefined ? 1 : requiredNumber(price, "quotaMultiplier", entrySource),
+      quotaRates: parseOptionalQuotaRates(price, entrySource),
       tiers: sortedTiers,
       conditions,
     }
@@ -326,7 +355,7 @@ const parseQuotaObservation = (value: unknown, source: string): QuotaObservation
         provider,
         accountAlias,
         kind: requiredString(quotaWindow, "kind", windowSource),
-        resetAt: resetAtValue === null ? null : toIsoTimestamp(resetAtValue, `${windowSource}.resetAt`),
+        resetAt: resetAtValue === null ? null : normalizeResetAt(toIsoTimestamp(resetAtValue, `${windowSource}.resetAt`)),
         usedPercent: requiredNumber(quotaWindow, "usedPercent", windowSource),
         observedAt,
       }
@@ -432,6 +461,7 @@ const selectPrice = (
   return {
     applyFrom: revision.applyFrom,
     quotaMultiplier: condition?.quotaMultiplier ?? revision.quotaMultiplier,
+    quotaRates: condition?.quotaRates ?? revision.quotaRates,
     inputPerMillionUsd: condition?.inputPerMillionUsd ?? tieredRates.inputPerMillionUsd,
     outputPerMillionUsd: condition?.outputPerMillionUsd ?? tieredRates.outputPerMillionUsd,
     cacheReadPerMillionUsd: condition?.cacheReadPerMillionUsd ?? tieredRates.cacheReadPerMillionUsd,
@@ -463,7 +493,7 @@ const createDailyAggregate = (): DailyAggregate => ({
 const aggregateQuota = (daily: DailyAggregate, observation: QuotaObservation): void => {
   daily.quotaObservationCount += 1
   for (const window of observation.windows) {
-    const key = [window.provider, window.accountAlias, window.kind, window.resetAt ?? "none"].join("\u0000")
+    const key = quotaWindowKey(window)
     const current = daily.quotaWindows.get(key)
     if (current === undefined) {
       daily.quotaWindows.set(key, {
@@ -487,11 +517,14 @@ const aggregateQuota = (daily: DailyAggregate, observation: QuotaObservation): v
     if (window.observedAt >= current.lastObservedAt) {
       current.lastObservedAt = window.observedAt
       current.lastUsedPercent = window.usedPercent
+      current.resetAt = window.resetAt
     }
     current.minUsedPercent = Math.min(current.minUsedPercent, window.usedPercent)
     current.maxUsedPercent = Math.max(current.maxUsedPercent, window.usedPercent)
   }
 }
+
+const quotaCost = (tokens: Tokens, price: EffectivePrice): number => retailCost(tokens, price.quotaRates ?? price) * price.quotaMultiplier
 
 const aggregateUsage = (daily: DailyAggregate, event: UsageEvent, price: EffectivePrice | null): void => {
   daily.requestCount += 1
@@ -513,16 +546,127 @@ const aggregateUsage = (daily: DailyAggregate, event: UsageEvent, price: Effecti
     daily.unpricedModelIdentifiers.add(event.modelIdentifier)
   } else {
     const cost = retailCost(event.tokens, price)
-    const quotaCost = roundUsd(cost * price.quotaMultiplier)
+    const quotaEquivalent = roundUsd(quotaCost(event.tokens, price))
     daily.pricedRequestCount += 1
     daily.retailCostUsd = roundUsd(daily.retailCostUsd + cost)
-    daily.quotaEquivalentCostUsd = roundUsd(daily.quotaEquivalentCostUsd + quotaCost)
+    daily.quotaEquivalentCostUsd = roundUsd(daily.quotaEquivalentCostUsd + quotaEquivalent)
     model.pricedRequestCount += 1
     model.retailCostUsd = roundUsd(model.retailCostUsd + cost)
-    model.quotaEquivalentCostUsd = roundUsd(model.quotaEquivalentCostUsd + quotaCost)
+    model.quotaEquivalentCostUsd = roundUsd(model.quotaEquivalentCostUsd + quotaEquivalent)
     model.pricingApplyFrom.add(price.applyFrom)
   }
   daily.models.set(event.modelIdentifier, model)
+}
+
+const createIntervalUsageAggregate = (): IntervalUsageAggregate => ({
+  requestCount: 0,
+  pricedRequestCount: 0,
+  tokens: zeroTokens(),
+  retailCostUsd: 0,
+  quotaEquivalentCostUsd: 0,
+  unpricedModelIdentifiers: new Set(),
+})
+
+const aggregateIntervalUsage = (target: IntervalUsageAggregate, usage: PricedUsageEvent): void => {
+  target.requestCount += 1
+  addTokens(target.tokens, usage.event.tokens)
+  if (usage.price === null) {
+    target.unpricedModelIdentifiers.add(usage.event.modelIdentifier)
+    return
+  }
+  const cost = retailCost(usage.event.tokens, usage.price)
+  target.pricedRequestCount += 1
+  target.retailCostUsd = roundUsd(target.retailCostUsd + cost)
+  target.quotaEquivalentCostUsd = roundUsd(target.quotaEquivalentCostUsd + quotaCost(usage.event.tokens, usage.price))
+}
+
+const toIntervalUsageOutput = (usage: IntervalUsageAggregate): object => ({
+  requestCount: usage.requestCount,
+  pricedRequestCount: usage.pricedRequestCount,
+  tokens: usage.tokens,
+  pricedRetailCostUsd: usage.retailCostUsd,
+  pricedQuotaEquivalentCostUsd: usage.quotaEquivalentCostUsd,
+  retailCostUsd: usage.pricedRequestCount === usage.requestCount ? usage.retailCostUsd : null,
+  quotaEquivalentCostUsd: usage.pricedRequestCount === usage.requestCount ? usage.quotaEquivalentCostUsd : null,
+  unpricedModelIdentifiers: [...usage.unpricedModelIdentifiers].sort(),
+})
+
+const providerOf = (modelIdentifier: string): string => modelIdentifier.split("/", 1)[0] ?? ""
+
+const quotaWindowKey = (window: Pick<QuotaWindow, "provider" | "accountAlias" | "kind">): string =>
+  [window.provider, window.accountAlias, window.kind].join("\u0000")
+
+const monthlyCycleStart = (resetAt: string | null, kind: string): string | null => {
+  if (resetAt === null || kind !== "monthly") return null
+  const start = new Date(resetAt)
+  start.setUTCMonth(start.getUTCMonth() - 1)
+  return start.toISOString()
+}
+
+const createQuotaInterval = (first: QuotaWindow, last: QuotaWindow, usageEvents: readonly PricedUsageEvent[]): object => {
+  const usage = createIntervalUsageAggregate()
+  const inferredFullCycle = first.usedPercent === 100 && last.usedPercent === 100
+  const startAt = inferredFullCycle ? monthlyCycleStart(last.resetAt, first.kind) ?? first.observedAt : first.observedAt
+  for (const event of usageEvents) {
+    if (providerOf(event.event.modelIdentifier) !== first.provider) continue
+    if (event.event.occurredAt < startAt || event.event.occurredAt > last.observedAt) continue
+    aggregateIntervalUsage(usage, event)
+  }
+  const usedPercentDelta = roundUsd(Math.max(0, last.usedPercent - first.usedPercent))
+  const fullyPriced = usage.pricedRequestCount === usage.requestCount
+  return {
+    estimationMethod: inferredFullCycle ? "at-limit-observed-usage" : "usage-percentage-delta",
+    usageStartAt: startAt,
+    usageEndAt: last.observedAt,
+    firstObservedAt: first.observedAt,
+    lastObservedAt: last.observedAt,
+    firstUsedPercent: first.usedPercent,
+    lastUsedPercent: last.usedPercent,
+    usedPercentDelta,
+    usage: toIntervalUsageOutput(usage),
+    estimatedQuotaBudgetUsd: fullyPriced && usedPercentDelta > 0
+      ? roundUsd(usage.quotaEquivalentCostUsd / (usedPercentDelta / 100))
+      : fullyPriced && inferredFullCycle && usage.requestCount > 0
+        ? usage.quotaEquivalentCostUsd
+        : null,
+  }
+}
+
+const createQuotaEstimateOutput = (observedWindows: readonly QuotaWindow[], usageEvents: readonly PricedUsageEvent[]): object => {
+  const windowsByKey = new Map<string, QuotaWindow[]>()
+  for (const window of observedWindows) {
+    const key = quotaWindowKey(window)
+    const values = windowsByKey.get(key) ?? []
+    values.push(window)
+    windowsByKey.set(key, values)
+  }
+  const estimates = [...windowsByKey.values()].flatMap((windows) => {
+    const ordered = [...windows].sort((left, right) => left.observedAt.localeCompare(right.observedAt))
+    const segments = ordered.reduce<QuotaWindow[][]>((result, window) => {
+      const current = result.at(-1)
+      const previous = current?.at(-1)
+      if (current === undefined || previous === undefined || window.usedPercent >= previous.usedPercent) return [...result.slice(0, -1), [...(current ?? []), window]]
+      return [...result, [window]]
+    }, [])
+    return segments.flatMap((segment) => {
+      const first = segment.reduce((lowest, window) => window.usedPercent < lowest.usedPercent ? window : lowest)
+      const last = segment.reduce((highest, window) => window.usedPercent >= highest.usedPercent ? window : highest)
+      if (last.observedAt < first.observedAt || (last.usedPercent <= first.usedPercent && !(first.usedPercent === 100 && last.usedPercent === 100))) return []
+      return [{
+        provider: first.provider,
+        accountAlias: first.accountAlias,
+        kind: first.kind,
+        resetAt: last.resetAt,
+        ...createQuotaInterval(first, last, usageEvents),
+        intervals: [],
+      }]
+    })
+  })
+  return { estimates: estimates.sort((left, right) =>
+    [left.provider, left.accountAlias, left.kind, left.resetAt ?? ""].join("\u0000").localeCompare(
+      [right.provider, right.accountAlias, right.kind, right.resetAt ?? ""].join("\u0000"),
+    ),
+  ) }
 }
 
 const toOutputDay = (daily: DailyAggregate): object => ({
@@ -534,7 +678,7 @@ const toOutputDay = (daily: DailyAggregate): object => ({
           [right.provider, right.accountAlias, right.kind, right.resetAt ?? ""].join("\u0000"),
         ),
       )
-      .map(({ firstObservedAt: _firstObservedAt, lastObservedAt: _lastObservedAt, ...window }) => window),
+      .map((window) => window),
   },
   usage: {
     requestCount: daily.requestCount,
@@ -568,6 +712,8 @@ export const aggregateLlmUsage = async (options: AggregateLlmUsageOptions): Prom
 
   const pricingPath = path.join(options.usageRoot, "master", "pricing.json")
   const pricing = await loadPricing(pricingPath)
+  const observedQuotaWindows: QuotaWindow[] = []
+  const pricedUsageEvents: PricedUsageEvent[] = []
   const dailyByDate = new Map<string, DailyAggregate>()
   const daily = (date: string): DailyAggregate => {
     const current = dailyByDate.get(date)
@@ -582,6 +728,7 @@ export const aggregateLlmUsage = async (options: AggregateLlmUsageOptions): Prom
     const entries = await readJsonl(quotaFile)
     for (const [index, entry] of entries.entries()) {
       const observation = parseQuotaObservation(entry, `${quotaFile}:${index + 1}`)
+      observedQuotaWindows.push(...observation.windows)
       aggregateQuota(daily(toUtcDate(observation.observedAt)), observation)
     }
   }
@@ -595,7 +742,9 @@ export const aggregateLlmUsage = async (options: AggregateLlmUsageOptions): Prom
       if (event === null || seenUsage.has(event.dedupeKey)) continue
       seenUsage.add(event.dedupeKey)
       const date = toUtcDate(event.occurredAt)
-      aggregateUsage(daily(date), event, selectPrice(pricing, event.modelIdentifier, event.occurredAt, event.tokens))
+      const price = selectPrice(pricing, event.modelIdentifier, event.occurredAt, event.tokens)
+      pricedUsageEvents.push({ event, price })
+      aggregateUsage(daily(date), event, price)
     }
   }
 
@@ -624,5 +773,14 @@ export const aggregateLlmUsage = async (options: AggregateLlmUsageOptions): Prom
     await writeFile(outputPath, JSON.stringify(output, null, 2) + "\n", "utf-8")
     outputPaths.push(outputPath)
   }
+
+  const quotaEstimatesPath = path.join(options.usageRoot, "aggregate", options.machineId, "quota-estimates.json")
+  await mkdir(path.dirname(quotaEstimatesPath), { recursive: true })
+  await writeFile(quotaEstimatesPath, JSON.stringify({
+    schemaVersion: 1,
+    machineId: options.machineId,
+    ...createQuotaEstimateOutput(observedQuotaWindows, pricedUsageEvents),
+  }, null, 2) + "\n", "utf-8")
+  outputPaths.push(quotaEstimatesPath)
   return outputPaths
 }

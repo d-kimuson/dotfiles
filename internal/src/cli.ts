@@ -6,6 +6,7 @@ import { Command } from "commander"
 import { mergeConfigs } from "./merge-config/merge.ts"
 import { deliverMcpConfig } from "./mcp/deliver.ts"
 import { aggregateLlmUsage } from "./llm-usage/aggregate.ts"
+import { startDashboardServer } from "./llm-usage/dashboard.ts"
 import { deliverPiAgentConfig } from "./pi-agent/deliver.ts"
 
 const VALID_TARGETS = ["claude-code", "claude-desktop", "codex", "pi-agent"] as const
@@ -140,6 +141,24 @@ llmUsage
     }
     console.log(`Updated ${outputPaths.length} aggregate file(s):`)
     for (const outputPath of outputPaths) console.log(`  ${outputPath}`)
+  })
+
+const parsePort = (value: string): number => {
+  const port = Number(value)
+  if (!Number.isInteger(port) || port < 0 || port > 65_535) {
+    throw new Error("port must be an integer from 0 to 65535")
+  }
+  return port
+}
+
+llmUsage
+  .command("dashboard")
+  .description("Serve a read-only local dashboard for committed LLM usage aggregates")
+  .option("--port <port>", "Local loopback port", parsePort, 48_321)
+  .action(async (opts: { readonly port: number }) => {
+    const dashboard = await startDashboardServer({ usageRoot: LLM_USAGE_ROOT, port: opts.port })
+    console.log(`LLM usage dashboard: ${dashboard.url}`)
+    console.log("Press Ctrl-C to stop. The server accepts connections only from this machine.")
   })
 
 const mcp = program.command("mcp").description("MCP configuration management")

@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 2,
+  "currency": "USD",
+  "subscriptions": [
+    {
+      "provider": "opencode-go",
+      "planName": "OpenCode Go",
+      "active": true,
+      "applyFrom": "2026-08-18",
+      "monthlyPriceUsd": 10,
+      "quotaMeasurement": { "provider": "opencode-go", "kind": "monthly", "monthlyFactor": 1 },
+      "monthlyQuotaUsd": 60,
+      "monthlyQuotaBasis": "公式 monthly usage cap",
+      "compressionRatio": 6,
+      "models": [
+        {
+          "modelIdentifier": "opencode-go/deepseek-v4-flash",
+          "availableTokensPerMonth": { "min": 1361178000, "max": 2722356000 },
+          "tokenRangeLabels": { "min": "Peak", "max": "Off-Peak" },
+          "tokenBasis": "OpenCode Go 公式 docs の DeepSeek V4 Flash 掲載 usage `$30`・月間 37,800 requests × typical usage (410 input + 71,300 cached + 310 output)。Peak は 2x 消費として半分、固定 token cap ではない"
+        }
+      ]
+    },
+    {
+      "provider": "zai",
+      "planName": "GLM Lite",
+      "active": true,
+      "applyFrom": "2026-07-30",
+      "monthlyPriceUsd": 18,
+      "quotaMeasurement": { "provider": "zai", "kind": "weekly", "monthlyFactor": 4.333333333333333 },
+      "monthlyQuotaUsd": null,
+      "monthlyQuotaBasis": "実測した weekly quota 推定値 × 4.333週/月",
+      "compressionRatio": null,
+      "models": [
+        { "modelIdentifier": "zai/glm-5.3", "availableTokensPerMonth": { "min": 186000000, "max": 377000000 }, "tokenRangeLabels": { "min": "Peak", "max": "Off-Peak" }, "tokenBasis": "Provider掲載値（90.9% cache hit、Peak 43M/week ～ Off-Peak 87M/week）× 4.333" },
+        { "modelIdentifier": "zai/glm-5.3-flash", "availableTokensPerMonth": null, "tokenRangeLabels": { "min": "Peak", "max": "Off-Peak" }, "tokenCapacityRange": { "min": "Peak", "max": "Off-Peak", "minQuotaMultiplier": 1.2, "maxQuotaMultiplier": 0.4 }, "tokenBasis": "実測 input / output / cache read 比率 × 公式 quota coefficient" }
+      ]
+    },
+    {
+      "provider": "zai",
+      "planName": "GLM Pro",
+      "active": false,
+      "applyFrom": "2026-07-30",
+      "monthlyPriceUsd": 80,
+      "scaleFrom": "GLM Lite",
+      "quotaScale": 6,
+      "monthlyQuotaUsd": null,
+      "monthlyQuotaBasis": "GLM Lite の実測月換算値 × 公開 credit 枠倍率 6",
+      "compressionRatio": null,
+      "models": [
+        { "modelIdentifier": "zai/glm-5.3", "availableTokensPerMonth": { "min": 1116000000, "max": 2262000000 }, "tokenRangeLabels": { "min": "Peak", "max": "Off-Peak" }, "tokenBasis": "GLM Lite の掲載 token allowance ×6" },
+        { "modelIdentifier": "zai/glm-5.3-flash", "availableTokensPerMonth": null, "tokenRangeLabels": { "min": "Peak", "max": "Off-Peak" }, "tokenCapacityRange": { "min": "Peak", "max": "Off-Peak", "minQuotaMultiplier": 1.2, "maxQuotaMultiplier": 0.4 }, "tokenBasis": "実測 input / output / cache read 比率 × 公式 quota coefficient" }
+      ]
+    },
+    {
+      "provider": "zai",
+      "planName": "GLM Max",
+      "active": false,
+      "applyFrom": "2026-07-30",
+      "monthlyPriceUsd": 168,
+      "scaleFrom": "GLM Lite",
+      "quotaScale": 14,
+      "monthlyQuotaUsd": null,
+      "monthlyQuotaBasis": "GLM Lite の実測月換算値 × 公開 credit 枠倍率 14",
+      "compressionRatio": null,
+      "models": [
+        { "modelIdentifier": "zai/glm-5.3", "availableTokensPerMonth": { "min": 2604000000, "max": 5278000000 }, "tokenRangeLabels": { "min": "Peak", "max": "Off-Peak" }, "tokenBasis": "GLM Lite の掲載 token allowance ×14" },
+        { "modelIdentifier": "zai/glm-5.3-flash", "availableTokensPerMonth": null, "tokenRangeLabels": { "min": "Peak", "max": "Off-Peak" }, "tokenCapacityRange": { "min": "Peak", "max": "Off-Peak", "minQuotaMultiplier": 1.2, "maxQuotaMultiplier": 0.4 }, "tokenBasis": "実測 input / output / cache read 比率 × 公式 quota coefficient" }
+      ]
+    },
+    {
+      "provider": "xai",
+      "planName": "SuperGrok $30",
+      "active": true,
+      "applyFrom": "2026-08-18",
+      "monthlyPriceUsd": 30,
+      "quotaMeasurement": { "provider": "xai", "kind": "7d", "monthlyFactor": 4.333333333333333 },
+      "monthlyQuotaUsd": null,
+      "monthlyQuotaBasis": "実測した 7d quota 推定値 × 4.333週/月",
+      "compressionRatio": null,
+      "models": [
+        { "modelIdentifier": "xai/grok-4.6", "availableTokensPerMonth": null, "tokenBasis": "公開 token allowance なし" }
+      ]
+    },
+    {
+      "provider": "openai-codex",
+      "planName": "Codex Plus",
+      "active": false,
+      "applyFrom": "2026-08-18",
+      "monthlyPriceUsd": 20,
+      "scaleFrom": "Codex Pro x5",
+      "quotaScale": 0.2,
+      "monthlyQuotaUsd": null,
+      "monthlyQuotaBasis": "Codex Pro x5 の実測月換算値 × 公開倍率 1/5",
+      "compressionRatio": null,
+      "models": [
+        { "modelIdentifier": "openai-codex/gpt-5.6-luna", "availableTokensPerMonth": null, "tokenBasis": "公式は rolling 5h の message range のみ公開。固定 token allowance なし（Pi usage から単独モデル換算を表示）" },
+        { "modelIdentifier": "openai-codex/gpt-5.6-sol", "availableTokensPerMonth": null, "tokenBasis": "公式は rolling 5h の message range のみ公開。固定 token allowance なし（Pi usage から単独モデル換算を表示）" }
+      ]
+    },
+    {
+      "provider": "openai-codex",
+      "planName": "Codex Pro x5",
+      "active": true,
+      "applyFrom": "2026-08-18",
+      "monthlyPriceUsd": 100,
+      "quotaMeasurement": { "provider": "openai-codex", "kind": "primary", "monthlyFactor": 4.333333333333333 },
+      "monthlyQuotaUsd": null,
+      "monthlyQuotaBasis": "実測した primary quota 推定値 × 4.333週/月",
+      "compressionRatio": null,
+      "models": [
+        { "modelIdentifier": "openai-codex/gpt-5.6-luna", "availableTokensPerMonth": null, "tokenBasis": "公式は rolling 5h の message range のみ公開。固定 token allowance なし（Pi usage から単独モデル換算を表示）" },
+        { "modelIdentifier": "openai-codex/gpt-5.6-sol", "availableTokensPerMonth": null, "tokenBasis": "公式は rolling 5h の message range のみ公開。固定 token allowance なし（Pi usage から単独モデル換算を表示）" }
+      ]
+    },
+    {
+      "provider": "openai-codex",
+      "planName": "Codex Pro x20",
+      "active": false,
+      "applyFrom": "2026-08-18",
+      "monthlyPriceUsd": 200,
+      "scaleFrom": "Codex Pro x5",
+      "quotaScale": 4,
+      "monthlyQuotaUsd": null,
+      "monthlyQuotaBasis": "Codex Pro x5 の実測月換算値 × 公開倍率 4",
+      "compressionRatio": null,
+      "models": [
+        { "modelIdentifier": "openai-codex/gpt-5.6-luna", "availableTokensPerMonth": null, "tokenBasis": "公式は rolling 5h の message range のみ公開。固定 token allowance なし（Pi usage から単独モデル換算を表示）" },
+        { "modelIdentifier": "openai-codex/gpt-5.6-sol", "availableTokensPerMonth": null, "tokenBasis": "公式は rolling 5h の message range のみ公開。固定 token allowance なし（Pi usage から単独モデル換算を表示）" }
+      ]
+    }
+  ]
+}

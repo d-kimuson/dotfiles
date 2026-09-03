@@ -229,6 +229,74 @@ describe("deliverPiAgentConfig", () => {
     })
   })
 
+  it("merges managed zai custom models into existing models.json", async () => {
+    await writeBaseFiles()
+    await writeFile(
+      path.join(configDir, "models.json"),
+      JSON.stringify(
+        {
+          providers: {
+            zai: {
+              models: [
+                {
+                  id: "glm-5.3-flash",
+                  name: "GLM-5.3-Flash",
+                  api: "openai-completions",
+                  reasoning: true,
+                },
+              ],
+            },
+          },
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+    await mkdir(targetDir, { recursive: true })
+    await writeFile(
+      path.join(targetDir, "models.json"),
+      JSON.stringify(
+        {
+          providers: {
+            "gateway-kimuson": {
+              baseUrl: "https://gateway.example.test/v1",
+              apiKey: "$GATEWAY_API_KEY",
+              api: "openai-completions",
+              models: [{ id: "private-model" }],
+            },
+          },
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+
+    await deliverPiAgentConfig({ dryRun: false })
+
+    expect(await readJson(path.join(targetDir, "models.json"))).toEqual({
+      providers: {
+        "gateway-kimuson": {
+          baseUrl: "https://gateway.example.test/v1",
+          apiKey: "$GATEWAY_API_KEY",
+          api: "openai-completions",
+          models: [{ id: "private-model" }],
+        },
+        zai: {
+          models: [
+            {
+              id: "glm-5.3-flash",
+              name: "GLM-5.3-Flash",
+              api: "openai-completions",
+              reasoning: true,
+            },
+          ],
+        },
+      },
+    })
+  })
+
   it("uses cli providers and writes only built config", async () => {
     await writeBaseFiles()
     await mkdir(path.join(targetDir, "agents"), { recursive: true })
