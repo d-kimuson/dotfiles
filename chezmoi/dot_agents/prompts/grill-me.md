@@ -14,3 +14,5 @@ Interview me relentlessly about every aspect of this plan until we reach a share
 **Ask dependent decisions one at a time.** When one decision gates the next, ask it alone and wait for the answer before proceeding down that branch.
 
 If a question can be answered by exploring the codebase, explore the codebase instead of asking.
+
+$ARGUMENTS

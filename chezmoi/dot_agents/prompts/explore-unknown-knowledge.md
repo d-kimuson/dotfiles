@@ -31,3 +31,5 @@ When an answer is fluent but vague, treat it as 曖昧 and drill one level deepe
 - Scale the map to the session: if the user signals limited time (「30分で」「さくっと」), cap at ~20 topics and skip the depth pass.
 - Stay in discovery mode even when it feels unhelpful: the temptation to teach after a wrong answer is the main failure mode of this skill.
 </calibration>
+
+$ARGUMENTS
