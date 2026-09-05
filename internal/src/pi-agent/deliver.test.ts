@@ -383,4 +383,40 @@ describe("deliverPiAgentConfig", () => {
       readFile(path.join(targetDir, "agents/frontend_worker.md"), "utf-8")
     ).rejects.toMatchObject({ code: "ENOENT" })
   })
+
+  it("ignores underscore-prefixed notes like _comment", async () => {
+    await writeBaseFiles()
+    const profilesPath = path.join(configDir, "model-profiles.json")
+    const profiles = JSON.parse(await readFile(profilesPath, "utf-8")) as Record<string, unknown>
+    await writeFile(
+      profilesPath,
+      JSON.stringify(
+        {
+          _comment: "campaign note: muse-spark first, revert later",
+          ...profiles,
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+    await writeFile(
+      path.join(configDir, "providers.local.json"),
+      JSON.stringify(
+        {
+          availableProviders: ["opencode-go", "openai-codex", "anthropic", "zai"],
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+
+    await deliverPiAgentConfig({ dryRun: false })
+
+    expect(await readJson(path.join(targetDir, "settings.json"))).toMatchObject({
+      defaultProvider: "zai",
+      defaultModel: "glm-5.3",
+    })
+  })
 })

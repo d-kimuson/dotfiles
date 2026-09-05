@@ -59,6 +59,14 @@ let
     mkdir -p "$out"
     tic -x -o "$out" ${./ghostty.terminfo}
   '';
+
+  # nixpkgs の obscura はデフォルト機能のみでビルドされるため描画なし。
+  # render 付きでビルドし直す (V8 は prebuilt の librusty_v8 を再利用するため再コンパイルされない)。
+  # 注意: buildFeatures は buildRustPackage の関数引数のため overrideAttrs では効かない。
+  # derivation 属性として渡る cargoBuildFeatures を上書きする。
+  obscura-render = pkgs.obscura.overrideAttrs (old: {
+    cargoBuildFeatures = (old.cargoBuildFeatures or [ ]) ++ [ "render" ];
+  });
 in
 {
   home.username = "{{ .chezmoi.username }}";
@@ -107,6 +115,7 @@ in
     # エージェント開発
     pkgs.herdr
     pkgs.hunk
+    obscura-render # screenshots/PDF あり (pkgs.obscura は render なしビルド)
 
     # 準標準
     pkgs._1password-cli

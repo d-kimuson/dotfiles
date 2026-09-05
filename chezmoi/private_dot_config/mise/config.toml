@@ -1,13 +1,13 @@
 [tools]
-"npm:@openai/codex" = "0.153.0"
-"npm:@earendil-works/pi-coding-agent" = "0.84.4"
-"npm:opencode-ai" = "1.18.27"
+"npm:@openai/codex" = "0.153.4"
+"npm:@earendil-works/pi-coding-agent" = "0.85.0"
+"npm:opencode-ai" = "1.18.29"
 "npm:@playwright/cli" = "0.1.19"
-"npm:@github/copilot" = "1.0.82"
+"npm:@github/copilot" = "1.0.83"
 "npm:portless" = "0.15.6"
 "npm:@anthropic-ai/sandbox-runtime" = "0.0.49"
 "npm:agent-browser" = "0.36.0"
-"npm:@anthropic-ai/claude-code" = "2.1.259"
+"npm:@anthropic-ai/claude-code" = "2.1.261"
 "npm:@kimuson/npm-fw" = "0.0.4"
 node = "26.2.0"
 

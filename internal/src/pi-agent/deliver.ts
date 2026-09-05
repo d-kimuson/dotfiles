@@ -361,6 +361,10 @@ const readModelProfiles = async (filePath: string): Promise<ModelProfiles> => {
   const profiles: Record<string, readonly ModelChoice[]> = {}
 
   for (const [profileName, entries] of Object.entries(raw)) {
+    // Allow underscore-prefixed keys (e.g. "_comment") as non-profile notes.
+    // JSON has no comments, and this keeps campaign/temporary notes next to
+    // the profiles without breaking delivery.
+    if (profileName.startsWith("_")) continue
     if (!Array.isArray(entries)) {
       throw new Error(`Expected array for model profile ${profileName} in ${filePath}`)
     }
