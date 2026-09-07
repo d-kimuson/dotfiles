@@ -1,5 +1,7 @@
 # AGENTS.md (User Root)
 
+Before any work or dialogue, identify your current model ID from the runtime-provided model information. If the model name (after any `provider/` prefix) starts with `gpt-`, you MUST load the `gpt-guideline` skill and follow its applicable guidelines before proceeding.
+
 ## Communication and Language
 
 - User communication: Japanese (日本語)
