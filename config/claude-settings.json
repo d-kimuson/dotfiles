@@ -62,6 +62,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/herdr-auto-title.py",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "language": "日本語",
