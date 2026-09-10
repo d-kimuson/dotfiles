@@ -59,12 +59,6 @@ Before any work or dialogue, identify your current model ID from the runtime-pro
 - For very long tasks, do not settle into a long wait up front: wait ~1 minute, check progress (`pueue status` / `pueue log`), confirm the task is actually advancing, and only then start a longer wait with an explicit timeout.
 - Never wait 5+ minutes without an intermediate status check.
 
-### agent-browser: Browsing and Login Policy
+### Browser operations
 
-1. **Use headless by default.** `{ "args": ["open", "<url>"] }`. Do not automate public search-engine forms (CAPTCHA); prefer `web_search` / `agent_browser_web_search` or direct URLs.
-2. **Login-required sites: reuse the user's Chrome profile via the `launch-chrome-debug` skill.** Load `~/.pi/agent/skills/launch-chrome-debug/SKILL.md` and follow it (`--auto-connect` must be on the first `agent_browser` call for the session). Do not store auth cookies in repo-managed files.
-   - **Known limitation:** Google/Gmail rejects sessions in CDP-launched browsers — both interactive login ("this browser or app may not be secure") and restored-cookie sessions (account chooser shows logged-out → signin/rejected), even with `--executable-path` real Chrome or `--args --disable-blink-features=AutomationControlled`. The `launch-chrome-debug` profile-reuse workflow works for other sites.
-3. **Last resort: manually-launched browser + CDP attach** (works for Google; use when the `launch-chrome-debug` login cannot complete).
-   - Launch real Chrome from bash **without automation flags** (quote the path; use `pueue`): `exec '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --remote-debugging-port=9223 --user-data-dir=/tmp/chrome-state-profile --no-first-run --no-default-browser-check`.
-   - Wait for CDP with a bounded timeout (poll `curl http://127.0.0.1:9223/json/version`), then connect: `{ "args": ["connect", "9223"] }` → verify with `get url` → interact.
-   - **Keep the attached browser alive during work** — `close` terminates it and the login session is not restored on relaunch (device-bound session).
+For browser interaction, load `~/.agents/skills/browser-ops/SKILL.md` and use the `agent-browser` CLI. The skill defines the shared agent-only profile, headless default, headed fallback, and user-assisted login. Do not use the removed `pi-agent-browser-native` wrapper. For web research, prefer `web_search` over automating search-engine forms.
