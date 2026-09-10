@@ -20,7 +20,6 @@
   "packages": [
     "npm:@juicesharp/rpiv-todo",
     "npm:@juicesharp/rpiv-btw",
-    "npm:pi-agent-browser-native",
     "npm:pi-subagents",
     "npm:pi-intercom",
     "npm:pi-mcp-adapter",
@@ -29,7 +28,10 @@
     "npm:pi-web-access",
     "npm:pi-notify-agent",
     "npm:@narumitw/pi-goal",
-    "npm:@kimuson/pi-ralph",
-    "npm:@ff-labs/pi-fff"
+    "npm:@ff-labs/pi-fff",
+    "npm:pi-lens",
+    "npm:pi-context-view",
+    "git:github.com/earendil-works/pi-transcribe",
+    "npm:pi-codex-image-gen"
   ]
 }
