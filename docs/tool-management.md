@@ -12,7 +12,7 @@
 たとえば `legacyPackages.aarch64-darwin.ripgrep` は通常 `pkgs.ripgrep` と書く。
 
 `home-manager switch` は `home.activation.installMiseTools` により `mise install` と `mise reshim` も実行する。
-`installZenoZsh` と `installCursorAgent` も activation hook として定義されているため、手動で同じ処理を重ねない。
+`installCursorAgent` も activation hook として定義されているため、手動で同じ処理を重ねない。
 
 ## mise
 

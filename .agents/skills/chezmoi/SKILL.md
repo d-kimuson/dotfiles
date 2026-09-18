@@ -91,15 +91,15 @@ chezmoi managed | grep '<配布先の相対パス>'
 2. `chezmoi diff` で target state と現在のターゲットとの差分を確認する。
    影響範囲を先に確認するだけなら `chezmoi apply --dry-run --verbose` を使う。
 3. `chezmoi apply` で反映する。
-   このリポジトリでは zeno の `dotfiles-apply` abbreviation が、`chezmoi apply --no-tty --keep-going`、環境変数の読み込み、`home-manager switch`、`internal-cli pi-agent deliver`、`internal-cli merge-config` を連結する。
-   これは zsh/zeno の abbreviation であり、非対話シェルや CI でコマンドとして存在するとは限らない。
+   このリポジトリでは zabrze の `dotfiles-apply` abbreviation が、`chezmoi apply --no-tty --keep-going`、環境変数の読み込み、`home-manager switch`、`internal-cli pi-agent deliver`、`internal-cli merge-config` を連結する。
+   これは zabrze の abbreviation であり、非対話シェルや CI でコマンドとして存在するとは限らない。
    必要な処理は個別コマンドとして明示して実行する。
 4. 反映後は `chezmoi verify` で target state との一致を確認する。
    `chezmoi verify` は成功時に終了コード 0 を返すため、自動検証にも使える。
 5. Nix の変更は `home-manager switch` の成否も確認する。
    シェル設定を変更した場合は、新しいログインシェルまたは `source` で読み込んだ後の動作も確認する。
 
-`reload` は `chezmoi apply && home-manager switch && source ${CHEZMOI_WORKING_TREE}/shell/sharedrc.sh`、`reload-force` は最後に `exec $SHELL -l` を実行する zeno abbreviation である。
+`reload` は `chezmoi apply && home-manager switch && source ${CHEZMOI_WORKING_TREE}/shell/sharedrc.sh`、`reload-force` は最後に `exec $SHELL -l` を実行する zabrze abbreviation である。
 
 ## 初期セットアップと CI
 

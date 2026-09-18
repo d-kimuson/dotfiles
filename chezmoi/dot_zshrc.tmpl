@@ -43,12 +43,17 @@ eval "$(starship init zsh)"
 eval "$(direnv hook zsh)"
 
 # ====================
-# zeno.zsh (abbr)
+# zabrze (abbr)
 # ====================
-ZENO_CLONE_DIR="${HOME}/.zsh/zeno"
-if [ -d "$ZENO_CLONE_DIR" ]; then
-  source "${ZENO_CLONE_DIR}/zeno.zsh"
-  zeno-bind-default-keys --lazy
+if command -v zabrze >/dev/null 2>&1; then
+  eval "$(zabrze init --bind-keys)"
+fi
+
+# ====================
+# fzf key bindings (fuzzy history etc.)
+# ====================
+if command -v fzf >/dev/null 2>&1; then
+  source <(fzf --zsh)
 fi
 
 # ====================

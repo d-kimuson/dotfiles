@@ -2,7 +2,7 @@
 
 ## エージェントが設定変更を反映するとき
 
-`dotfiles-apply`、`reload`、`reload-force` は `chezmoi/private_dot_config/zeno/config.yml` に定義された zeno abbreviation である。
+`dotfiles-apply`、`reload`、`reload-force` は `chezmoi/private_dot_config/zabrze/config.toml` に定義された zabrze abbreviation である。
 通常の非対話シェルではコマンドとして実行できない。
 エージェントは abbreviation を使わず、変更内容に対応するコマンドを個別に実行する。
 

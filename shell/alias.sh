@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# aliases は zeno.zsh の abbr に移行済み (~/.config/zeno/config.yml)
+# aliases は zabrze の abbr に移行済み (~/.config/zabrze/config.toml)
 # ここには abbr にできない関数のみ残す
 
 # ====================

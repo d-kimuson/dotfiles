@@ -53,6 +53,64 @@ let
         };
       };
 
+  zabrzeVersion = "0.7.3";
+  zabrzePlatform =
+    if pkgs.stdenv.hostPlatform.system == "x86_64-linux" then
+      {
+        suffix = "x86_64-unknown-linux-gnu";
+        hash = "sha256-qYwe1xzOfdV/1svpUirljsfo59imr6EvPblIQQJBVko=";
+      }
+    else if pkgs.stdenv.hostPlatform.system == "aarch64-linux" then
+      {
+        suffix = "aarch64-unknown-linux-gnu";
+        hash = "sha256-TNGrRAOLNJAQl5hwYE3d0y+rN0QaNH4F6O12XiyiqsA=";
+      }
+    else if pkgs.stdenv.hostPlatform.system == "aarch64-darwin" then
+      {
+        suffix = "aarch64-apple-darwin";
+        hash = "sha256-tX7kabOmOev5D4piGOTLeIfGqI1bJvH8W9cXV+oyDkw=";
+      }
+    else
+      null;
+
+  zabrze =
+    if zabrzePlatform == null then
+      null
+    else
+      pkgs.stdenvNoCC.mkDerivation rec {
+        pname = "zabrze";
+        version = zabrzeVersion;
+
+        src = pkgs.fetchurl {
+          url = "https://github.com/Ryooooooga/zabrze/releases/download/v${version}/zabrze-v${version}-${zabrzePlatform.suffix}.tar.gz";
+          hash = zabrzePlatform.hash;
+        };
+
+        # Release tarball contains a bare binary without a top-level directory,
+        # so unpack without the default single-directory expectation.
+        unpackPhase = ''
+          runHook preUnpack
+          tar -xzf "$src"
+          runHook postUnpack
+        '';
+
+        installPhase = ''
+          install -Dm755 zabrze "$out/bin/zabrze"
+        '';
+
+        meta = with lib; {
+          description = "ZSH abbreviation expansion plugin";
+          homepage = "https://github.com/Ryooooooga/zabrze";
+          license = licenses.mit;
+          platforms = [
+            "x86_64-linux"
+            "aarch64-linux"
+            "aarch64-darwin"
+          ];
+          sourceProvenance = [ sourceTypes.binaryNativeCode ];
+        };
+      };
+
   ghosttyTerminfo = pkgs.runCommand "ghostty-terminfo" {
     nativeBuildInputs = [ pkgs.ncurses ];
   } ''
@@ -78,6 +136,10 @@ in
       assertion = braveSearchCliPlatform != null;
       message = "brave-search-cli is only available for x86_64-linux, aarch64-linux, and aarch64-darwin.";
     }
+    {
+      assertion = zabrzePlatform != null;
+      message = "zabrze is only available for x86_64-linux, aarch64-linux, and aarch64-darwin.";
+    }
   ];
 
   home.packages = [
@@ -91,7 +153,6 @@ in
     pkgs.bun
     pkgs.pnpm
     pkgs.zsh
-    pkgs.deno # required by zeno.zsh
     pkgs.caddy
     pkgsStable.zed-editor
     # mise, direnv, zed-editor: stable pin で管理
@@ -149,6 +210,7 @@ in
 {{ end }}
   ] ++ [
     braveSearchCli
+    zabrze
   ];
 
   # Ghostty が設定する TERM=xterm-ghostty を、ncurses が標準で検索する
@@ -161,13 +223,6 @@ in
   services.pueue.enable = true;
 
   programs.tmux.enable = true;
-
-  home.activation.installZenoZsh = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    zenoDir="${config.home.homeDirectory}/.zsh/zeno"
-    if [ ! -d "$zenoDir" ]; then
-      $DRY_RUN_CMD ${pkgs.git}/bin/git clone https://github.com/yuki-yano/zeno.zsh.git "$zenoDir"
-    fi
-  '';
 
   home.activation.installCursorAgent = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     cursorAgentPath="${config.home.homeDirectory}/.local/bin/cursor-agent"

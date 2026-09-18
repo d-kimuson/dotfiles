@@ -1,0 +1,107 @@
+# zabrze abbreviation config (~/.config/zabrze/config.toml)
+# https://github.com/Ryooooooga/zabrze
+
+# basic
+[[snippets]]
+name = "l"
+trigger = "l"
+snippet = "eza"
+
+[[snippets]]
+name = "tree"
+trigger = "tree"
+snippet = "lsd --tree"
+
+[[snippets]]
+name = "diffy"
+trigger = "diffy"
+snippet = "colordiff -y --left-column"
+
+[[snippets]]
+name = "diffx"
+trigger = "diffx"
+snippet = "colordiff -u"
+
+[[snippets]]
+name = "myip"
+trigger = "myip"
+snippet = "ifconfig | grep 192 | cut -f 2 -d ' '"
+
+# docker
+[[snippets]]
+name = "docker"
+trigger = "d"
+snippet = "docker"
+
+[[snippets]]
+name = "docker compose"
+trigger = "dcmp"
+snippet = "docker compose"
+
+# git
+[[snippets]]
+name = "git"
+trigger = "g"
+snippet = "git"
+
+[[snippets]]
+name = "git push"
+trigger = "gpush"
+snippet = "git push origin HEAD"
+
+[[snippets]]
+name = "git push force"
+trigger = "gpushf"
+snippet = "git push origin HEAD --force-with-lease"
+
+[[snippets]]
+name = "git pull rebase"
+trigger = "gpull"
+snippet = "git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)"
+
+[[snippets]]
+name = "git unstage"
+trigger = "gunadd"
+snippet = "git restore --staged"
+
+[[snippets]]
+name = "git untrack"
+trigger = "guncom"
+snippet = "git rm -rf --cached"
+
+# claude
+[[snippets]]
+name = "claude auto"
+trigger = "claude-auto"
+snippet = "claude --dangerously-skip-permissions"
+
+[[snippets]]
+name = "claude auto general task"
+trigger = "claude-auto-general-task"
+snippet = "claude --dangerously-skip-permissions --system-prompt 'あなたは様々なタスクをこなす汎用エージェントです。'"
+
+[[snippets]]
+name = "codex auto"
+trigger = "codex-auto"
+snippet = "codex --dangerously-bypass-approvals-and-sandbox"
+
+[[snippets]]
+name = "cursor auto"
+trigger = "cursor-auto"
+snippet = "agent --yolo"
+
+# dotfiles
+[[snippets]]
+name = "dotfiles apply"
+trigger = "dotfiles-apply"
+snippet = "chezmoi apply --no-tty --keep-going && source ~/.local/share/chezmoi/shell/envrc.sh && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh && internal-cli pi-agent deliver && internal-cli merge-config"
+
+[[snippets]]
+name = "reload"
+trigger = "reload"
+snippet = "chezmoi apply && home-manager switch && source ${CHEZMOI_WORKING_TREE}/shell/sharedrc.sh"
+
+[[snippets]]
+name = "reload force"
+trigger = "reload-force"
+snippet = "chezmoi apply && home-manager switch && exec $SHELL -l"
