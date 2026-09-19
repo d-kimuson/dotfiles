@@ -796,6 +796,148 @@ function renderWindow(
 
 // --- Extension ---
 
+type WidgetTheme = ExtensionContext["ui"]["theme"];
+
+type WidgetSnapshot = {
+	go: OpenCodeGoUsage | null;
+	codex: CodexUsage | null;
+	zai: ZaiUsage | null;
+	grok: GrokUsage | null;
+};
+
+/**
+ * Build the widget lines, skipping providers with no usable quota data.
+ * A provider that is missing entirely, or whose data has no displayable
+ * window, contributes no line (instead of an "n/a" placeholder line).
+ * Returns an empty array when nothing is displayable.
+ */
+function buildWidgetLines(theme: WidgetTheme, snapshot: WidgetSnapshot): string[] {
+	const { go, codex, zai, grok } = snapshot;
+	const lines: string[] = [];
+
+	// --- OpenCode Go (labels = window length: 5h rolling / 7d weekly / 1m monthly) ---
+	if (go) {
+		const rolling = go.rolling;
+		const weekly = go.weekly;
+		const monthly = go.monthly;
+		const goParts: string[] = [];
+		goParts.push(
+			renderWindow(theme, "5h", rolling.percent, rolling.resetsAt ? Date.parse(rolling.resetsAt) : null, GO_ROLLING_WINDOW_SECONDS, {
+				showReset: rolling.percent > 0,
+				showElapsed: true,
+			}),
+		);
+		goParts.push(
+			renderWindow(theme, "7d", weekly.percent, weekly.resetsAt ? Date.parse(weekly.resetsAt) : null, GO_WEEKLY_WINDOW_SECONDS, {
+				showReset: true,
+				showElapsed: true,
+			}),
+		);
+		goParts.push(
+			renderWindow(theme, "1m", monthly.percent, monthly.resetsAt ? Date.parse(monthly.resetsAt) : null, GO_MONTHLY_WINDOW_SECONDS, {
+				showReset: true,
+				showElapsed: true,
+			}),
+		);
+		if (goParts.length > 0) {
+			lines.push(theme.fg("dim", "go ") + goParts.join(theme.fg("dim", " · ")));
+		}
+	}
+
+	// --- Codex ---
+	if (codex) {
+		const primary = codex.rate_limit?.primary_window;
+		const codexParts: string[] = [];
+		if (primary) {
+			const windowSeconds = primary.limit_window_seconds ?? 7 * 24 * 60 * 60;
+			codexParts.push(
+				renderWindow(
+					theme,
+					formatWindowSeconds(windowSeconds),
+					primary.used_percent ?? 0,
+					typeof primary.reset_at === "number" ? primary.reset_at * 1000 : null,
+					windowSeconds,
+					{ showReset: true, showElapsed: true },
+				),
+			);
+		}
+		for (const extra of codex.additional_rate_limits ?? []) {
+			const extraWindow = extra.rate_limit?.primary_window;
+			if (!extraWindow || !(extraWindow.used_percent ?? 0) || !extra.limit_name) continue;
+			const label = extra.limit_name.replace(/^GPT-[0-9.]+-Codex-/, "Codex-");
+			const windowSeconds = extraWindow.limit_window_seconds ?? 7 * 24 * 60 * 60;
+			codexParts.push(
+				renderWindow(
+					theme,
+					label,
+					extraWindow.used_percent ?? 0,
+					typeof extraWindow.reset_at === "number" ? extraWindow.reset_at * 1000 : null,
+					windowSeconds,
+					{ showReset: true, showElapsed: true },
+				),
+			);
+		}
+		if (codexParts.length > 0) {
+			lines.push(theme.fg("dim", "codex ") + codexParts.join(theme.fg("dim", " · ")));
+		}
+	}
+
+	// --- Z.ai / GLM Coding Plan (labels = window length: 5h / 7d / tools 1m) ---
+	if (zai) {
+		const zaiParts: string[] = [];
+		if (zai.fiveHour) {
+			zaiParts.push(
+				renderWindow(theme, "5h", zai.fiveHour.percent, zai.fiveHour.resetAtMs, ZAI_FIVE_HOUR_WINDOW_SECONDS, {
+					showReset: zai.fiveHour.percent > 0,
+					showElapsed: true,
+				}),
+			);
+		}
+		if (zai.weekly) {
+			zaiParts.push(
+				renderWindow(theme, "7d", zai.weekly.percent, zai.weekly.resetAtMs, ZAI_WEEKLY_WINDOW_SECONDS, {
+					showReset: true,
+					showElapsed: true,
+				}),
+			);
+		}
+		if (zai.monthlyTools) {
+			zaiParts.push(
+				renderWindow(
+					theme,
+					"tools1m",
+					zai.monthlyTools.percent,
+					zai.monthlyTools.resetAtMs,
+					ZAI_MONTHLY_TOOLS_WINDOW_SECONDS,
+					{ showReset: true, showElapsed: true },
+				),
+			);
+		}
+		if (zaiParts.length > 0) {
+			const tier = zai.level ? ` ${theme.fg("dim", `(${zai.level})`)}` : "";
+			lines.push(theme.fg("dim", "zai ") + tier + zaiParts.join(theme.fg("dim", " · ")));
+		}
+	}
+
+	// --- Grok / SuperGrok weekly (or monthly) pool ---
+	if (grok) {
+		const grokParts = [
+			renderWindow(
+				theme,
+				formatWindowSeconds(grok.windowSeconds),
+				grok.percent,
+				grok.resetAtMs,
+				grok.windowSeconds,
+				{ showReset: true, showElapsed: true },
+			),
+		];
+		const tier = grok.level ? ` ${theme.fg("dim", `(${grok.level})`)}` : "";
+		lines.push(theme.fg("dim", "grok ") + tier + grokParts.join(theme.fg("dim", " · ")));
+	}
+
+	return lines;
+}
+
 export const __usageStatusInternals = {
 	fetchOpenCodeGoUsage,
 	fetchCodexUsage,
@@ -811,6 +953,7 @@ export const __usageStatusInternals = {
 	paceTone,
 	formatWindowSeconds,
 	renderWindow,
+	buildWidgetLines,
 };
 
 export default function usageStatusExtension(pi: ExtensionAPI) {
@@ -892,137 +1035,11 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 	};
 
 	const renderWidget = (ctx: ExtensionContext): void => {
-		const theme = ctx.ui.theme;
-		const go = last.go;
-		const codex = last.codex;
-		const lines: string[] = [];
-
-		// --- Line 1: OpenCode Go (labels = window length: 5h rolling / 7d weekly / 1m monthly) ---
-		if (go) {
-			const rolling = go.rolling;
-			const weekly = go.weekly;
-			const monthly = go.monthly;
-			const goParts: string[] = [];
-			goParts.push(
-				renderWindow(theme, "5h", rolling.percent, rolling.resetsAt ? Date.parse(rolling.resetsAt) : null, GO_ROLLING_WINDOW_SECONDS, {
-					showReset: rolling.percent > 0,
-					showElapsed: true,
-				}),
-			);
-			goParts.push(
-				renderWindow(theme, "7d", weekly.percent, weekly.resetsAt ? Date.parse(weekly.resetsAt) : null, GO_WEEKLY_WINDOW_SECONDS, {
-					showReset: true,
-					showElapsed: true,
-				}),
-			);
-			goParts.push(
-				renderWindow(theme, "1m", monthly.percent, monthly.resetsAt ? Date.parse(monthly.resetsAt) : null, GO_MONTHLY_WINDOW_SECONDS, {
-					showReset: true,
-					showElapsed: true,
-				}),
-			);
-			lines.push(theme.fg("dim", "go ") + goParts.join(theme.fg("dim", " · ")));
-		} else {
-			lines.push(theme.fg("dim", "go n/a"));
+		const lines = buildWidgetLines(ctx.ui.theme, last);
+		if (lines.length === 0) {
+			ctx.ui.setWidget(WIDGET_KEY, undefined);
+			return;
 		}
-
-		// --- Line 2: Codex ---
-		if (codex) {
-			const primary = codex.rate_limit?.primary_window;
-			const codexParts: string[] = [];
-			if (primary) {
-				const windowSeconds = primary.limit_window_seconds ?? 7 * 24 * 60 * 60;
-				codexParts.push(
-					renderWindow(
-						theme,
-						formatWindowSeconds(windowSeconds),
-						primary.used_percent ?? 0,
-						typeof primary.reset_at === "number" ? primary.reset_at * 1000 : null,
-						windowSeconds,
-						{ showReset: true, showElapsed: true },
-					),
-				);
-			}
-			for (const extra of codex.additional_rate_limits ?? []) {
-				const extraWindow = extra.rate_limit?.primary_window;
-				if (!extraWindow || !(extraWindow.used_percent ?? 0) || !extra.limit_name) continue;
-				const label = extra.limit_name.replace(/^GPT-[0-9.]+-Codex-/, "Codex-");
-				const windowSeconds = extraWindow.limit_window_seconds ?? 7 * 24 * 60 * 60;
-				codexParts.push(
-					renderWindow(
-						theme,
-						label,
-						extraWindow.used_percent ?? 0,
-						typeof extraWindow.reset_at === "number" ? extraWindow.reset_at * 1000 : null,
-						windowSeconds,
-						{ showReset: true, showElapsed: true },
-					),
-				);
-			}
-			lines.push(theme.fg("dim", "codex ") + (codexParts.length > 0 ? codexParts.join(theme.fg("dim", " · ")) : theme.fg("dim", "n/a")));
-		} else {
-			lines.push(theme.fg("dim", "codex n/a"));
-		}
-
-		// --- Line 3: Z.ai / GLM Coding Plan (labels = window length: 5h / 7d / tools 1m) ---
-		const zai = last.zai;
-		if (zai) {
-			const zaiParts: string[] = [];
-			if (zai.fiveHour) {
-				zaiParts.push(
-					renderWindow(theme, "5h", zai.fiveHour.percent, zai.fiveHour.resetAtMs, ZAI_FIVE_HOUR_WINDOW_SECONDS, {
-						showReset: zai.fiveHour.percent > 0,
-						showElapsed: true,
-					}),
-				);
-			}
-			if (zai.weekly) {
-				zaiParts.push(
-					renderWindow(theme, "7d", zai.weekly.percent, zai.weekly.resetAtMs, ZAI_WEEKLY_WINDOW_SECONDS, {
-						showReset: true,
-						showElapsed: true,
-					}),
-				);
-			}
-			if (zai.monthlyTools) {
-				zaiParts.push(
-					renderWindow(
-						theme,
-						"tools1m",
-						zai.monthlyTools.percent,
-						zai.monthlyTools.resetAtMs,
-						ZAI_MONTHLY_TOOLS_WINDOW_SECONDS,
-						{ showReset: true, showElapsed: true },
-					),
-				);
-			}
-			const tier = zai.level ? ` ${theme.fg("dim", `(${zai.level})`)}` : "";
-			lines.push(
-				theme.fg("dim", "zai ") + tier + (zaiParts.length > 0 ? zaiParts.join(theme.fg("dim", " · ")) : theme.fg("dim", "n/a")),
-			);
-		} else {
-			lines.push(theme.fg("dim", "zai n/a"));
-		}
-
-		// --- Line 4: Grok / SuperGrok weekly (or monthly) pool ---
-		const grok = last.grok;
-		if (grok) {
-			const grokParts = [
-				renderWindow(
-					theme,
-					formatWindowSeconds(grok.windowSeconds),
-					grok.percent,
-					grok.resetAtMs,
-					grok.windowSeconds,
-					{ showReset: true, showElapsed: true },
-				),
-			];
-			const tier = grok.level ? ` ${theme.fg("dim", `(${grok.level})`)}` : "";
-			lines.push(theme.fg("dim", "grok ") + tier + grokParts.join(theme.fg("dim", " · ")));
-		} else {
-			lines.push(theme.fg("dim", "grok n/a"));
-		}
-
 		ctx.ui.setWidget(WIDGET_KEY, lines, { placement: "belowEditor" });
 	};
 

@@ -13,7 +13,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { __usageStatusInternals } from "../../../chezmoi/private_dot_pi/private_agent/extensions/usage-status.ts"
 
-const { fetchZaiUsage, resolveZaiKey, fetchGrokUsage, resolveXaiAuth, parseGrokUsage, quotaObservations } =
+const { fetchZaiUsage, resolveZaiKey, fetchGrokUsage, resolveXaiAuth, parseGrokUsage, quotaObservations, buildWidgetLines } =
   __usageStatusInternals
 
 const testRootPrefix = path.join(tmpdir(), "usage-status-test-")
@@ -509,5 +509,58 @@ describe("resolveXaiAuth", () => {
 
 	it("returns null when no subscription auth is configured", async () => {
 		expect(await resolveXaiAuth()).toBeNull()
+	})
+})
+
+describe("buildWidgetLines", () => {
+	const theme = { fg: (_tone: string, text: string) => text } as {
+		fg: (tone: string, text: string) => string
+	}
+
+	const goSnapshot = {
+		rolling: { status: "ok", percent: 2, resetsAt: null },
+		weekly: { status: "ok", percent: 22, resetsAt: null },
+		monthly: { status: "ok", percent: 43, resetsAt: null },
+	}
+
+	it("skips providers with no usable quota data instead of n/a lines", () => {
+		const lines = buildWidgetLines(theme, {
+			go: goSnapshot,
+			codex: { rate_limit: { primary_window: { used_percent: 86 } } },
+			zai: null,
+			grok: null,
+		})
+
+		expect(lines).toHaveLength(2)
+		expect(lines[0]).toContain("go ")
+		expect(lines[1]).toContain("codex ")
+		expect(lines.join("\n")).not.toContain("n/a")
+	})
+
+	it("returns an empty array when nothing is displayable", () => {
+		expect(
+			buildWidgetLines(theme, { go: null, codex: null, zai: null, grok: null }),
+		).toEqual([])
+
+		expect(
+			buildWidgetLines(theme, {
+				go: null,
+				codex: { rate_limit: {} },
+				zai: null,
+				grok: null,
+			}),
+		).toEqual([])
+	})
+
+	it("keeps providers that have data, including all four", () => {
+		const lines = buildWidgetLines(theme, {
+			go: goSnapshot,
+			codex: { rate_limit: { primary_window: { used_percent: 86 } } },
+			zai: { fiveHour: { percent: 10, resetAtMs: null }, weekly: null, monthlyTools: null },
+			grok: { percent: 5, resetAtMs: null, windowSeconds: 7 * 24 * 60 * 60 },
+		})
+
+		expect(lines).toHaveLength(4)
+		expect(lines.join("\n")).not.toContain("n/a")
 	})
 })
