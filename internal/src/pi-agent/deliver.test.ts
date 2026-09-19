@@ -133,7 +133,6 @@ describe("deliverPiAgentConfig", () => {
           reviewer: {
             model: "openai-codex/gpt-5.5",
             thinking: "xhigh",
-            fallbackModels: ["opencode-go/kimi-k2.6", "anthropic/claude-fable-5"],
           },
           oracle: {
             model: "openai-codex/gpt-5.5",
@@ -143,17 +142,14 @@ describe("deliverPiAgentConfig", () => {
           researcher: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "xhigh",
-            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-opus-4-8"],
           },
           scout: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
-            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-haiku-4-5"],
           },
           delegate: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
-            fallbackModels: ["openai-codex/gpt-5.4-mini", "anthropic/claude-haiku-4-5"],
           },
         },
       },
@@ -347,7 +343,6 @@ describe("deliverPiAgentConfig", () => {
           reviewer: {
             model: "openai-codex/gpt-5.5",
             thinking: "xhigh",
-            fallbackModels: ["opencode-go/kimi-k2.6"],
           },
           oracle: {
             model: "openai-codex/gpt-5.5",
@@ -357,17 +352,14 @@ describe("deliverPiAgentConfig", () => {
           researcher: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "xhigh",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
           scout: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
           delegate: {
             model: "opencode-go/deepseek-v4-flash",
             thinking: "off",
-            fallbackModels: ["openai-codex/gpt-5.4-mini"],
           },
         },
       },

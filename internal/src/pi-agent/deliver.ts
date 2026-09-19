@@ -266,7 +266,12 @@ const readOptionalText = async (filePath: string): Promise<string | null> => {
 
 const readJsonObject = async (filePath: string): Promise<JsonObject> => {
   const content = await readFile(filePath, "utf-8")
-  const parsed = JSON.parse(content) as unknown
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(content) as unknown
+  } catch (err) {
+    throw new Error(`Invalid JSON in ${filePath}: ${(err as Error).message}`)
+  }
   if (!isPlainObject(parsed)) {
     throw new Error(`Expected JSON object in ${filePath}`)
   }
@@ -279,7 +284,12 @@ const readOptionalJsonObject = async (
   const content = await readOptionalText(filePath)
   if (content === null) return null
 
-  const parsed = JSON.parse(content) as unknown
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(content) as unknown
+  } catch (err) {
+    throw new Error(`Invalid JSON in ${filePath}: ${(err as Error).message}`)
+  }
   if (!isPlainObject(parsed)) {
     throw new Error(`Expected JSON object in ${filePath}`)
   }
@@ -430,19 +440,15 @@ const buildAgentModelConfig = (
   choices: readonly ModelChoice[],
   profileName: string
 ): JsonObject => {
+  // pi-subagents removed fallbackModels: only the first available choice is
+  // used. Later profile entries remain as priority candidates for provider
+  // filtering, not as emitted fallbacks.
   const primary = firstChoice(choices, profileName)
   const thinking = getThinking(primary, profileName)
-  const fallbackModels = choices.slice(1).map((choice) => choice.modelId)
-  return fallbackModels.length === 0
-    ? {
-        model: primary.modelId,
-        thinking,
-      }
-    : {
-        model: primary.modelId,
-        thinking,
-        fallbackModels,
-      }
+  return {
+    model: primary.modelId,
+    thinking,
+  }
 }
 
 const buildGeneratedSettings = (
