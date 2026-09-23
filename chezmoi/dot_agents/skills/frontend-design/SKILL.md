@@ -26,6 +26,8 @@ Then implement working code (HTML/CSS/JS, React, Vue, etc.) that is:
 - Cohesive with a clear aesthetic point-of-view
 - Meticulously refined in every detail
 
+Before creating or modifying a concrete UI design or implementation, read [references/ui-design.md](references/ui-design.md) and follow it.
+
 ## Frontend Aesthetics Guidelines
 
 Focus on:

@@ -1,7 +1,5 @@
 # AGENTS.md (User Root)
 
-Before any work or dialogue, identify your current model ID from the runtime-provided model information. If the model name (after any `provider/` prefix) starts with `gpt-`, you MUST load the `gpt-guideline` skill and follow its applicable guidelines before proceeding.
-
 ## Communication and Language
 
 - User communication: Japanese (日本語)
@@ -16,7 +14,6 @@ Before any work or dialogue, identify your current model ID from the runtime-pro
 
 MUST enable appropriate skills before starting implementation:
 - `github`: Required when working with GitHub resources (URLs, PRs, issues)
-- `typescript`, `react`, `shadcn-ui`: Required when tech stack matches project
 - Other skills: Enable as needed based on task requirements
 
 ## Agent Execution Rules
