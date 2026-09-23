@@ -32,6 +32,7 @@
     "npm:pi-lens",
     "npm:pi-context-view",
     "git:github.com/earendil-works/pi-transcribe",
-    "npm:pi-codex-image-gen"
+    "npm:pi-codex-image-gen",
+    "npm:pi-claude-code-provider"
   ]
 }

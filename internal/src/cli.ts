@@ -38,6 +38,7 @@ const parseTargets = (value: string): readonly Target[] => {
       `Invalid target(s): ${invalid.join(", ")}. Valid targets: all, ${VALID_TARGETS.join(", ")}`
     )
   }
+  // SAFETY: every element was checked against VALID_TARGETS above; invalid ones throw.
   return targets as unknown as readonly Target[]
 }
 
@@ -72,7 +73,7 @@ piAgent
   .option("--dry-run", "Show what would be written without making changes")
   .option(
     "--providers <providers>",
-    "Available providers separated by | or , (opencode-go|openai-codex|openrouter|github-copilot)",
+    "Available providers separated by | or , (opencode-go|openai-codex|openrouter|anthropic|zai|xai|pi-claude-code-provider)",
     parseProviders
   )
   .action(

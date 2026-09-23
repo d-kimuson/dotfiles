@@ -13,7 +13,9 @@
     "openrouter/moonshotai/kimi-k3",
     "openrouter/z-ai/glm-5.3-flash",
     "xai/grok-4.6",
-    "xai/grok-4.5"
+    "xai/grok-4.5",
+    "pi-claude-code-provider/fable",
+    "pi-claude-code-provider/opus"
   ],
   "hard": [
     "openai-codex/gpt-6-astra:xhigh"
