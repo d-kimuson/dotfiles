@@ -13,3 +13,4 @@ shell/env-secrets.sh
 
 .pi-subagents/
 node_modules/
+.vitest/
