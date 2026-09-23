@@ -13,8 +13,17 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import { __usageStatusInternals } from "../../../chezmoi/private_dot_pi/private_agent/extensions/usage-status.ts"
 
-const { fetchZaiUsage, resolveZaiKey, fetchGrokUsage, resolveXaiAuth, parseGrokUsage, quotaObservations, buildWidgetLines } =
-  __usageStatusInternals
+const {
+  fetchZaiUsage,
+  resolveZaiKey,
+  fetchGrokUsage,
+  resolveXaiAuth,
+  parseGrokUsage,
+  fetchClaudeUsage,
+  resolveClaudeAuth,
+  quotaObservations,
+  buildWidgetLines,
+} = __usageStatusInternals
 
 const testRootPrefix = path.join(tmpdir(), "usage-status-test-")
 
@@ -157,14 +166,17 @@ describe("fetchZaiUsage", () => {
 describe("quotaObservations", () => {
 	it("preserves raw quota percentages for ledger output", () => {
 		const observations = quotaObservations(
-			null,
-			null,
 			{
-				fiveHour: { percent: 6.4, resetAtMs: 1786961964113 },
-				weekly: null,
-				monthlyTools: null,
+				go: null,
+				codex: null,
+				zai: {
+					fiveHour: { percent: 6.4, resetAtMs: 1786961964113 },
+					weekly: null,
+					monthlyTools: null,
+				},
+				grok: null,
+				claude: null,
 			},
-			null,
 			"2026-08-17T00:00:00.000Z",
 		)
 
@@ -186,19 +198,22 @@ describe("quotaObservations", () => {
 
 	it("records every Codex quota window under the configured account alias", () => {
 		const observations = quotaObservations(
-			null,
 			{
-				rate_limit: {
-					primary_window: { used_percent: 1.5, reset_at: 1787000000 },
-					secondary_window: { used_percent: 2.5, reset_at: 1787600000 },
+				go: null,
+				codex: {
+					rate_limit: {
+						primary_window: { used_percent: 1.5, reset_at: 1787000000 },
+						secondary_window: { used_percent: 2.5, reset_at: 1787600000 },
+					},
+					code_review_rate_limit: { primary_window: { used_percent: 3.5, reset_at: 1787600000 } },
+					additional_rate_limits: [
+						{ limit_name: "GPT-5.4-Codex", rate_limit: { primary_window: { used_percent: 4.5, reset_at: 1787600000 } } },
+					],
 				},
-				code_review_rate_limit: { primary_window: { used_percent: 3.5, reset_at: 1787600000 } },
-				additional_rate_limits: [
-					{ limit_name: "GPT-5.4-Codex", rate_limit: { primary_window: { used_percent: 4.5, reset_at: 1787600000 } } },
-				],
+				zai: null,
+				grok: null,
+				claude: null,
 			},
-			null,
-			null,
 			"2026-08-17T00:00:00.000Z",
 			{ "openai-codex": "personal" },
 		)
@@ -529,6 +544,7 @@ describe("buildWidgetLines", () => {
 			codex: { rate_limit: { primary_window: { used_percent: 86 } } },
 			zai: null,
 			grok: null,
+			claude: null,
 		})
 
 		expect(lines).toHaveLength(2)
@@ -539,7 +555,7 @@ describe("buildWidgetLines", () => {
 
 	it("returns an empty array when nothing is displayable", () => {
 		expect(
-			buildWidgetLines(theme, { go: null, codex: null, zai: null, grok: null }),
+			buildWidgetLines(theme, { go: null, codex: null, zai: null, grok: null, claude: null }),
 		).toEqual([])
 
 		expect(
@@ -548,19 +564,204 @@ describe("buildWidgetLines", () => {
 				codex: { rate_limit: {} },
 				zai: null,
 				grok: null,
+				claude: null,
 			}),
 		).toEqual([])
 	})
 
-	it("keeps providers that have data, including all four", () => {
+	it("keeps providers that have data, including all five", () => {
 		const lines = buildWidgetLines(theme, {
 			go: goSnapshot,
 			codex: { rate_limit: { primary_window: { used_percent: 86 } } },
 			zai: { fiveHour: { percent: 10, resetAtMs: null }, weekly: null, monthlyTools: null },
 			grok: { percent: 5, resetAtMs: null, windowSeconds: 7 * 24 * 60 * 60 },
+			claude: {
+				plan: "max",
+				fiveHour: { percent: 12, resetAtMs: null },
+				sevenDay: { percent: 1, resetAtMs: null },
+				scoped: [],
+			},
 		})
 
-		expect(lines).toHaveLength(4)
+		expect(lines).toHaveLength(5)
 		expect(lines.join("\n")).not.toContain("n/a")
+	})
+
+	it("renders the Claude line with plan, 5h/7d windows and non-zero model-scoped limits", () => {
+		const lines = buildWidgetLines(theme, {
+			go: null,
+			codex: null,
+			zai: null,
+			grok: null,
+			claude: {
+				plan: "max",
+				fiveHour: { percent: 12, resetAtMs: null },
+				sevenDay: { percent: 1, resetAtMs: null },
+				scoped: [
+					{ name: "Fable", percent: 3, resetAtMs: null },
+					{ name: "Opus", percent: 0, resetAtMs: null },
+				],
+			},
+		})
+
+		expect(lines).toEqual(["claude (max) 5h 12% · 7d 1% · fable7d 3%"])
+	})
+})
+
+/** Subset of the live GET /api/oauth/usage response (Max plan). */
+const claudeUsageResponse = (): unknown => ({
+	five_hour: { utilization: 12.0, resets_at: "2026-09-23T19:09:59.656420+00:00" },
+	seven_day: { utilization: 1.0, resets_at: "2026-09-24T07:59:59.656451+00:00" },
+	seven_day_opus: null,
+	limits: [
+		{ kind: "session", group: "session", percent: 12, resets_at: "2026-09-23T19:09:59.656420+00:00", scope: null },
+		{ kind: "weekly_all", group: "weekly", percent: 1, resets_at: "2026-09-24T07:59:59.656451+00:00", scope: null },
+		{
+			kind: "weekly_scoped",
+			group: "weekly",
+			percent: 3,
+			resets_at: "2026-09-24T07:59:59.656915+00:00",
+			scope: { model: { id: null, display_name: "Fable" }, surface: null },
+		},
+	],
+})
+
+const claudeAuthRecord = (overrides: Record<string, unknown> = {}) => ({
+	accessToken: "claude-access-token-value",
+	expiresAt: Date.now() + 60 * 60 * 1000,
+	subscriptionType: "max",
+	...overrides,
+})
+
+describe("fetchClaudeUsage", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	it("parses 5h / 7d windows and model-scoped weekly limits", async () => {
+		vi.stubGlobal("fetch", vi.fn(async () => jsonResponse(claudeUsageResponse())))
+
+		const usage = await fetchClaudeUsage(claudeAuthRecord())
+
+		expect(usage).toEqual({
+			plan: "max",
+			fiveHour: { percent: 12, resetAtMs: Date.parse("2026-09-23T19:09:59.656Z") },
+			sevenDay: { percent: 1, resetAtMs: Date.parse("2026-09-24T07:59:59.656Z") },
+			scoped: [{ name: "Fable", percent: 3, resetAtMs: Date.parse("2026-09-24T07:59:59.656Z") }],
+		})
+	})
+
+	it("sends the OAuth bearer token and the oauth beta header", async () => {
+		const fetchMock = vi.fn(async () => jsonResponse(claudeUsageResponse()))
+		vi.stubGlobal("fetch", fetchMock)
+
+		await fetchClaudeUsage(claudeAuthRecord())
+
+		const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+		expect(url).toBe("https://api.anthropic.com/api/oauth/usage")
+		const headers = init.headers as Record<string, string>
+		expect(headers.Authorization).toBe("Bearer claude-access-token-value")
+		expect(headers["anthropic-beta"]).toBe("oauth-2025-04-20")
+	})
+
+	it("does not call the API with an expired token (Claude Code owns the refresh)", async () => {
+		const fetchMock = vi.fn(async () => jsonResponse(claudeUsageResponse()))
+		vi.stubGlobal("fetch", fetchMock)
+
+		await expect(fetchClaudeUsage(claudeAuthRecord({ expiresAt: Date.now() - 1000 }))).rejects.toThrow(
+			"claude usage token expired",
+		)
+		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it("throws when no quota window exists", async () => {
+		vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({ five_hour: null, seven_day: null })))
+
+		await expect(fetchClaudeUsage(claudeAuthRecord())).rejects.toThrow(
+			"claude usage response missing quota windows",
+		)
+	})
+})
+
+describe("resolveClaudeAuth", () => {
+	const credentials = (accessToken: string) =>
+		JSON.stringify({
+			claudeAiOauth: { accessToken, refreshToken: "refresh", expiresAt: 1790000000000, subscriptionType: "max" },
+		})
+	const noKeychain = async (): Promise<string | null> => null
+
+	beforeEach(async () => {
+		homeDir = await mkdtemp(testRootPrefix)
+		process.env["HOME"] = homeDir
+	})
+
+	afterEach(async () => {
+		vi.unstubAllEnvs()
+		delete process.env["HOME"]
+		await rm(homeDir, { recursive: true, force: true })
+	})
+
+	it("reads the Claude Code credentials from the keychain first", async () => {
+		expect(await resolveClaudeAuth(async () => credentials("keychain-access-token"))).toEqual({
+			accessToken: "keychain-access-token",
+			expiresAt: 1790000000000,
+			subscriptionType: "max",
+		})
+	})
+
+	it("falls back to ~/.claude/.credentials.json", async () => {
+		await mkdir(path.join(homeDir, ".claude"), { recursive: true })
+		await writeFile(path.join(homeDir, ".claude", ".credentials.json"), credentials("file-access-token"), "utf-8")
+
+		expect(await resolveClaudeAuth(noKeychain)).toMatchObject({ accessToken: "file-access-token" })
+	})
+
+	it("reads credentials under CLAUDE_CONFIG_DIR", async () => {
+		const configDir = path.join(homeDir, "relocated-claude")
+		await mkdir(configDir, { recursive: true })
+		await writeFile(path.join(configDir, ".credentials.json"), credentials("relocated-access-token"), "utf-8")
+		vi.stubEnv("CLAUDE_CONFIG_DIR", configDir)
+
+		expect(await resolveClaudeAuth(noKeychain)).toMatchObject({ accessToken: "relocated-access-token" })
+	})
+
+	it("returns null for malformed keychain data and no credentials file", async () => {
+		expect(await resolveClaudeAuth(async () => "not json")).toBeNull()
+		expect(await resolveClaudeAuth(noKeychain)).toBeNull()
+	})
+})
+
+describe("quotaObservations (claude)", () => {
+	it("records Claude windows under the pi provider name", () => {
+		const observations = quotaObservations(
+			{
+				go: null,
+				codex: null,
+				zai: null,
+				grok: null,
+				claude: {
+					plan: "max",
+					fiveHour: { percent: 12, resetAtMs: 1790000000000 },
+					sevenDay: { percent: 1, resetAtMs: null },
+					scoped: [{ name: "Fable", percent: 0, resetAtMs: null }],
+				},
+			},
+			"2026-09-24T00:00:00.000Z",
+		)
+
+		expect(observations).toEqual([
+			{
+				schemaVersion: 1,
+				kind: "quota_observation",
+				observedAt: "2026-09-24T00:00:00.000Z",
+				provider: "pi-claude-code-provider",
+				accountAlias: "default",
+				windows: [
+					{ kind: "rolling-5h", usedPercent: 12, resetAt: new Date(1790000000000).toISOString() },
+					{ kind: "weekly", usedPercent: 1, resetAt: null },
+					{ kind: "weekly:Fable", usedPercent: 0, resetAt: null },
+				],
+			},
+		])
 	})
 })

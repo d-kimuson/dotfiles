@@ -1,11 +1,12 @@
 /**
  * Usage Status Extension
  *
- * Shows subscription quota as a 4-line widget (below the editor):
+ * Shows subscription quota as a 5-line widget (below the editor):
  *   - OpenCode Go  : rolling / weekly / monthly usage (undocumented API)
  *   - Codex        : ChatGPT subscription rate-limit windows (undocumented API)
  *   - Z.ai         : GLM Coding Plan quota windows (undocumented API)
  *   - Grok / xAI   : SuperGrok weekly (or monthly) usage pool (undocumented CLI billing API)
+ *   - Claude       : Claude subscription 5h / 7d windows (undocumented OAuth usage API)
  *
  * Each quota window shows the utilization % colored by pace against the
  * elapsed % of the window (same idea as ~/.claude/statusline.sh):
@@ -33,14 +34,23 @@
  *     Response: { config: { creditUsagePercent, currentPeriod: { type, start, end } } }.
  *     proto3 omits zero scalars, so a missing creditUsagePercent with a period is 0%.
  *     Plan label comes from GET /v1/settings (subscription_tier_display).
+ *   - Claude: GET https://api.anthropic.com/api/oauth/usage (anthropic-beta: oauth-2025-04-20)
+ *     Bearer access token from Claude Code's credentials: macOS keychain
+ *     ("Claude Code-credentials"), then $CLAUDE_CONFIG_DIR / ~/.claude/.credentials.json.
+ *     The token is never refreshed here: Claude Code owns (and rotates) it, so an
+ *     expired token just skips Claude until Claude Code refreshes it.
+ *     Response: { five_hour, seven_day: { utilization, resets_at }, limits: [...] }.
+ *     Model-scoped weekly caps come from limits[kind=weekly_scoped].scope.model.
  *
  * Both endpoints are undocumented and may change without notice.
  * A browser-like User-Agent is required (Cloudflare / WAF).
  */
 
+import { execFile } from "node:child_process";
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 const WIDGET_KEY = "usage";
@@ -90,6 +100,17 @@ const GROK_REFRESH_SKEW_MS = 5 * 60 * 1000;
 const GROK_DEFAULT_TOKEN_LIFETIME_SECONDS = 3600;
 const GROK_WEEKLY_WINDOW_SECONDS = 7 * 24 * 60 * 60;
 const GROK_MONTHLY_WINDOW_SECONDS = 30 * 24 * 60 * 60;
+
+// --- Claude subscription (via Claude Code's OAuth login) ---
+const CLAUDE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
+const CLAUDE_OAUTH_BETA = "oauth-2025-04-20";
+const CLAUDE_KEYCHAIN_SERVICE = "Claude Code-credentials";
+const CLAUDE_KEYCHAIN_TIMEOUT_MS = 5000;
+// Quota observations use pi's provider name so aggregate can link them to
+// pi-claude-code-provider/* usage events.
+const CLAUDE_QUOTA_PROVIDER = "pi-claude-code-provider";
+const CLAUDE_FIVE_HOUR_WINDOW_SECONDS = 5 * 60 * 60;
+const CLAUDE_SEVEN_DAY_WINDOW_SECONDS = 7 * 24 * 60 * 60;
 
 // --- Types ---
 
@@ -156,6 +177,24 @@ type GrokUsage = {
 	resetAtMs: number | null;
 	windowSeconds: number;
 	level?: string;
+};
+
+type ClaudeWindow = { percent: number; resetAtMs: number | null };
+
+/** Model-scoped weekly cap (e.g. Fable), from limits[kind=weekly_scoped]. */
+type ClaudeScopedLimit = { name: string; percent: number; resetAtMs: number | null };
+
+type ClaudeUsage = {
+	plan?: string;
+	fiveHour: ClaudeWindow | null;
+	sevenDay: ClaudeWindow | null;
+	scoped: ClaudeScopedLimit[];
+};
+
+type ClaudeAuthRecord = {
+	accessToken: string;
+	expiresAt?: number;
+	subscriptionType?: string;
 };
 
 type QuotaObservationWindow = {
@@ -609,6 +648,105 @@ async function fetchGrokUsage(record: XaiAuthRecord): Promise<GrokUsage> {
 	return parseGrokUsage(billing, settings);
 }
 
+// --- Claude ---
+
+const execFileAsync = promisify(execFile);
+
+/** Claude Code's credentials JSON from the macOS login keychain, if any. */
+async function readClaudeKeychain(): Promise<string | null> {
+	if (process.platform !== "darwin") return null;
+	try {
+		const { stdout } = await execFileAsync(
+			"security",
+			["find-generic-password", "-s", CLAUDE_KEYCHAIN_SERVICE, "-w"],
+			{ timeout: CLAUDE_KEYCHAIN_TIMEOUT_MS },
+		);
+		const text = stdout.trim();
+		return text.length > 0 ? text : null;
+	} catch {
+		return null;
+	}
+}
+
+function parseClaudeCredentials(data: unknown): ClaudeAuthRecord | null {
+	if (!data || typeof data !== "object") return null;
+	const oauth = (data as Record<string, unknown>).claudeAiOauth;
+	if (!oauth || typeof oauth !== "object") return null;
+	const value = oauth as Record<string, unknown>;
+	if (typeof value.accessToken !== "string" || value.accessToken.length <= 8) return null;
+	const record: ClaudeAuthRecord = { accessToken: value.accessToken };
+	if (typeof value.expiresAt === "number" && Number.isFinite(value.expiresAt)) record.expiresAt = value.expiresAt;
+	if (typeof value.subscriptionType === "string" && value.subscriptionType.length > 0) {
+		record.subscriptionType = value.subscriptionType;
+	}
+	return record;
+}
+
+function parseClaudeCredentialsText(text: string): ClaudeAuthRecord | null {
+	try {
+		return parseClaudeCredentials(JSON.parse(text));
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Claude Code's subscription OAuth credentials: keychain first (macOS), then
+ * the credentials file Claude Code writes on other platforms.
+ */
+async function resolveClaudeAuth(
+	readKeychain: () => Promise<string | null> = readClaudeKeychain,
+): Promise<ClaudeAuthRecord | null> {
+	const keychain = await readKeychain();
+	if (keychain !== null) {
+		const record = parseClaudeCredentialsText(keychain);
+		if (record) return record;
+	}
+	const configDir = process.env.CLAUDE_CONFIG_DIR || join(homedir(), ".claude");
+	return parseClaudeCredentials(await readJson(join(configDir, ".credentials.json")));
+}
+
+function toClaudeWindow(value: unknown): ClaudeWindow | null {
+	if (!value || typeof value !== "object") return null;
+	const window = value as Record<string, unknown>;
+	if (typeof window.utilization !== "number" || !Number.isFinite(window.utilization)) return null;
+	return { percent: window.utilization, resetAtMs: parseIsoMs(window.resets_at) };
+}
+
+function toClaudeScopedLimits(limits: unknown): ClaudeScopedLimit[] {
+	if (!Array.isArray(limits)) return [];
+	const scoped: ClaudeScopedLimit[] = [];
+	for (const entry of limits) {
+		if (!entry || typeof entry !== "object") continue;
+		const limit = entry as Record<string, unknown>;
+		if (limit.kind !== "weekly_scoped" || typeof limit.percent !== "number") continue;
+		const scope = limit.scope as { model?: { display_name?: unknown } | null } | null | undefined;
+		const name = scope?.model?.display_name;
+		if (typeof name !== "string" || name.length === 0) continue;
+		scoped.push({ name, percent: limit.percent, resetAtMs: parseIsoMs(limit.resets_at) });
+	}
+	return scoped;
+}
+
+async function fetchClaudeUsage(record: ClaudeAuthRecord): Promise<ClaudeUsage> {
+	// Never refresh here: Claude Code rotates the refresh token, and refreshing
+	// behind its back would invalidate its own login.
+	if (typeof record.expiresAt === "number" && record.expiresAt <= Date.now()) {
+		throw new Error("claude usage token expired (run claude to refresh)");
+	}
+	const json = (await fetchJson(CLAUDE_USAGE_URL, {
+		Authorization: `Bearer ${record.accessToken}`,
+		"anthropic-beta": CLAUDE_OAUTH_BETA,
+		Accept: "application/json",
+	})) as Record<string, unknown>;
+	const fiveHour = toClaudeWindow(json.five_hour);
+	const sevenDay = toClaudeWindow(json.seven_day);
+	if (!fiveHour && !sevenDay) throw new Error("claude usage response missing quota windows");
+	const usage: ClaudeUsage = { fiveHour, sevenDay, scoped: toClaudeScopedLimits(json.limits) };
+	if (record.subscriptionType) usage.plan = record.subscriptionType;
+	return usage;
+}
+
 const toObservationTimestamp = (resetAtMs: number | null): string | null =>
 	resetAtMs === null ? null : new Date(resetAtMs).toISOString();
 
@@ -625,13 +763,11 @@ const toCodexObservationWindow = (
 };
 
 const quotaObservations = (
-	go: OpenCodeGoUsage | null,
-	codex: CodexUsage | null,
-	zai: ZaiUsage | null,
-	grok: GrokUsage | null,
+	snapshot: UsageSnapshot,
 	observedAt: string,
 	accountAliases: Readonly<Record<string, string>> = {},
 ): QuotaObservation[] => {
+	const { go, codex, zai, grok, claude } = snapshot;
 	const observations: QuotaObservation[] = [];
 	const create = (provider: string, windows: QuotaObservationWindow[]): void => {
 		if (windows.length === 0) return;
@@ -689,6 +825,19 @@ const quotaObservations = (
 			usedPercent: grok.percent,
 			resetAt: toObservationTimestamp(grok.resetAtMs),
 		}]);
+	}
+	if (claude) {
+		const windows: QuotaObservationWindow[] = [];
+		if (claude.fiveHour) {
+			windows.push({ kind: "rolling-5h", usedPercent: claude.fiveHour.percent, resetAt: toObservationTimestamp(claude.fiveHour.resetAtMs) });
+		}
+		if (claude.sevenDay) {
+			windows.push({ kind: "weekly", usedPercent: claude.sevenDay.percent, resetAt: toObservationTimestamp(claude.sevenDay.resetAtMs) });
+		}
+		for (const limit of claude.scoped) {
+			windows.push({ kind: `weekly:${limit.name}`, usedPercent: limit.percent, resetAt: toObservationTimestamp(limit.resetAtMs) });
+		}
+		create(CLAUDE_QUOTA_PROVIDER, windows);
 	}
 	return observations;
 };
@@ -798,11 +947,12 @@ function renderWindow(
 
 type WidgetTheme = ExtensionContext["ui"]["theme"];
 
-type WidgetSnapshot = {
+type UsageSnapshot = {
 	go: OpenCodeGoUsage | null;
 	codex: CodexUsage | null;
 	zai: ZaiUsage | null;
 	grok: GrokUsage | null;
+	claude: ClaudeUsage | null;
 };
 
 /**
@@ -811,8 +961,8 @@ type WidgetSnapshot = {
  * window, contributes no line (instead of an "n/a" placeholder line).
  * Returns an empty array when nothing is displayable.
  */
-function buildWidgetLines(theme: WidgetTheme, snapshot: WidgetSnapshot): string[] {
-	const { go, codex, zai, grok } = snapshot;
+function buildWidgetLines(theme: WidgetTheme, snapshot: UsageSnapshot): string[] {
+	const { go, codex, zai, grok, claude } = snapshot;
 	const lines: string[] = [];
 
 	// --- OpenCode Go (labels = window length: 5h rolling / 7d weekly / 1m monthly) ---
@@ -935,6 +1085,40 @@ function buildWidgetLines(theme: WidgetTheme, snapshot: WidgetSnapshot): string[
 		lines.push(theme.fg("dim", "grok ") + tier + grokParts.join(theme.fg("dim", " · ")));
 	}
 
+	// --- Claude subscription (5h session / 7d weekly / non-zero model-scoped weekly caps) ---
+	if (claude) {
+		const claudeParts: string[] = [];
+		if (claude.fiveHour) {
+			claudeParts.push(
+				renderWindow(theme, "5h", claude.fiveHour.percent, claude.fiveHour.resetAtMs, CLAUDE_FIVE_HOUR_WINDOW_SECONDS, {
+					showReset: claude.fiveHour.percent > 0,
+					showElapsed: true,
+				}),
+			);
+		}
+		if (claude.sevenDay) {
+			claudeParts.push(
+				renderWindow(theme, "7d", claude.sevenDay.percent, claude.sevenDay.resetAtMs, CLAUDE_SEVEN_DAY_WINDOW_SECONDS, {
+					showReset: true,
+					showElapsed: true,
+				}),
+			);
+		}
+		for (const limit of claude.scoped) {
+			if (limit.percent <= 0) continue;
+			claudeParts.push(
+				renderWindow(theme, `${limit.name.toLowerCase()}7d`, limit.percent, limit.resetAtMs, CLAUDE_SEVEN_DAY_WINDOW_SECONDS, {
+					showReset: true,
+					showElapsed: true,
+				}),
+			);
+		}
+		if (claudeParts.length > 0) {
+			const tier = claude.plan ? `${theme.fg("dim", `(${claude.plan})`)} ` : "";
+			lines.push(theme.fg("dim", "claude ") + tier + claudeParts.join(theme.fg("dim", " · ")));
+		}
+	}
+
 	return lines;
 }
 
@@ -948,6 +1132,8 @@ export const __usageStatusInternals = {
 	fetchGrokUsage,
 	resolveXaiAuth,
 	parseGrokUsage,
+	fetchClaudeUsage,
+	resolveClaudeAuth,
 	quotaObservations,
 	calcElapsedPercent,
 	paceTone,
@@ -959,31 +1145,21 @@ export const __usageStatusInternals = {
 export default function usageStatusExtension(pi: ExtensionAPI) {
 	let timer: ReturnType<typeof setInterval> | null = null;
 	let refreshing = false;
-	let last: { go: OpenCodeGoUsage | null; codex: CodexUsage | null; zai: ZaiUsage | null; grok: GrokUsage | null } = {
+	const last: UsageSnapshot = {
 		go: null,
 		codex: null,
 		zai: null,
 		grok: null,
+		claude: null,
 	};
 
-	const fetchAll = async (): Promise<{
-		go: OpenCodeGoUsage | null;
-		codex: CodexUsage | null;
-		zai: ZaiUsage | null;
-		grok: GrokUsage | null;
-		errors: string[];
-	}> => {
-		const result: {
-			go: OpenCodeGoUsage | null;
-			codex: CodexUsage | null;
-			zai: ZaiUsage | null;
-			grok: GrokUsage | null;
-			errors: string[];
-		} = {
+	const fetchAll = async (): Promise<UsageSnapshot & { errors: string[] }> => {
+		const result: UsageSnapshot & { errors: string[] } = {
 			go: null,
 			codex: null,
 			zai: null,
 			grok: null,
+			claude: null,
 			errors: [],
 		};
 
@@ -1031,6 +1207,17 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 			result.errors.push("grok: no auth");
 		}
 
+		const claudeAuth = await resolveClaudeAuth();
+		if (claudeAuth) {
+			try {
+				result.claude = await fetchClaudeUsage(claudeAuth);
+			} catch (error) {
+				result.errors.push(`claude: ${error instanceof Error ? error.message : String(error)}`);
+			}
+		} else {
+			result.errors.push("claude: no auth");
+		}
+
 		return result;
 	};
 
@@ -1047,10 +1234,11 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 		if (refreshing) return;
 		refreshing = true;
 		try {
-			const { go, codex, zai, grok, errors } = await fetchAll();
+			const { errors: _errors, ...fetched } = await fetchAll();
+			const { go, codex, zai, grok, claude } = fetched;
 			try {
 				await appendQuotaObservations(
-					quotaObservations(go, codex, zai, grok, new Date().toISOString(), await resolveQuotaAccountAliases()),
+					quotaObservations(fetched, new Date().toISOString(), await resolveQuotaAccountAliases()),
 				);
 			} catch (error) {
 				console.warn(`usage quota observation write failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -1059,9 +1247,8 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 			if (codex) last.codex = codex;
 			if (zai) last.zai = zai;
 			if (grok) last.grok = grok;
-			if (errors.length > 0 && !go && !codex && !zai && !grok) {
-				// All sources failed: fall back to whatever we had before.
-			}
+			if (claude) last.claude = claude;
+			// A failed source keeps its previous snapshot.
 			renderWidget(ctx);
 		} finally {
 			refreshing = false;
@@ -1090,7 +1277,7 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 	});
 
 		pi.registerCommand("usage", {
-		description: "Refresh and show subscription usage quota (OpenCode Go / Codex / Z.ai / Grok)",
+		description: "Refresh and show subscription usage quota (OpenCode Go / Codex / Z.ai / Grok / Claude)",
 		handler: async (_args, ctx) => {
 			await refresh(ctx);
 			const theme = ctx.ui.theme;
@@ -1155,6 +1342,24 @@ export default function usageStatusExtension(pi: ExtensionAPI) {
 				);
 			} else {
 				lines.push(theme.fg("accent", "Grok"), theme.fg("dim", "  n/a"));
+			}
+
+			const claude = last.claude;
+			if (claude) {
+				lines.push(theme.fg("accent", `Claude${claude.plan ? ` (${claude.plan})` : ""}`));
+				const claudeRows: [string, ClaudeWindow | null][] = [
+					["5h (session):", claude.fiveHour],
+					["7d (weekly): ", claude.sevenDay],
+					...claude.scoped.map((limit): [string, ClaudeWindow] => [`7d (${limit.name}):`, limit]),
+				];
+				for (const [label, window] of claudeRows) {
+					if (!window) continue;
+					const reset =
+						window.resetAtMs !== null ? ` (reset ${new Date(window.resetAtMs).toLocaleString("ja-JP")})` : "";
+					lines.push(`  ${label} ${window.percent}% used${reset}`);
+				}
+			} else {
+				lines.push(theme.fg("accent", "Claude"), theme.fg("dim", "  n/a"));
 			}
 
 			ctx.ui.notify(lines.join("\n"), "info");
