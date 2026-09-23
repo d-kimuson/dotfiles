@@ -11,3 +11,5 @@ tmp.local.*
 # claude code
 **/.kimuson/**
 .claude/trash/
+
+**/.claude/.cc-writes/
