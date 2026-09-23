@@ -1,6 +1,6 @@
 ---
 name: harness-engineering
-description: Design and maintain vendor-neutral coding-agent harnesses with AGENTS.md and Agent Skills. Use when creating, reviewing, or restructuring repository instructions, AGENTS.md files, Claude Code compatibility links, or skill directories.
+description: Design and maintain vendor-neutral coding-agent harnesses with AGENTS.md and Agent Skills. Use when creating, reviewing, or restructuring repository instructions, AGENTS.md files, Claude Code compatibility links, skill directories, or shared prompts (slash commands).
 ---
 
 # Harness Engineering
@@ -22,6 +22,7 @@ Read the reference that matches the artifact before editing it. This is mandator
 
 - `AGENTS.md` or a compatibility link: [references/agents-md.md](references/agents-md.md)
 - An Agent Skill or its directory: [references/skills.md](references/skills.md)
+- A shared prompt (slash command) or its tool-specific symlink: [references/prompts.md](references/prompts.md)
 - Claude Code permissions: [references/tools/claude-code/permissions.md](references/tools/claude-code/permissions.md)
 - Claude Code hooks: [references/tools/claude-code/hooks.md](references/tools/claude-code/hooks.md)
 

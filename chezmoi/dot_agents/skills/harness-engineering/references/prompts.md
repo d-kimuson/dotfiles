@@ -1,9 +1,4 @@
----
-name: harness
-description: Maintain the shared coding-agent prompt and skill layout, including canonical prompt storage, compatibility symlinks, and invocation metadata.
----
-
-# Harness maintenance
+# Shared Prompts
 
 - Store shared prompts canonically in `.agents/prompts/`.
 - Keep tool-specific prompt directories as symlinks to the canonical directory:

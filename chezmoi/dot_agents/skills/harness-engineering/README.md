@@ -8,12 +8,14 @@ Coding Agent の harness を、特定製品に依存しない `AGENTS.md` と Ag
 - `AGENTS.md` を新規作成または整理するとき
 - Claude Code との互換性を symlink で用意するとき
 - Agent Skill を新規作成または整理するとき
+- 共有 prompt (slash command) の配置や frontmatter を整えるとき
 - runtime context とメンテナンス文書の責務を分離するとき
 - permission や hooks など、製品固有の設定を隔離するとき
 
 ## 動作の概要
 
-この skill は、対象に応じて `references/agents-md.md` または `references/skills.md` を読み込みます。
+この skill は、対象に応じて `references/agents-md.md`、`references/skills.md`、`references/prompts.md` のいずれかを読み込みます。
+`references/prompts.md` は `~/.agents/prompts` を正規配置とし、`~/.claude/commands` と `~/.pi/prompts` から symlink で参照する、このマシン固有の prompt 配置規約です。
 Claude Code 固有の permission や hooks を扱う場合だけ、`references/tools/claude-code/` 以下を追加で参照します。
 
 生成物では、常時読み込まれる情報を最小化し、詳細なガイドラインを必要な作業時だけ読む構造に分けます。
