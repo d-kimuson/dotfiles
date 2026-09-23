@@ -2,7 +2,7 @@
 
 ## Typography
 
-Do not use Georgia for Latin letters and numerals.
+Use `system-ui` for Latin letters and numerals.
 
 ## Purpose before messaging
 
