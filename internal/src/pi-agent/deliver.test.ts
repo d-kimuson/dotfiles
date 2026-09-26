@@ -183,49 +183,6 @@ describe("deliverPiAgentConfig", () => {
     })
   })
 
-  it("includes pi-claude-code-provider scoped models when it is available", async () => {
-    await writeBaseFiles()
-    const profilesPath = path.join(configDir, "model-profiles.json")
-    const profiles = JSON.parse(await readFile(profilesPath, "utf-8")) as Record<string, unknown>
-    await writeFile(
-      profilesPath,
-      JSON.stringify(
-        {
-          ...profiles,
-          scoped: [
-            "openai-codex/gpt-5.4:medium",
-            "pi-claude-code-provider/fable",
-            "pi-claude-code-provider/opus",
-          ],
-        },
-        null,
-        2
-      ),
-      "utf-8"
-    )
-    await writeFile(
-      path.join(configDir, "providers.local.json"),
-      JSON.stringify(
-        {
-          availableProviders: ["openai-codex", "pi-claude-code-provider"],
-        },
-        null,
-        2
-      ),
-      "utf-8"
-    )
-
-    await deliverPiAgentConfig({ dryRun: false })
-
-    expect(await readJson(path.join(targetDir, "settings.json"))).toMatchObject({
-      enabledModels: [
-        "openai-codex/gpt-5.4",
-        "pi-claude-code-provider/fable",
-        "pi-claude-code-provider/opus",
-      ],
-    })
-  })
-
   it("preserves existing models when managed models.json is empty", async () => {
     await writeBaseFiles()
     await mkdir(targetDir, { recursive: true })

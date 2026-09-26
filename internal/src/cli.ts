@@ -73,7 +73,7 @@ piAgent
   .option("--dry-run", "Show what would be written without making changes")
   .option(
     "--providers <providers>",
-    "Available providers separated by | or , (opencode-go|openai-codex|openrouter|anthropic|zai|xai|pi-claude-code-provider)",
+    "Available providers separated by | or , (opencode-go|openai-codex|openrouter|anthropic|zai|xai)",
     parseProviders
   )
   .action(

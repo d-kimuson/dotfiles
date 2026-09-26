@@ -33,7 +33,6 @@ const SUPPORTED_PROVIDERS = [
   "anthropic",
   "zai",
   "xai",
-  "pi-claude-code-provider",
 ] as const
 
 const AGENT_MODEL_PROFILES = {
