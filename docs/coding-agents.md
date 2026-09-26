@@ -16,6 +16,15 @@ Claude Code、Codex、Pi、GitHub Copilot の設定は、chezmoi によるファ
 `chezmoi/dot_codex/symlink_prompts` は Claude Code の commands を Codex から共有する。`chezmoi/dot_claude/symlink_skills` と `chezmoi/dot_codex/symlink_skills` は、全 Agent 共通の `~/.agents/skills` を共有する。
 `~/.claude/settings.local.json` は Claude Code が直接読むローカル上書きであり、`merge-config` の入力ではない。
 
+### 外部リポジトリの skill
+
+別リポジトリで管理されている skill は vendor せず、`chezmoi/.chezmoiexternal.toml` で GitHub のアーカイブから `~/.agents/skills/<name>` に展開する (`npx skills add` は使わない)。
+`refreshPeriod` ごとに上流を取り直し、すぐに追従させたいときは `chezmoi apply --refresh-externals` を実行する。
+
+| skill | 上流 |
+| --- | --- |
+| `dev-process-kit` | [d-kimuson/dev-process-kit](https://github.com/d-kimuson/dev-process-kit) の `skills/dev-process-kit/` |
+
 `merge-config` は管理対象の値を優先し、target にしかないキーは保持する。
 更新時は `node internal/src/cli.ts merge-config --dry-run` を先に実行する。
 
