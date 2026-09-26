@@ -26,6 +26,14 @@ ensure_nix_available() {
   fi
 }
 
+# ── disk cleanup ───────────────────────────────────────
+# ソースビルドが容量不足で落ちないよう、ビルド前に不要な Nix ストアパスを削除して空きを確保する。
+# 直近のロールバック用に 14 日以内の世代は残す。
+collect_nix_garbage() {
+  echo "nix: collecting garbage..."
+  nix-collect-garbage --delete-older-than 14d
+}
+
 # ── nix flake ──────────────────────────────────────────
 update_flake() {
   echo "flake: updating inputs..."
@@ -55,6 +63,7 @@ home_manager_switch() {
 echo "=== dotfiles update ==="
 
 ensure_nix_available
+collect_nix_garbage
 chezmoi apply 2>/dev/null || true
 update_flake
 remove_migrated_profile_packages
@@ -90,6 +99,11 @@ echo "Pruning unused mise tool versions..."
 "$MISE_BIN" prune -y || echo "Warning: mise prune failed" >&2
 
 "$MISE_BIN" reshim
+
+echo ""
+echo "Cleaning npm cache..."
+# mise の npm バックエンドやプロジェクトの npm 利用で肥大化しやすいため毎回消す。
+"$MISE_BIN" exec -- npm cache clean --force || echo "Warning: npm cache clean failed" >&2
 
 echo ""
 echo "=== update complete ==="

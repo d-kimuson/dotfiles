@@ -37,7 +37,7 @@ home-manager を反映する場合は activation hook がこの処理を行う�
 ## 更新
 
 Nix の入力と mise の対象 CLI を更新する場合は `./scripts/update.sh` を使う。
-このスクリプトは chezmoi apply、flake update、移行済み profile パッケージの削除、home-manager switch、mise update、mise 設定の source state への同期、`mise prune` を順に実行する。
+このスクリプトは Nix の garbage collection (14 日より古い世代を削除)、chezmoi apply、flake update、移行済み profile パッケージの削除、home-manager switch、mise update、mise 設定の source state への同期、`mise prune`、npm キャッシュの削除を順に実行する。
 
 `mise prune` は tracked-configs の死んだリンクと、どの config からも参照されなくなったツールバージョンを削除する。
 稼働中のプロジェクトの `.node-version` などが参照するバージョンは残るため、既存プロジェクトには影響しない。
