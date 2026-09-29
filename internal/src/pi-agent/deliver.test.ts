@@ -411,4 +411,29 @@ describe("deliverPiAgentConfig", () => {
       defaultModel: "glm-5.3",
     })
   })
+
+  it("does not print settings values in dry-run mode", async () => {
+    await writeBaseFiles()
+    await writeFile(
+      path.join(configDir, "settings.local.json"),
+      JSON.stringify({ localSecret: "settings-secret-value" }, null, 2),
+      "utf-8"
+    )
+
+    const logs: string[] = []
+    const originalLog = console.log
+    console.log = (...args: unknown[]) => {
+      logs.push(args.join(" "))
+    }
+
+    try {
+      await deliverPiAgentConfig({ dryRun: true })
+    } finally {
+      console.log = originalLog
+    }
+
+    const output = logs.join("\n")
+    expect(output).not.toContain("settings-secret-value")
+    expect(output).toContain("+ localSecret")
+  })
 })

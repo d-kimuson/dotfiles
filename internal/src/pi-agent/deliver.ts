@@ -1,6 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import path, { dirname } from "node:path"
+import { diffKeyPaths, formatDryRunReport } from "../dry-run/describe-changes.ts"
 
 type JsonValue =
   | string
@@ -264,6 +265,16 @@ const readOptionalText = async (filePath: string): Promise<string | null> => {
   }
 }
 
+/** 上書き対象の既存ファイルは壊れていても配布を止めないため、解釈できなければ null を返す */
+const tryParseJsonObject = (content: string): JsonObject | null => {
+  try {
+    const parsed = JSON.parse(content) as unknown
+    return isPlainObject(parsed) ? parsed : null
+  } catch {
+    return null
+  }
+}
+
 const readJsonObject = async (filePath: string): Promise<JsonObject> => {
   const content = await readFile(filePath, "utf-8")
   let parsed: unknown
@@ -490,12 +501,13 @@ const materializeSettingsConfig = async (
   const local = await readOptionalJsonObject(localPath)
   const built = mergeSettingsConfig(mergeSettingsConfig(base, generated), local)
 
-  const targetExists = (await readOptionalText(targetPath)) !== null
+  const targetContent = await readOptionalText(targetPath)
+  const targetExists = targetContent !== null
   const output = JSON.stringify(built, null, 2) + "\n"
 
   if (dryRun) {
-    console.log(`  [dry-run] Would write to: ${targetPath}`)
-    console.log(output)
+    const current = targetContent === null ? null : tryParseJsonObject(targetContent)
+    console.log(formatDryRunReport(targetPath, diffKeyPaths(current, built)))
     return
   }
 

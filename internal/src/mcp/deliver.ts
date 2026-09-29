@@ -2,6 +2,7 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import path from "node:path"
 import { parse as parseTOML, stringify as stringifyTOML } from "smol-toml"
+import { diffKeyPaths, formatDryRunReport } from "../dry-run/describe-changes.ts"
 
 type Target = "claude-code" | "claude-desktop" | "codex" | "pi-agent"
 
@@ -196,8 +197,7 @@ const mergeJsonMcpServers = async (
   const output = JSON.stringify(merged, null, 2) + "\n"
 
   if (dryRun) {
-    console.log(`  [dry-run] Would write to: ${filePath}`)
-    console.log(output)
+    console.log(formatDryRunReport(filePath, diffKeyPaths(existing, merged)))
   } else {
     await writeFile(filePath, output, "utf-8")
     console.log(`  Updated: ${filePath}`)
@@ -246,22 +246,29 @@ const mergeTomlMcpServers = async (
       ? (existing["mcp_servers"] as Record<string, unknown>)
       : {}
 
-  for (const [name, config] of Object.entries(servers)) {
-    existingMcpServers[name] = {
-      ...(typeof existingMcpServers[name] === "object" &&
-      existingMcpServers[name] !== null
-        ? (existingMcpServers[name] as Record<string, unknown>)
-        : {}),
-      ...toCodexEntry(config),
-    }
-  }
+  const mergedMcpServers = Object.fromEntries(
+    Object.entries(servers).map(([name, config]) => {
+      const current = existingMcpServers[name]
+      return [
+        name,
+        {
+          ...(typeof current === "object" && current !== null
+            ? (current as Record<string, unknown>)
+            : {}),
+          ...toCodexEntry(config),
+        },
+      ]
+    })
+  )
 
-  const merged = { ...existing, mcp_servers: existingMcpServers }
+  const merged = {
+    ...existing,
+    mcp_servers: { ...existingMcpServers, ...mergedMcpServers },
+  }
   const output = stringifyTOML(merged) + "\n"
 
   if (dryRun) {
-    console.log(`  [dry-run] Would write to: ${filePath}`)
-    console.log(output)
+    console.log(formatDryRunReport(filePath, diffKeyPaths(existing, merged)))
   } else {
     await writeFile(filePath, output, "utf-8")
     console.log(`  Updated: ${filePath}`)

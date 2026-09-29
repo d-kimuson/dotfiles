@@ -102,6 +102,32 @@ describe("mergeConfigs", () => {
     expect(afterContent).toBe(originalContent)
   })
 
+  it("does not print config values in dry-run mode", async () => {
+    const source = await writeTempJson("source.json", {
+      env: { API_TOKEN: "source-secret-value" },
+    })
+    const target = await writeTempJson("target.json", {
+      env: { OTHER_TOKEN: "target-secret-value" },
+    })
+
+    const logs: string[] = []
+    const originalLog = console.log
+    console.log = (...args: unknown[]) => {
+      logs.push(args.join(" "))
+    }
+
+    try {
+      await mergeConfigs({ entries: [{ source, target }], dryRun: true })
+    } finally {
+      console.log = originalLog
+    }
+
+    const output = logs.join("\n")
+    expect(output).not.toContain("source-secret-value")
+    expect(output).not.toContain("target-secret-value")
+    expect(output).toContain("+ env.API_TOKEN")
+  })
+
   it("reports extra keys in target not present in source", async () => {
     const source = await writeTempJson("source.json", { a: 1 })
     await writeTempJson("target.json", { a: 2, extra1: true, extra2: "val" })

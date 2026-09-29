@@ -203,4 +203,51 @@ describe("deliverMcpConfig", () => {
     }
     expect(config.mcpServers["server"]).not.toHaveProperty("excludeTargets")
   })
+
+  it("does not print server secrets in dry-run mode", async () => {
+    await writeFile(
+      path.join(homeDir, ".local/share/chezmoi/config/mcp.template.json"),
+      JSON.stringify(
+        {
+          mcpServers: {
+            stdio: {
+              command: "cmd",
+              args: [],
+              env: { API_KEY: "env-secret-value" },
+            },
+            remote: {
+              type: "http",
+              url: "https://example.com/mcp",
+              headers: { Authorization: "Basic header-secret-value" },
+            },
+          },
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+    await mkdir(path.join(homeDir, ".codex"), { recursive: true })
+
+    const logs: string[] = []
+    const originalLog = console.log
+    console.log = (...args: unknown[]) => {
+      logs.push(args.join(" "))
+    }
+
+    try {
+      await deliverMcpConfig({
+        targets: ["claude-code", "codex", "pi-agent"],
+        dryRun: true,
+      })
+    } finally {
+      console.log = originalLog
+    }
+
+    const output = logs.join("\n")
+    expect(output).not.toContain("env-secret-value")
+    expect(output).not.toContain("header-secret-value")
+    expect(output).toContain("+ mcpServers")
+    expect(output).toContain("+ mcp_servers")
+  })
 })

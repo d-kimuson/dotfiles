@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 import { parse as parseTOML, stringify as stringifyTOML } from "smol-toml"
+import { diffKeyPaths, formatDryRunReport } from "../dry-run/describe-changes.ts"
 
 type JsonValue =
   | string
@@ -130,8 +131,7 @@ const mergeOne = async (
   if (target === null) {
     const output = serializeContent(source, targetFormat)
     if (dryRun) {
-      console.log(`  [dry-run] Would write to: ${entry.target}`)
-      console.log(output)
+      console.log(formatDryRunReport(entry.target, diffKeyPaths(null, source)))
     } else {
       await mkdir(dirname(entry.target), { recursive: true })
       await writeFile(entry.target, output, "utf-8")
@@ -144,8 +144,7 @@ const mergeOne = async (
   const output = serializeContent(merged, targetFormat)
 
   if (dryRun) {
-    console.log(`  [dry-run] Would write to: ${entry.target}`)
-    console.log(output)
+    console.log(formatDryRunReport(entry.target, diffKeyPaths(target, merged)))
   } else {
     await writeFile(entry.target, output, "utf-8")
     console.log(`  Updated: ${entry.target}`)
