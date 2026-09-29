@@ -22,7 +22,7 @@
 - When the goal is clear, do not ask the user about the process step by step. Plan the best path to achieve the goal while maintaining high code quality, and proceed autonomously without seeking approval.
 - **Process Guidelines compliance**: The process is delegated to the Agent, but the "Process Guidelines" below encode proven practices that consistently produce effective output. Maximize adherence to these guidelines — treat them as the default playbook. Within that compliance envelope, choose whatever approach works best. The guidelines are a means to high-quality results, not a constraint.
 
-## Process Guidelines 
+## Process Guidelines
 
 ### Progressive Disclosure
 
@@ -59,4 +59,4 @@
 
 ### Browser operations
 
-For browser interaction, load `~/.agents/skills/browser-ops/SKILL.md` and use the `agent-browser` CLI. The skill defines the shared agent-only profile, headless default, headed fallback, and user-assisted login. Do not use the removed `pi-agent-browser-native` wrapper. For web research, prefer `web_search` over automating search-engine forms.
+For browser interaction, load `~/.agents/skills/browser-ops/SKILL.md` and use the `agent-browser` CLI. The skill defines the shared agent-only profile, headless default, headed fallback, and user-assisted login.

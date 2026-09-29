@@ -7,7 +7,7 @@ description: Operate websites with the agent-browser CLI using one shared agent-
 
 ## Browser and profile contract
 
-- Use the `agent-browser` CLI, not the removed `pi-agent-browser-native` wrapper or Playwright CLI. Load `agent-browser skills get core` for the installed version's command guide; use command-specific `--help` when needed.
+- Use the `agent-browser` CLI directly for every step. Load `agent-browser skills get core` for the installed version's command guide; use command-specific `--help` when needed.
 - Always launch with the same persistent directory: `$HOME/.config/agent-browser/profiles/shared`. Use `--session browser-ops` on every browser command. A session name identifies the daemon; it does not replace `--profile` persistence.
 - Never use the user's personal Chrome profile, copy it, create per-site profiles, or use auto-connect to an arbitrary browser. Do not export/import state files as the normal login workflow.
 - One agent owns this shared browser at a time. Coordinate with other agents before using it; do not navigate, close, or change modes while another agent or the user is operating it. Different session names do not make concurrent use of one profile safe.
@@ -17,18 +17,20 @@ description: Operate websites with the agent-browser CLI using one shared agent-
 
 Use headless by default. Use headed only for interactive user login or when an observed headless limitation prevents the requested operation. A generic timeout or login redirect alone is not proof of bot blocking.
 
-Queue browser launches through `pueue` (no shell backgrounding). Replace `<url>` with the requested URL:
+Launch directly with `agent-browser`; do not wrap it in a task queue or shell backgrounding. Replace `<url>` with the requested URL:
 
 ```sh
 install -d -m 700 "$HOME/.config/agent-browser/profiles/shared"
-pueue add -- agent-browser --session browser-ops \
+agent-browser --session browser-ops \
   --profile "$HOME/.config/agent-browser/profiles/shared" \
   --headed false open '<url>'
 ```
 
-Check the returned task ID with `pueue status` and `pueue log <task-id>` before issuing browser actions. Use bounded tool timeouts. Queue acceptance is not launch success. `--headed false` explicitly selects headless; there is no `--headless` flag.
+`open` starts the session daemon when needed and returns once the page loads; the browser stays running for later commands in the same session. Confirm the result from its output (or `get url`) before issuing browser actions, and use bounded tool timeouts. `--headed false` explicitly selects headless; there is no `--headless` flag. An idle headless daemon shuts down after one hour by default; the next command with the same profile relaunches it.
 
-Before switching modes, close the owned session with `agent-browser --session browser-ops close`, then queue a new launch with the **same profile and session**. Use `--headed` instead of `--headed false` for a visible window. Flags do not change the mode of a browser already running.
+If a command fails with an unwritable socket directory (`~/.agent-browser`) or another unexpected launch error, run `agent-browser doctor`. A sandboxed shell may need to run agent-browser outside the sandbox.
+
+Before switching modes, close the owned session with `agent-browser --session browser-ops close`, then launch again with the **same profile and session**. Use `--headed` instead of `--headed false` for a visible window. Flags do not change the mode of a browser already running.
 
 Closing a window may leave Chrome running. If a profile lock remains, inspect the owning session/process and coordinate its shutdown. Never delete `SingletonLock`, kill unrelated Chrome processes, or copy a live profile to work around a lock.
 

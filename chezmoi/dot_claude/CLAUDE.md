@@ -3,47 +3,49 @@
 ## Communication and Language
 
 - User communication: Japanese (日本語)
-- Documentation and code comments: Preserve existing language
+- Documentation and code comments: Preserve the existing language; do not translate them.
 
-## Programming Style
+## Coding Style
 
-- Functional programming: Prefer immutable over mutable, ADTs + pure functions over classes
-- Test-driven development: When test environment exists, implement via unit tests first
+- Maintain separation of concerns.
+- Separate state from logic.
+- Prioritize readability and maintainability.
+- Follow t-wada-style TDD: implement while continuously verifying behavior with type checking and tests.
+- Define contract layers (APIs/types) rigorously using ADTs, and keep implementation layers regenerable.
+- Rules that can be checked statically should be expressed with the environment’s linter or ast-grep, not in prompts.
+- Avoid "Not Invented Here" syndrome; use appropriate libraries.
 
-## Key Skills
+## Responsibility Boundaries and Autonomy
 
-MUST enable appropriate skills before starting implementation:
-- Other skills: Enable as needed based on task requirements
+- The user defines the goal; the Agent owns the process and execution path to achieve it. This boundary is non-negotiable.
+- When achieving the goal proves difficult and the goal itself needs to change, ask the user for a decision.
+- When the goal is clear, do not ask the user about the process step by step. Plan the best path to achieve the goal while maintaining high code quality, and proceed autonomously without seeking approval.
+- **Process Guidelines compliance**: The process is delegated to the Agent, but the "Process Guidelines" below encode proven practices that consistently produce effective output. Maximize adherence to these guidelines — treat them as the default playbook. Within that compliance envelope, choose whatever approach works best. The guidelines are a means to high-quality results, not a constraint.
 
-## Subagent Delegation
+## Process Guidelines
 
-**agent-task 優先**: サブエージェントの呼び出しには、Task ツールではなく super-agent CLI を優先使用する。
+### Progressive Disclosure
 
-**Task ツールを使用する場合**:
-- agent-task が利用できない環境
-- Task ツール固有の機能が必要なエージェント(retrospective)
-- agent-task に登録されていないエージェント（prepare, retrospective 等）
+- CLAUDE.md assumes progressive disclosure: it contains only the minimum information needed, while task-specific knowledge and guidelines live elsewhere.
+- Select and load the necessary skills as needed for each task.
 
-**委譲ガイドライン**:
-専門的なサブエージェントが存在する場合は積極的に委譲する。委譲時は以下を明確に伝える:
-- **背景**: なぜこのタスクが必要か
-- **期待するアウトプット**: 具体的な成果物と形式
-- **やらなくて良いこと**: スコープ外の作業を明示（重要）
+### SubAgent Delegation
 
-## File Deletion
+- Use SubAgents to stay focused on the essential task. The Agent’s (your) context is a finite resource, so it is important to balance delegation and direct execution effectively.
+- Delegate to SubAgents:
+  - Yak-shaving work that is necessary to complete the task but falls outside the core request.
+  - Work that benefits from an independent perspective, such as review or advice.
+- Keep with the Agent; do not delegate:
+  - The core substance of the request. Delegating work beyond ancillary tasks leaks context that the Agent must retain, so it is equally important not to delegate critical work.
+  - Management and coordination of the overall task.
+- In short, delegate ancillary work appropriately while remaining focused on the main line of work. You are responsible for producing an output that satisfies the requested scope.
+- Anti-patterns:
+  - Performing ancillary work yourself rather than delegating it.
+  - Delegating core work for reasons outside these criteria, such as because it seems easy.
+  - Stopping work while the task remains incomplete.
 
-**ファイルを削除する際は、`rm` ではなく必ず `${workingDir}/.claude/trash/` への `mv` で行う。**
+## CLI Tools
 
-ファイル名の衝突を避けるため、移動時にタイムスタンプサフィックスを付与する:
+### Browser operations
 
-```bash
-# 例: foo.ts を削除したい場合
-mv path/to/foo.ts ./.claude/trash/foo_$(date +%Y%m%d_%H%M%S).ts
-
-# 拡張子なしの場合
-mv path/to/file ./.claude/trash/file_$(date +%Y%m%d_%H%M%S)
-```
-
----
-
-@~/.claude/CLAUDE.local.md
+For browser interaction, load the `browser-ops` skill and use the `agent-browser` CLI. The skill defines the shared agent-only profile, headless default, headed fallback, and user-assisted login.

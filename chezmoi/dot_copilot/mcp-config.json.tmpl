@@ -11,18 +11,6 @@
         "@kimuson/modular-mcp@latest",
         "{{ .chezmoi.workingTree }}/config/modular-mcp.json"
       ]
-    },
-    "super-agent": {
-      "type": "local",
-      "command": "node",
-      "tools": [
-        "*"
-      ],
-      "args": [
-        "{{ .chezmoi.homeDir }}/repos/super-agent/dist/cli/index.mjs",
-        "mcp",
-        "serve"
-      ]
     }
   }
 }
