@@ -49,6 +49,33 @@ pi 対応の差分 (`PI` バックエンド、`pi_user_prompts`、`detect_agent`
 動作確認は `python3 -m py_compile` と `HERDR_AUTO_TITLE_DEBUG=1` 付きの
 フォアグラウンド実行 (`HERDR_AUTO_TITLE_FOREGROUND=1` で標準入力に hook JSON) で行う。
 
+## language-guard (応答テキストの日本語固定)
+
+モデルのユーザー向けテキストが英語・中国語へドリフトするのを、Claude Code と pi の両方で防ぐ。
+thinking は対象外で、応答のテキスト部分だけを判定する。
+判定ロジックは `chezmoi/dot_claude/hooks/language-guard/detect.mts` (→ `~/.claude/hooks/language-guard/detect.mts`) に集約し、
+pi 側の `detect.mts` はそこへの symlink (`symlink_detect.mts`) である。
+
+| タイミング | Claude Code (`hook.mts`) | pi (`extensions/language-guard/index.ts`) | 動作 |
+| --- | --- | --- | --- |
+| ユーザー入力時 | `UserPromptSubmit` | `before_agent_start` | 日本語で応答するリマインダーを添える (予防) |
+| ツール呼び出しに添えた途中経過 | `PostToolUse` | `turn_end` (toolCall あり) | ドリフトしていたら注意を差し込む。作業は止めない |
+| 最終応答 | `Stop` | `turn_end` (toolCall なし) | ドリフトしていたら 1 回だけ日本語で書き直させる |
+
+- 判定前にコードブロック・インラインコード・URL・パス・識別子・表・引用を除去する。
+  中国語は仮名を含まない漢字文 (日本語で使わない簡体字を含むか、漢字が長く続く) が 1 文でもあれば違反、
+  英語は 8 語以上の英語行が散文の一定比率を占めたら違反とする (コミットメッセージ列挙などを想定し、箇条書きの英語行は軽く数える)。
+- 直前のユーザー入力が出力言語として英語・中国語を指定したターン (「英語で」「英訳」「in English」など) は検査しない。
+  「英語で書かれた〜」のように入力側を指す言い回しや、「日本語に訳して」のように日本語を求める入力は対象外。
+- pi は対話モード (`tui` / `rpc`) でのみ動き、subagent などの headless 実行には触らない。
+
+Claude Code の hook は `config/claude-settings.json` の `hooks` に登録する。
+変更時は次を実行する。
+
+```bash
+cd internal && npx vitest run src/language-guard && npx tsc -p . --noEmit
+```
+
 ## Pi
 
 Pi の共有設定とモデルプロファイルは `config/pi-agent/` に置く。

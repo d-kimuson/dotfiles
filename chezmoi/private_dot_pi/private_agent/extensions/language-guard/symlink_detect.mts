@@ -1,0 +1,1 @@
+../../../../.claude/hooks/language-guard/detect.mts

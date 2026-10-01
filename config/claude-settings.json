@@ -39,6 +39,11 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/observe.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/language-guard/hook.mts",
+            "timeout": 10
           }
         ]
       }
@@ -68,6 +73,22 @@
           {
             "type": "command",
             "command": "~/.claude/hooks/herdr-auto-title.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/language-guard/hook.mts",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/language-guard/hook.mts",
             "timeout": 10
           }
         ]

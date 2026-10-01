@@ -10,10 +10,14 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "include": ["src"],
-  // usage-status.test.ts / herdr-auto-title.test.ts import the pi extensions distributed to
+  "include": ["src", "../chezmoi/dot_claude/hooks/language-guard"],
+  // usage-status.test.ts / herdr-auto-title.test.ts / language-guard/pi-extension.test.ts import the pi extensions distributed to
   // ~/.pi/agent/extensions/, which are written against the pi runtime's own
   // coding style (not @tsconfig/strictest) and depend on types provided by
   // the pi runtime. They are exercised via `npx vitest run`, not tsc.
-  "exclude": ["src/pi-agent/usage-status.test.ts", "src/pi-agent/herdr-auto-title.test.ts"]
+  "exclude": [
+    "src/pi-agent/usage-status.test.ts",
+    "src/pi-agent/herdr-auto-title.test.ts",
+    "src/language-guard/pi-extension.test.ts"
+  ]
 }
