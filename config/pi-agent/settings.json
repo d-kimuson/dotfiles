@@ -13,9 +13,7 @@
   },
   "npmCommand": [
     "npm-fw",
-    "npm",
-    "--prefix",
-    "~/.pi/agent/npm-global"
+    "npm"
   ],
   "packages": [
     "npm:@juicesharp/rpiv-todo",
