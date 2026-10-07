@@ -48,7 +48,7 @@ For backend-only (no DOM):
 Default request flow:
 
 ```text
-routes -> workflows -> services -> optional repositories/models -> drizzle
+routes -> workflows -> services -> optional repositories/models -> kysely
 ```
 
 - `routes`: HTTP boundary adapters. Parse/validate inputs, read Hono context, call one workflow, and map workflow results to HTTP responses.
@@ -57,7 +57,7 @@ routes -> workflows -> services -> optional repositories/models -> drizzle
 - `repositories`: optional persistence helpers. Use only when reuse or query complexity justifies a named abstraction.
 - `models`: optional domain/API conversion contracts. Use when conversion, validation, or immutable domain shape is valuable.
 
-Do not create layers just to satisfy a diagram. A straightforward workflow may call Drizzle directly.
+Do not create layers just to satisfy a diagram. A straightforward workflow may query Kysely directly.
 
 Expected outcomes should be returned as ADT-style results instead of exceptions:
 
@@ -76,7 +76,6 @@ Routes should map these results exhaustively to responses.
 | `server.ts` | Node dev server only; set `defaultPort` |
 | `main.ts` | Node dev server entrypoint |
 | `client.ts` | Typed Hono client for frontend |
-| `authMode.ts` | Optional `DISABLE_AUTH` helper for apps with authentication/E2E bypass |
 
 ### File Placement
 
@@ -91,7 +90,7 @@ Typical variables:
 
 - `env`: `'local' | 'dev' | 'preview' | 'prod'`
 - `user`: session user or `undefined`
-- `drizzleDb`: DB handle when using Drizzle/D1
+- `db`: `Kysely<Database>` handle when using D1 (see `cloudflare-workers/`)
 
 Avoid global mutable request state and generic DI frameworks.
 
@@ -127,22 +126,8 @@ Copy `client.ts` to frontend's `src/web/lib/api/client.ts`:
 
 Concrete TanStack Query hooks should live under `src/web/apis/<domain>/` and use this client. Feature components should not call this client directly.
 
-## Auth Bypass for E2E (optional)
-
-If the application has user authentication, copy `authMode.ts` to `src/lib/authMode.ts` and wire `isAuthDisabled()` into both backend auth guards and frontend auth boundaries.
-
-For Vite/TanStack Start frontend code, expose the env value at build/dev time:
-
-```ts
-define: {
-  __DISABLE_AUTH__: JSON.stringify(process.env['DISABLE_AUTH'] ?? 'false'),
-}
-```
-
-Use `DISABLE_AUTH=true` only for QA/E2E/dev-server verification. Do not enable it in production or preview deployments.
-
 ## Testing
 
 - Pure services/models: colocated unit tests, no DB setup.
 - Workflows/repositories: DB-required tests under `src/server/**/workflows/**/*.test.{ts,tsx}` and `src/server/**/repositories/**/*.test.{ts,tsx}`.
-- Prefer in-memory SQLite for Drizzle workflow/repository tests when D1/SQLite is the production store.
+- With D1, build the test DB with `createMigratedTestDb()` from `cloudflare-workers/` so tests run on workerd's D1 through the same kysely-d1 path as production.

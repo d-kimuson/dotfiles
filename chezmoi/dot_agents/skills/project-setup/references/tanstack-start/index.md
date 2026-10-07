@@ -54,7 +54,6 @@ Copy `vite.config.ts` to project root and customize:
 - `srcDirectory`: TanStack Start source root
 - `router.routesDirectory`: `./app`
 - `router.routeToken`: `page`
-- `define.__DISABLE_AUTH__` only when auth bypass is selected
 - Cloudflare plugin / proxy / Tailwind plugin as needed
 
 For `prerender` mode, keep `/` and `/home` in `getPrerenderPages()`.

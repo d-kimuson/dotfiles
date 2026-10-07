@@ -16,7 +16,6 @@
   "ignorePatterns": [
     "**/*.gen.*",
     "**/*.generated.*",
-    "src/server/worker-configuration.d.ts",
-    "drizzle/**"
+    "src/server/worker-configuration.d.ts"
   ]
 }

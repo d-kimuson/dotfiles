@@ -22,7 +22,7 @@ If TypeScript, continue. Otherwise, only `core/` setup applies — skip remainin
 
 ### Question 4: Additional Tools (TypeScript only)
 
-> Core libraries (TypeScript, oxlint, oxfmt, vitest, lefthook, gatecheck) are included by default.
+> Core libraries (TypeScript, oxlint, oxfmt, vitest, lefthook) are included by default.
 > Select additional tools to set up:
 
 Present the following as options (these correspond to references):
@@ -43,23 +43,17 @@ If more tool references are added in the future, split into multiple questions (
 
 For Cloudflare Workers Assets, both modes use `not_found_handling: "single-page-application"`.
 
-### Question 6: Auth and E2E Bypass (only if the app has frontend + backend or user requests auth)
-
-> Does this application need user authentication?
-
-If yes, require the setup to include an E2E/QA auth bypass such as `DISABLE_AUTH=true` so agents can verify behavior without external OAuth login. If no, do not add auth-specific files or environment variables.
-
 ## Step 2: Orchestrate Setup via Subagents
 
 Do not perform the setup directly in the main agent. The main agent is responsible for orchestration only:
 
-1. Determine the required references and options from Step 1, including TanStack Start mode and auth bypass requirement when applicable.
+1. Determine the required references and options from Step 1, including TanStack Start mode when applicable.
 2. Dispatch subagents in the tier order below.
 3. Pass each subagent the relevant reference file path(s) and explicit setup instructions.
 4. Wait for each tier to complete before dispatching the next tier.
 5. Review each subagent's report and resolve coordination issues before proceeding.
 
-For each reference, instruct the subagent to read its `index.md` for detailed instructions, then copy and customize template files. Provide the reference path explicitly, e.g. `references/core/index.md` or the absolute path to that file. Pass selected options explicitly (for example `tanstack-start mode=prerender` and `auth bypass required=true`).
+For each reference, instruct the subagent to read its `index.md` for detailed instructions, then copy and customize template files. Provide the reference path explicitly, e.g. `references/core/index.md` or the absolute path to that file. Pass selected options explicitly (for example `tanstack-start mode=prerender`).
 
 ### Tier 1: Platform
 
@@ -111,9 +105,3 @@ pnpm build       # skip for library-only projects
 ```
 
 Adapt commands to the actual project setup.
-
-## Step 4: Agent Harness
-
-Delegate this step to a subagent. Pass `references/agent-harness/index.md` (or its absolute path), the project path, and the project configuration gathered in Step 1.
-
-Instruct the subagent to read `agent-harness/index.md` and follow its procedure to generate CLAUDE.md/AGENTS.md and convention docs.

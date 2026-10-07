@@ -36,7 +36,6 @@ All paths are relative to this skill's directory (`references/`).
 | `hono/` | Backend API — Hono app/context, route composition, workflow/service/domain structure, typed client |
 | `tanstack-start/` | Frontend — TanStack Start with selectable `prerender` (`/` + `/home`) or `spa` mode |
 | `shadcn-ui/` | UI components — Tailwind + shadcn init, `components.json` for shared packages |
-| `cloudflare-workers/` | Cloudflare Workers deploy — `wrangler.jsonc`, `worker.ts`, D1 migration, manual deploy scripts |
-| `agent-harness/` | CLAUDE.md/AGENTS.md, architecture/process/QA docs, project coding-guideline skill |
+| `cloudflare-workers/` | Cloudflare Workers deploy — `wrangler.jsonc`, `worker.ts`, D1 + Kysely + Atlas migrations, manual deploy scripts |
 
 </reference_index>

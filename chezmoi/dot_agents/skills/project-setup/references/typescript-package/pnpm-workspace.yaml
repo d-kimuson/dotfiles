@@ -1,5 +1,6 @@
 catalogMode: manual
 engineStrict: true
 saveExact: true
+enableGlobalVirtualStore: true
 
-minimumReleaseAge: 7200
+minimumReleaseAge: 1440

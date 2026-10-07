@@ -1,6 +1,6 @@
 # TypeScript Package Setup
 
-Complete setup for a TypeScript package: npm config, TypeScript, linting/formatting, testing, Git hooks, gatecheck, and CI.
+Complete setup for a TypeScript package: npm config, TypeScript, linting/formatting, testing, Git hooks, and CI.
 
 ## Directory Convention
 
@@ -151,15 +151,12 @@ Use:
 
 Do not use global `Date` directly outside the clock boundary.
 
-### 6. Dev Tools and Gatecheck
+### 6. Git Hooks (lefthook)
 
 ```bash
-pnpm add -D lefthook gatecheck
+pnpm add -D lefthook
 pnpm lefthook install
-pnpm gatecheck setup --non-interactive
 ```
-
-Copy `gatecheck.yaml` to project root. If the setup command creates a different file, merge the template rules into it.
 
 Add `prepare` script to `package.json`:
 
@@ -171,14 +168,12 @@ Add `prepare` script to `package.json`:
 }
 ```
 
-`gatecheck.yaml` should be the primary local quality gate and is referenced by `docs/CODING_PROCESS.md`.
-
 ### 7. CI (GitHub Actions)
 
 Copy `setup-node-action.yml` to `.github/actions/setup-node/action.yml`.
 Copy `ci.yml` to `.github/workflows/check.yaml` or `.github/workflows/ci.yml` — customize steps per project needs.
 
-For web apps, add Playwright browser install and E2E steps when `test:e2e` exists. For apps with Drizzle/D1, add migration verification.
+For web apps, add Playwright browser install and E2E steps when `test:e2e` exists. For apps with D1 + Atlas, add `pnpm migrate:verify` (see `cloudflare-workers/`).
 
 ## Template Files
 
@@ -190,7 +185,6 @@ For web apps, add Playwright browser install and E2E steps when `test:e2e` exist
 | `oxlint.config.ts` | Remove irrelevant fullstack overrides per project type |
 | `oxfmtrc.json` | Copy to `.oxfmtrc.json`. Ignore generated files and migration outputs as needed |
 | `lefthook.yml` | None — use as-is unless hooks differ |
-| `gatecheck.yaml` | Changed-file check commands |
 | `vitest.config.ts` | Remove unused projects per project type |
 | `configs/vitest/time.setup.ts` | None — use with `src/lib/clock.ts` |
 | `configs/vitest/db-required.setup.ts` | DB setup env vars |

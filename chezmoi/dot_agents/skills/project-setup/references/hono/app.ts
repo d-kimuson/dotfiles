@@ -6,7 +6,7 @@ export type HonoContext = {
   Variables: {
     env: RuntimeEnvironment;
     user: unknown | undefined;
-    // {Customize: add drizzleDb or other request-scoped handles when needed}
+    // {Customize: add db (Kysely<Database>) or other request-scoped handles when needed}
   };
 };
 

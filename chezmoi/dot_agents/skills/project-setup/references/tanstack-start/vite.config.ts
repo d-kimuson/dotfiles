@@ -3,11 +3,6 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-const getDefineValues = (): Record<string, string> => ({
-  // {Customize: keep only when the app uses auth bypass for QA/E2E.}
-  __DISABLE_AUTH__: JSON.stringify(process.env['DISABLE_AUTH'] ?? 'false'),
-});
-
 const config = defineConfig(() => ({
   plugins: [
     tailwindcss(),
@@ -36,7 +31,6 @@ const config = defineConfig(() => ({
       '/api': 'http://localhost:8787',
     },
   },
-  define: getDefineValues(),
   clean: true,
 }));
 
