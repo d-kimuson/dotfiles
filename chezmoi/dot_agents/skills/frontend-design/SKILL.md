@@ -1,58 +1,66 @@
 ---
 name: frontend-design
-description: Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic AI aesthetics.
-license: Complete terms in LICENSE.txt
+description: Guidelines for building production-grade application UI with high design quality. Use this skill when the user asks to build web components, pages, or applications. Covers design thinking, OOUI, the four design principles, aesthetic guidelines, keyboard operation, and AI-slop anti-patterns.
 disable-model-invocation: false
 user-invocable: true
 ---
 
-This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
+# Application UI Design
 
-The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
+プロダクション品質のアプリケーション UI を作るための指針です。実際に実装を行い、美的なディテールに細心の注意を払ってください。
 
-## Design Thinking
+ユーザーはフロントエンド要件を提示します。目的、対象ユーザー、技術的な制約などの背景が含まれることもあります。
 
-Before coding, understand the context and commit to a BOLD aesthetic direction:
-- **Purpose**: What problem does this interface solve? Who uses it?
-- **Tone**: Pick an extreme: brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian, etc. There are so many flavors to choose from. Use these for inspiration but design one that is true to the aesthetic direction.
-- **Constraints**: Technical requirements (framework, performance, accessibility).
-- **Differentiation**: What makes this UNFORGETTABLE? What's the one thing someone will remember?
+## デザイン思考
 
-**CRITICAL**: Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work - the key is intentionality, not intensity.
+コーディングの前に文脈を理解し、美的方向性を決めてください。
 
-Then implement working code (HTML/CSS/JS, React, Vue, etc.) that is:
-- Production-grade and functional
-- Visually striking and memorable
-- Cohesive with a clear aesthetic point-of-view
-- Meticulously refined in every detail
+- **目的**：このインターフェースはどんな課題を解決するのか。誰が使うのか。
+- **トーン**：複数のページをまたいで一貫した方向性に統一する。既存のページや指定されたトーンがない場合は、プロダクトの特性に合わせて選ぶ。例：ミニマル、マキシマリズム、レトロフューチャー、オーガニック／ナチュラル、ラグジュアリー／洗練、遊び心／おもちゃ風、エディトリアル／雑誌風、ブルータリスト／無骨、アールデコ／幾何学、ソフト／パステル、インダストリアル／実用本位。選んだ方向性に忠実なデザインにする。
 
-## Purpose Before Messaging
+そのうえで、次の条件を満たす動作するコードを実装してください。
 
-Design around the screen's purpose and the user's task. Do not automatically add a catchy slogan or an oversized, message-driven hero heading as though every screen were a landing page. A landing page may warrant that treatment when it serves its purpose; other screens should prioritize the information and controls users need.
+- プロダクション品質で、実際に機能する
+- 明確な美的視点で統一されている
+- あらゆるディテールまで丁寧に磨き込まれている
 
-## User-Facing Content Only
+## 原則
 
-Do not put conversation context, implementation instructions, developer-facing information, or caveats explaining those instructions into the UI. Apply the requested constraint to the design rather than narrating it on the screen.
+選んだ方向性にかかわらず、以下の原則を守ることで品質の高い UI を構成してください。
 
-For example, when the user says “do not include A in the table,” omit A. Do not add a note beneath the table explaining that A was excluded or why.
+### オブジェクト指向 UI（OOUI）
 
-Include explanations or caveats only when they serve the actual UI user's understanding or actions, not merely because they appeared in the development conversation. Keep implementation rationale in the response to the requester, not in the product UI.
+- アプリケーションの UI は OOUI を基本指針とする。タスク指向 UI を禁止するものではないが、明確な意図をもって限定的に選択する。
+- 業務は「発生 → 消化」のループとして捉える。画面には発生したすべてのオブジェクトを並べるのではなく、まだ消化されていないもの（Undone）の一覧を基本とし、それに対するフィルタリング／グルーピングによって業務を表現する。
+- アクションはオブジェクトを起点に発行する。
 
-## Frontend Aesthetics Guidelines
+### デザイン4原則
 
-Focus on:
-- **Typography**: Use `system-ui` for Latin letters and numerals. Create typographic character through scale, weight, spacing, and hierarchy rather than font choice.
-- **Color & Theme**: Commit to a cohesive aesthetic. Use CSS variables for consistency. Dominant colors with sharp accents outperform timid, evenly-distributed palettes.
-- **Motion**: Use animations for effects and micro-interactions. Prioritize CSS-only solutions for HTML. Use Motion library for React when available. Focus on high-impact moments: one well-orchestrated page load with staggered reveals (animation-delay) creates more delight than scattered micro-interactions. Use scroll-triggering and hover states that surprise.
-- **Spatial Composition**: Unexpected layouts. Asymmetry. Overlap. Diagonal flow. Grid-breaking elements. Generous negative space OR controlled density.
-- **Backgrounds & Visual Details**: Create atmosphere and depth rather than defaulting to solid colors. Add contextual effects and textures that match the overall aesthetic. Apply creative forms like gradient meshes, noise textures, geometric patterns, layered transparencies, dramatic shadows, decorative borders, custom cursors, and grain overlays.
+- **近接**：関連する要素は近づけ、無関係な要素は離す。グループは余白で表現し、罫線や囲みに頼りすぎない。
+- **整列**：すべての要素を見えない基準線に揃える。基準は意図して選び、中途半端なズレを残さない。
+- **反復**：色・書体・余白・コンポーネントの規則を繰り返し、統一感と学習しやすさを生む。
+- **コントラスト**：異なるものははっきり変える。重要度の差はサイズ・太さ・色で明確に表現し、曖昧な差を作らない。
 
-NEVER use generic AI-generated aesthetics like cliched color schemes (particularly purple gradients on white backgrounds), predictable layouts and component patterns, and cookie-cutter design that lacks context-specific character.
+## 美的ガイドライン
 
-NEVER decorate cards, list items, callouts, or panels with a colored accent stripe on one side only (e.g. `border-left: 4px solid var(--accent)`). This side-stripe pattern is a hallmark of generic AI-generated UI. When a container needs emphasis, category, or status, express it through background tint, a full border, typography, iconography, spacing, or layout instead.
+以下に注力してください。
 
-Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes and different aesthetics. NEVER converge on common choices across generations.
+- **色とテーマ**：統一感のある美的方向性に徹し、コードベースとデザインの一貫性のためにスタイルを共通化できる変数を用いる。控えめに均等に配分したパレットよりも、支配的な色に鋭いアクセントを効かせた方が効果的。
+- **モーション**：エフェクトやマイクロインタラクションにアニメーションを使う。HTML では CSS のみの解決策を優先し、JS の場合は適切なライブラリを利用する。インパクトの大きい瞬間に集中すること。
+- **空間構成**：たっぷりとした余白、**または**統制された密度。
+- **キーボード操作**：標準的なキーボード操作を保証する。加えて、テキスト入力中は `Ctrl+A` / `Ctrl+E` / `Ctrl+F` / `Ctrl+B` / `Ctrl+P` / `Ctrl+N` によるカーソル移動を、ブラウザの既定動作を上書きして提供する。補完候補に対する `Tab` / `Enter`・矢印キー・`Ctrl+P` / `Ctrl+N` による選択も同様。テキスト入力中以外では、これらのショートカットを奪わない。
+- **アクセシビリティ**：その他はベストプラクティスに従う。
 
-**IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
+ありきたりな配色（特に白背景に紫のグラデーション）、文脈に固有の個性を欠いた型通りのデザインといった、汎用的な AI 生成風の見た目は**絶対に**使わないでください。
 
-Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+## アンチパターン
+
+以下は AI Slop として頻出するパターンです。明示的に避けてください。
+
+- **左側だけの色付きアクセントストライプ**：`border-left: 4px solid var(--accent)` のような装飾を用いたカード表現は使わない。
+- **ユーザー向けでない情報の表示**：コンテキストに引きずられて発生しやすいため特に注意する。
+  - 指示された操作体験をそのまま説明文として書く（例：「Ctrl+F で検索できます」）
+  - 画面の要件をそのまま説明文として書く（例：「黒と白のハイコントラスト配色で目立ちます」）
+- **意図のない特殊フォント**：遊び心／おもちゃ風、レトロフューチャーなど、明確に特殊なトーンを選んだ場合を除き、`system-ui` 以外のフォントを選ばない。
+- **目的に沿わない LP 的なページ構成**：アプリケーション UI なのに、ランディングページのような巨大なタイトルとキャッチコピーといった典型パターンを使わない。
+- **重要度の区別がない網羅的な提示**：ユーザーにとって本質的に重要な情報に集中する。重要度が低い、または必要になる頻度が低い情報は、ツールチップ・ホバーアクション・展開可能な要素など、ユーザーが意思をもってアクセスする構成にする。
