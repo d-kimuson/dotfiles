@@ -56,9 +56,6 @@ Nix daemon を使えないリモート環境では `scripts/setup-nix-flakes-for
 ## 検証
 
 - chezmoi の配布結果：`chezmoi verify`
-- MCP 配布ロジック：`npx vitest run internal/src/mcp/deliver.test.ts`
-- Claude/Codex のマージロジック：`npx vitest run internal/src/merge-config/merge.test.ts`
-- Pi 設定配布ロジック：`npx vitest run internal/src/pi-agent/deliver.test.ts`
 - すべての配布前確認：各 `internal-cli` の `--dry-run`
   - 配布先には MCP の env や headers などの秘密情報が含まれるため、`--dry-run` は変更されるキーパス (`+` 追加 / `~` 変更 / `-` 削除) だけを出力し、値は出力しない。
   - dry-run に設定内容を出力する処理を追加しない。差分表示は `internal/src/dry-run/describe-changes.ts` を使う。
