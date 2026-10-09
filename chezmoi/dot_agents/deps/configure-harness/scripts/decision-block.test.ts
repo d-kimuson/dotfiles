@@ -5,7 +5,7 @@ import {
   collectDecisions,
   findLeftovers,
   parseDecisionBlocks,
-  toTargetPath,
+  toTemplateFile,
 } from "./decision-block.ts";
 
 describe("parseDecisionBlocks", () => {
@@ -116,28 +116,33 @@ describe("parseDecisionBlocks", () => {
   });
 });
 
-describe("toTargetPath", () => {
-  it("maps the category directory away", () => {
-    assert.equal(toTargetPath("core/docs/guidelines/commit.md"), "docs/guidelines/commit.md");
+describe("toTemplateFile", () => {
+  it("keeps the path of a template that is always generated", () => {
+    assert.deepEqual(toTemplateFile("docs/guidelines/commit.md"), {
+      template: "docs/guidelines/commit.md",
+      target: "docs/guidelines/commit.md",
+      optional: null,
+    });
   });
 
-  it("maps the optional feature directory away", () => {
-    assert.equal(
-      toTargetPath("optional/review-skill/agents/skills/review/SKILL.md"),
-      ".agents/skills/review/SKILL.md",
-    );
+  it("drops the optional marker from a file name and reports the file as the optional unit", () => {
+    assert.deepEqual(toTemplateFile("docs/guidelines/writing/adr.optional.md"), {
+      template: "docs/guidelines/writing/adr.optional.md",
+      target: "docs/guidelines/writing/adr.md",
+      optional: "docs/guidelines/writing/adr.md",
+    });
   });
 
-  it("restores the leading dot of dot directories", () => {
-    assert.equal(
-      toTargetPath("optional/review-tools/github/copilot-instructions.md"),
-      ".github/copilot-instructions.md",
-    );
-    assert.equal(toTargetPath("core/agents/troubleshots/README.md"), ".agents/troubleshots/README.md");
+  it("reports the optional directory as the unit of every file under it", () => {
+    assert.deepEqual(toTemplateFile(".agents/skills/review.optional/SKILL.md"), {
+      template: ".agents/skills/review.optional/SKILL.md",
+      target: ".agents/skills/review/SKILL.md",
+      optional: ".agents/skills/review",
+    });
   });
 
-  it("keeps root files", () => {
-    assert.equal(toTargetPath("core/AGENTS.md"), "AGENTS.md");
+  it("keeps a name that only contains the word optional", () => {
+    assert.equal(toTemplateFile("docs/optional-features.md").target, "docs/optional-features.md");
   });
 });
 
@@ -146,17 +151,15 @@ const block = (id: string): string =>
 
 describe("collectDecisions", () => {
   it("lists decisions with their template and target paths", () => {
-    const result = collectDecisions([
-      { path: "core/docs/guidelines/commit.md", source: block("commit-message-format") },
-    ]);
+    const result = collectDecisions([{ path: "docs/guidelines/commit.md", source: block("commit-message-format") }]);
 
     assert.deepEqual(result, {
       decisions: [
         {
           id: "commit-message-format",
-          template: "core/docs/guidelines/commit.md",
+          template: "docs/guidelines/commit.md",
           target: "docs/guidelines/commit.md",
-          category: "core",
+          optional: null,
           line: 1,
           decide: "x",
           observe: "y",
@@ -167,29 +170,33 @@ describe("collectDecisions", () => {
     });
   });
 
-  it("reports the feature of an optional template as its category", () => {
-    const result = collectDecisions([
-      { path: "optional/adr/docs/guidelines/writing/adr.md", source: block("adr-location") },
-    ]);
+  it("reports the optional unit of a decision in an optional template", () => {
+    const result = collectDecisions([{ path: "docs/guidelines/writing/adr.optional.md", source: block("adr-location") }]);
 
-    assert.equal(result.decisions[0]?.category, "optional/adr");
+    assert.equal(result.decisions[0]?.optional, "docs/guidelines/writing/adr.md");
   });
 
   it("reports ids used in more than one place", () => {
     const result = collectDecisions([
-      { path: "core/a.md", source: block("same") },
-      { path: "core/b.md", source: block("same") },
+      { path: "a.md", source: block("same") },
+      { path: "b.md", source: block("same") },
     ]);
 
-    assert.deepEqual(result.issues, [
-      { kind: "duplicate-id", id: "same", template: "core/b.md", line: 1, first: "core/a.md" },
-    ]);
+    assert.deepEqual(result.issues, [{ kind: "duplicate-id", id: "same", template: "b.md", line: 1, first: "a.md" }]);
   });
 
   it("attaches the template path to parse issues", () => {
-    const result = collectDecisions([{ path: "core/a.md", source: "<!-- decision: a\n" }]);
+    const result = collectDecisions([{ path: "a.md", source: "<!-- decision: a\n" }]);
 
-    assert.deepEqual(result.issues, [{ kind: "unclosed", id: "a", template: "core/a.md", line: 1 }]);
+    assert.deepEqual(result.issues, [{ kind: "unclosed", id: "a", template: "a.md", line: 1 }]);
+  });
+
+  it("reports an optional template nested in an optional directory", () => {
+    const result = collectDecisions([{ path: ".agents/skills/review.optional/extra.optional.md", source: "" }]);
+
+    assert.deepEqual(result.issues, [
+      { kind: "nested-optional", template: ".agents/skills/review.optional/extra.optional.md" },
+    ]);
   });
 });
 

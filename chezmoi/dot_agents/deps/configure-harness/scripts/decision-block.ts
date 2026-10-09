@@ -121,26 +121,40 @@ export const parseDecisionBlocks = (source: string): ParseResult => {
   return { blocks, issues };
 };
 
-// Template directories cannot start with a dot because chezmoi ignores dot entries in its source
-// state, so `agents/` and `github/` stand for `.agents/` and `.github/`.
-const DOT_DIRECTORIES = new Set(["agents", "github", "claude"]);
+// The templates mirror the generated paths. A `.optional` marker on a file name (`adr.optional.md`) or a
+// directory name (`review.optional/`) makes that file or directory an optional unit, generated only when
+// chosen; the marker is dropped in the generated path.
+const OPTIONAL_MARKER = ".optional";
 
-export const toTargetPath = (templatePath: string): string => {
+const stripOptional = (segment: string): string | undefined => {
+  if (segment.endsWith(OPTIONAL_MARKER)) return segment.slice(0, -OPTIONAL_MARKER.length);
+  const index = segment.lastIndexOf(`${OPTIONAL_MARKER}.`);
+  return index > 0 ? segment.slice(0, index) + segment.slice(index + OPTIONAL_MARKER.length) : undefined;
+};
+
+export type TemplateFile = {
+  readonly template: string;
+  readonly target: string;
+  // Generated path of the optional unit the file belongs to; null when the file is always generated.
+  readonly optional: string | null;
+};
+
+const isOptionalSegment = (segment: string): boolean => stripOptional(segment) !== undefined;
+
+export const toTemplateFile = (templatePath: string): TemplateFile => {
   const segments = templatePath.split("/");
-  const rest = segments[0] === "optional" ? segments.slice(2) : segments.slice(1);
-  const [head, ...tail] = rest;
-  if (head === undefined) return "";
-  return [DOT_DIRECTORIES.has(head) && tail.length > 0 ? `.${head}` : head, ...tail].join("/");
+  const target = segments.map((segment) => stripOptional(segment) ?? segment);
+  const unitEnd = segments.findIndex(isOptionalSegment);
+  return {
+    template: templatePath,
+    target: target.join("/"),
+    optional: unitEnd === -1 ? null : target.slice(0, unitEnd + 1).join("/"),
+  };
 };
 
 export type SourceFile = { readonly path: string; readonly source: string };
 
-export type Decision = Omit<DecisionBlock, "line"> & {
-  readonly template: string;
-  readonly target: string;
-  readonly category: string;
-  readonly line: number;
-};
+export type Decision = DecisionBlock & TemplateFile;
 
 export type TemplateIssue =
   | (ParseIssue & { readonly template: string })
@@ -150,12 +164,8 @@ export type TemplateIssue =
       readonly template: string;
       readonly line: number;
       readonly first: string;
-    };
-
-const categoryOf = (templatePath: string): string => {
-  const segments = templatePath.split("/");
-  return segments[0] === "optional" ? segments.slice(0, 2).join("/") : (segments[0] ?? "");
-};
+    }
+  | { readonly kind: "nested-optional"; readonly template: string };
 
 export const collectDecisions = (
   files: readonly SourceFile[],
@@ -165,6 +175,9 @@ export const collectDecisions = (
   const seen = new Map<string, string>();
 
   for (const file of files) {
+    const templateFile = toTemplateFile(file.path);
+    if (file.path.split("/").filter(isOptionalSegment).length > 1) issues.push({ kind: "nested-optional", template: file.path });
+
     const parsed = parseDecisionBlocks(file.source);
     issues.push(...parsed.issues.map((issue) => ({ ...issue, template: file.path })));
     for (const block of parsed.blocks) {
@@ -174,12 +187,7 @@ export const collectDecisions = (
         continue;
       }
       seen.set(block.id, file.path);
-      decisions.push({
-        ...block,
-        template: file.path,
-        target: toTargetPath(file.path),
-        category: categoryOf(file.path),
-      });
+      decisions.push({ ...block, ...templateFile });
     }
   }
 
