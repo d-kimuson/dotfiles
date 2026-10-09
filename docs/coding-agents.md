@@ -156,6 +156,15 @@ npx vitest run internal/src/pi-agent/deliver.test.ts
   固定リストで既存サフィックスを判定するため、二重付与 (`provider/model:hard:hard`) が起きてゲートウェイに拒否される。
   2026-08 時点で上流修正は未対応のため、レベルを増やす場合は上流 (nicobailon/pi-subagents) の修正を先行させること。
 
+### self-compact (pi の自己 compact)
+
+pi extension `chezmoi/private_dot_pi/private_agent/extensions/self-compact.ts`
+(→ `~/.pi/agent/extensions/self-compact.ts`) は、Claude Code の self-compact プラグインと同じ名前・同じ引数の `mcp__self-compact__compact` ツールを追加する。
+`ctx.compact()` は実行中のエージェントを中断するため、ツールは予約を記録し、`terminate: true` を返してターンを終える (同じバッチのツールがすべて終了を求めたときだけ効く)。システムプロンプトのツール一覧に載せるため `promptSnippet` を付ける。`agent_settled` で compact し、`pi.sendUserMessage()` で `resume` を送って次の実行を始める。
+compact に失敗したときは、理由を `resume` の前に付けて送る。
+print・json モードでは実行が終わるとプロセスも終わり、`resume` を続けられないため、ツールは予約を断る。
+変更時は `npx vitest run internal/src/pi-agent/self-compact.test.ts` を実行する。
+
 ## GitHub Copilot
 
 `chezmoi/dot_copilot/` は chezmoi で `~/.copilot/` に配布する。
