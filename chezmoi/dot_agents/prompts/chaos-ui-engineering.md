@@ -1,6 +1,8 @@
 ---
 name: chaos-ui-engineering
-description: Adversarially explore a frontend with extreme UI patterns (very long text, unusual viewport widths, varied API responses), review captures with parallel SubAgents, and fix the real code until no issues remain. Use when asked to harden UI quality or run chaos UI engineering.
+description: Adversarially explore a frontend with extreme UI patterns (very long text, unusual viewport widths, varied API responses), review captures with parallel SubAgents, and fix the real code until no issues remain.
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Chaos UI Engineering

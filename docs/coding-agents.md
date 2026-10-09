@@ -16,6 +16,13 @@ Claude Code、Codex、Pi、GitHub Copilot の設定は、chezmoi によるファ
 `chezmoi/dot_codex/symlink_prompts` は Claude Code の commands を Codex から共有する。`chezmoi/dot_claude/symlink_skills` と `chezmoi/dot_codex/symlink_skills` は、全 Agent 共通の `~/.agents/skills` を共有する。
 `~/.claude/settings.local.json` は Claude Code が直接読むローカル上書きであり、`merge-config` の入力ではない。
 
+### グローバルの skills と prompts
+
+skill と prompt の分け方と、prompt の資料を `deps/` に分けるパターンは `docs/guidelines/harness.md` の Prompts に従う。グローバルのものは `chezmoi/dot_agents/` の `skills/<name>/`・`prompts/<name>.md`・`deps/<name>/` に置き、`~/.agents/` へ配布する。
+
+prompt の本体では、資料のディレクトリを配布先の絶対パス (`~/.agents/deps/<name>/`) で示す。本体は `~/.claude/commands`・`~/.codex/prompts`・`~/.pi/prompts` の symlink を通して読まれる。
+skill や prompt を削除・移動したときは、配布先の古いディレクトリを `run_once_after_*.sh` で消す (`.agents/troubleshots/chezmoi-apply-does-not-remove-deleted-source-files.md`)。
+
 ### 外部 skill (skills CLI)
 
 外部リポジトリの skill は `npx skills add` で global にインストールし、結果を chezmoi に取り込む。

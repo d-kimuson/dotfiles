@@ -1,6 +1,6 @@
 # configure-harness
 
-リポジトリにコーディングエージェント向けのハーネス (AGENTS.md、`docs/guidelines/`、レビューの観点、`.agents/` の skills と troubleshots) を持ち込む skill。`~/repos/agentic-cf` で育てたハーネスの構造をテンプレートにし、プロジェクトごとに決める箇所だけをユーザーと Grill で決める。
+リポジトリにコーディングエージェント向けのハーネス (AGENTS.md、`docs/guidelines/`、レビューの観点、`.agents/` の skills と troubleshots) を持ち込む prompt (`/configure-harness`)。本体は `chezmoi/dot_agents/prompts/configure-harness.md` で、テンプレート・手順書・スクリプトはこのディレクトリ (配布先は `~/.agents/deps/configure-harness/`) に置く。`~/repos/agentic-cf` で育てたハーネスの構造をテンプレートにし、プロジェクトごとに決める箇所だけをユーザーと Grill で決める。
 
 ## 利用する場面
 
@@ -31,5 +31,5 @@ branch、pull-request、deploy のガイドラインと、Lint・hook などの�
 
 - テンプレートは `templates/<core|stack|optional/<feature>>/` に、生成先と同じパスで置く。chezmoi はドットで始まるエントリを配布しないので、`.agents/`・`.github/`・`.claude/` は `agents/`・`github/`・`claude/` と書く (`scripts/decision-block.ts` の `toTargetPath` が戻す)。
 - プロジェクトごとに決める箇所は `<!-- decision: <id> -->` のブロックにし、`決めること`・`観察`・`書き方` の 3 項目を書く。質問文は書かない。
-- テンプレートを変えたら `node scripts/decisions.ts check` を実行する。スクリプトを変えたら `node --test 'scripts/*.test.ts'` と、chezmoi リポジトリのルートで `internal/node_modules/.bin/tsc -p chezmoi/dot_agents/skills/configure-harness/scripts` を実行する。
+- テンプレートを変えたら `node scripts/decisions.ts check` を実行する。スクリプトを変えたら `node --test 'scripts/*.test.ts'` と、chezmoi リポジトリのルートで `internal/node_modules/.bin/tsc -p chezmoi/dot_agents/deps/configure-harness/scripts` を実行する。
 - agentic-cf のガイドラインを改善したら、プロジェクトに依存しない部分をテンプレートへ反映する。

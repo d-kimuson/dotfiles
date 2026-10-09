@@ -12,7 +12,7 @@
 .
 ├── AGENTS.md        # エージェント向けの入口 (CLAUDE.md はこれへの symlink)
 ├── chezmoi/         # source state のルート (.chezmoiroot)。$HOME へ配布するファイル
-│   ├── dot_agents/          # ~/.agents: グローバルの skills と prompts
+│   ├── dot_agents/          # ~/.agents: グローバルの skills、prompts、prompts が使う資料 (deps)
 │   ├── dot_claude/          # ~/.claude: Claude Code の設定と hooks (language-guard など)
 │   ├── dot_codex/           # ~/.codex: Codex の指示と skills・prompts への symlink
 │   ├── dot_copilot/         # ~/.copilot: Copilot CLI の MCP 設定

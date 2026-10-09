@@ -1,9 +1,13 @@
 ---
 name: configure-harness
-description: Set up or extend a repository's coding-agent harness (AGENTS.md, docs/guidelines, review guideline, .agents/ skills and troubleshots) from proven templates, deciding every project-specific point with the user through a Grill page and a Delegation Poker page. Use when the user asks to configure, set up, bootstrap, or standardize the agent harness, AGENTS.md, guidelines, or what the agent may do on its own in a repository, including repositories that already have a partial harness.
+description: Set up or extend a repository's coding-agent harness (AGENTS.md, docs/guidelines, review guideline, .agents/ skills and troubleshots) from proven templates, deciding every project-specific point with the user through a Grill page and a Delegation Poker page.
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Configure Harness
+
+The templates, references, and scripts live in `~/.agents/deps/configure-harness/`; the `templates/`, `references/`, and `scripts/` paths below are relative to it.
 
 Bring the harness structure in `templates/` into the target repository. Fixed rules in the templates are copied as they are; every project-specific point is a decision block, decided with the user and then replaced by what it says to write.
 
@@ -41,7 +45,7 @@ When a decision is settled, replace its block in one of three ways:
 
 ## Scripts
 
-Run with Node.js 24 or later from this skill's directory.
+Run with Node.js 24 or later from `~/.agents/deps/configure-harness/`.
 
 - `node scripts/decisions.ts list [core|stack|optional/<feature>...]`: the decision blocks as JSON, with template and target paths.
 - `node scripts/decisions.ts leftovers <path...>`: unresolved decision blocks (exit 1) and TODO comments in generated files.

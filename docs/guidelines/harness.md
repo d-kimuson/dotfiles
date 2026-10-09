@@ -17,6 +17,7 @@
 | レビューの観点 | `docs/guidelines/review/index.md` |
 | Agent Skills | `.agents/skills/<name>/` (`SKILL.md` と `README.md`) |
 | Prompts | `.agents/prompts/<name>.md` |
+| Prompts が使う資料 | `.agents/deps/<name>/` (`references/`、`scripts/`、`templates/` など) |
 | ワークアラウンド | `.agents/troubleshots/<topic>.md` (`docs/guidelines/writing/troubleshoot.md`) |
 | 用語と不変条件 | `docs/CONTEXT.md` (`docs/guidelines/writing/context.md`) |
 | ADR | `docs/adr/YYYYMMDD-<name>.<status>.md` (`docs/guidelines/writing/adr.md`) |
@@ -29,6 +30,10 @@
 Skills は Agent が自発的に利用する知識・能力に限る。ユーザーや他の仕組みが `/<name>` で明示的に起動する手順は Skill にせず、Prompts として切り出す。本体には起動後の手順と成果物だけを書き、いつ使うかなど起動前の判断材料は人間向けのドキュメントに書く。
 
 人間向けのドキュメントは `docs/agents/prompts/<name>.md` に置く。Claude Code と Pi は、`.claude/commands` と `.pi/prompts` の symlink を通して `.agents/prompts/` を読む。
+
+Prompts は 1 ファイルなので、手順書・スクリプト・テンプレートなどの資料は `.agents/deps/<name>/` に分ける。本体の冒頭で資料のディレクトリを示し、本体と資料の中のパスはそこからの相対パスで書く。本体は symlink を通して読まれるため、本体の位置からの相対パスは使わない。
+
+全マシンに配るグローバルの skills と prompts も同じパターンを使う (`docs/coding-agents.md`)。
 
 ## 更新
 

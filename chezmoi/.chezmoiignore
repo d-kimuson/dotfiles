@@ -1,2 +1,2 @@
 .agents/skills/.system
-.agents/skills/learn-it/scripts/node_modules
+.agents/deps/learn-it/scripts/node_modules

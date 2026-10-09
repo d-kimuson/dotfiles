@@ -6,7 +6,7 @@ Agent の仕事は **調べる → 台本を書く → 確認して生成する 
 
 ## コマンド
 
-このスキルの `scripts/video` (配布先は `~/.agents/skills/learn-it/scripts/video`) を使う。初回の実行で依存 (node_modules と Playwright の Chromium) を自動で入れる。
+`scripts/video` (配布先は `~/.agents/deps/learn-it/scripts/video`) を使う。初回の実行で依存 (node_modules と Playwright の Chromium) を自動で入れる。
 
 | コマンド                          | 内容                                                         |
 | --------------------------------- | ------------------------------------------------------------ |
