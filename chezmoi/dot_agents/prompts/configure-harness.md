@@ -51,7 +51,7 @@ Run with Node.js 24 or later from `~/.agents/deps/configure-harness/`.
 
 1. **Observe.** Read the existing harness (`AGENTS.md`, `CLAUDE.md`, `docs/`, `.agents/`, `.claude/`, `.github/`, review tool configs, how the product starts locally), `git log`, the pull request history (`gh`), manifests, CI, and the scripts. For each decision from `list`, gather what its 観察 field asks for. If any harness file already exists, read `references/merge.md` now.
 2. **Plan.** Read `references/plan.md`, then build the Plan page and iterate with the user until the plan is agreed.
-3. **Generate and merge.** For each template file in the agreed plan, write the target file: keep the fixed text, and replace each decision block by what its 書き方 field says, using the agreed proposal. Write every generated file in the agreed document language. Write only what the agent reading the file uses for its task; leave out why the file exists, which tools read it, and how it relates to other files.
+3. **Generate and merge.** For each template file in the agreed plan, write the target file: keep the fixed text, and replace each decision block by what its 書き方 field says, using the agreed proposal. Write every generated file in the agreed document language. Write only what the agent reading the file uses for its task; leave out explanations it does not act on, such as why the file exists or which other tools read it.
 4. **Verify.** Run `leftovers` on the generated files; no decision block may remain. Check that every path in the AGENTS.md References table exists and that every symlink resolves. Report the generated files and every remaining TODO to the user.
 
 ## Pages
