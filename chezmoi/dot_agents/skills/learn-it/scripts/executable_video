@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# 台本 (JSON) から掛け合い解説動画を作る CLI の入口。
+# 依存 (node_modules と Playwright の Chromium) は lockfile が変わったときだけ入れ直す。
+set -euo pipefail
+
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+stamp="$dir/node_modules/.learn-it-lock"
+lock_hash="$(shasum -a 256 "$dir/pnpm-lock.yaml" | cut -d' ' -f1)"
+
+if [[ "$(cat "$stamp" 2>/dev/null)" != "$lock_hash" ]]; then
+  echo "learn-it: 依存を入れています (初回のみ)" >&2
+  pnpm --dir "$dir" install --frozen-lockfile --prod >&2
+  pnpm --dir "$dir" exec playwright install chromium-headless-shell >&2
+  echo "$lock_hash" >"$stamp"
+fi
+
+exec node "$dir/src/cli.ts" "$@"

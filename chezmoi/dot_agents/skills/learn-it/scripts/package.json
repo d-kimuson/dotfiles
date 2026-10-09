@@ -1,0 +1,22 @@
+{
+  "name": "learn-it-video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "video": "node src/cli.ts",
+    "typecheck": "tsc -p . --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource/m-plus-rounded-1c": "^5",
+    "commander": "^14",
+    "playwright": "^1",
+    "zod": "^4"
+  },
+  "devDependencies": {
+    "@tsconfig/strictest": "^2",
+    "@types/node": "^25",
+    "typescript": "^5",
+    "vitest": "^4"
+  }
+}
