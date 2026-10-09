@@ -1,0 +1,6 @@
+{
+  "name": "self-compact",
+  "version": "0.1.0",
+  "description": "Give Claude a tool to compact its own context and resume the work",
+  "author": { "name": "d-kimsuon" }
+}

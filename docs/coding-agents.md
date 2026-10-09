@@ -56,6 +56,24 @@ pi 対応の差分 (`PI` バックエンド、`pi_user_prompts`、`detect_agent`
 動作確認は `python3 -m py_compile` と `HERDR_AUTO_TITLE_DEBUG=1` 付きの
 フォアグラウンド実行 (`HERDR_AUTO_TITLE_FOREGROUND=1` で標準入力に hook JSON) で行う。
 
+### ローカルプラグイン (mods)
+
+`chezmoi/dot_claude/local-plugins/` (→ `~/.claude/local-plugins/`) の各サブディレクトリを、Claude Code が全セッションでプラグインとして読み込む。
+読み込みは `config/claude-settings.json` の `env` で有効にする。`CLAUDE_CODE_PLUGIN_DIRS` がこのディレクトリを指し、`CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` が [mods](https://code.claude.com/docs/en/plugins/mods/overview) の hooks module (`hooks/register.ts`) を読み込ませる。
+mods は early access で、この環境変数がないと hooks module は読み込まれない。
+
+`self-compact` は、Claude が自分のコンテキストを compact して作業を続けるための `compact` ツールを追加する。
+`$.session.compact()` はターンの実行中に呼べないため、ツール呼び出しでは予約だけを記録し、`turn.complete` で compact したあとに `resume` のプロンプトで次のターンを始める。
+compact の対象はセッション本体のコンテキストなので、サブエージェントからの呼び出しは断り、サブエージェントのターン完了では発火しない。
+`mcp__<plugin>__<name>` 形式のツールは既定で ToolSearch の裏に回るため、`tool.describe` でプロンプトのツール一覧に固定する。
+
+source state の `dot_claude-plugin` は配布先で `.claude-plugin` になる。型定義 (`.claude-plugin/types/`) と `tsconfig.json` は Claude Code がプラグインの読み込み時に配布先へ生成するため、型検査とテストは配布先で実行する。
+
+```bash
+pnpm --dir internal exec tsc -p ~/.claude/local-plugins/self-compact --noEmit
+cd ~/.claude/local-plugins/self-compact && claude plugin test
+```
+
 ## language-guard (応答テキストの日本語固定)
 
 モデルのユーザー向けテキストが英語・中国語へドリフトするのを、Claude Code と pi の両方で防ぐ。

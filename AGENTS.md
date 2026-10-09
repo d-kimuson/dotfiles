@@ -13,7 +13,7 @@
 ├── AGENTS.md        # エージェント向けの入口 (CLAUDE.md はこれへの symlink)
 ├── chezmoi/         # source state のルート (.chezmoiroot)。$HOME へ配布するファイル
 │   ├── dot_agents/          # ~/.agents: グローバルの skills、prompts、prompts が使う資料 (deps)
-│   ├── dot_claude/          # ~/.claude: Claude Code の設定と hooks (language-guard など)
+│   ├── dot_claude/          # ~/.claude: Claude Code の設定、hooks (language-guard など)、ローカルプラグイン (local-plugins)
 │   ├── dot_codex/           # ~/.codex: Codex の指示と skills・prompts への symlink
 │   ├── dot_copilot/         # ~/.copilot: Copilot CLI の MCP 設定
 │   ├── private_dot_config/  # ~/.config: home-manager、mise、zabrze など
@@ -36,6 +36,7 @@
 | `chezmoi apply` → `chezmoi verify` | 反映して、target state が source state と一致する | `chezmoi/` を変更した |
 | `home-manager switch` | Nix の設定がビルドでき、ツールが入る | home-manager の設定を変更した (`chezmoi apply` の後) |
 | `mise install && mise reshim` | CLI とランタイムが入る | mise の設定だけを変更した (`chezmoi apply` の後) |
+| `pnpm --dir internal exec tsc -p ~/.claude/local-plugins/<name> --noEmit` → 配布先で `claude plugin test` | ローカルプラグインの型検査とテスト | `chezmoi/dot_claude/local-plugins/` を変更した (`chezmoi apply` の後) |
 | `node internal/src/cli.ts mcp deliver` / `merge-config` / `pi-agent deliver` | 設定を生成・マージして配布できる | `config/` か配布ロジックを変更した (変更に対応するものだけ) |
 
 CI は `chezmoi init --apply` だけを実行し、型検査とテストは実行しない。

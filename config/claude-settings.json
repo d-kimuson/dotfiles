@@ -5,7 +5,9 @@
     "CLAUDE_CODE_EFFORT_LEVEL": "high",
     "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1",
     "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
-    "CLAUDE_CODE_NO_FLICKER": "1"
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1",
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/local-plugins"
   },
   "autoCompactWindow": 400000,
   "effortLevel": "high",
