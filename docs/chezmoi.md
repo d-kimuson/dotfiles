@@ -43,3 +43,6 @@ chezmoi の source state に暗号化して保存する必要がある場合は 
 6. `chezmoi verify` と対象アプリケーションの動作確認を行う。
 
 実行コマンドと配布経路は [コマンド](commands.md) および [構成](overview.md) を参照する。
+
+`chezmoi apply` は source state から削除・リネームしたファイルを配布先から自動では消さない。
+`chezmoi verify` もこの残留を検出できない。対応は `.agents/troubleshots/chezmoi-apply-does-not-remove-deleted-source-files.md` を参照する。

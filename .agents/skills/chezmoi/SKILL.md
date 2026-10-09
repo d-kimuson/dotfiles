@@ -66,6 +66,9 @@ chezmoi managed | grep '<配布先の相対パス>'
 
 1 が何かを出力したら、意図的な chezmoi 特殊ファイルでない限りバグである。
 
+ファイルを削除・リネームしたときは、配布先の古いファイルが残らないか確認する。
+`chezmoi apply` は source state から消えたファイルを配布先から自動では消さず、`chezmoi verify` もこの残留を検出しない (`.agents/troubleshots/chezmoi-apply-does-not-remove-deleted-source-files.md`)。
+
 ## テンプレート
 
 - 環境差分が必要な部分だけ `.tmpl` を使う。

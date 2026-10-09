@@ -14,6 +14,10 @@
 `home-manager switch` は `home.activation.installMiseTools` により `mise install` と `mise reshim` も実行する。
 `installCursorAgent` も activation hook として定義されているため、手動で同じ処理を重ねない。
 
+`home.nix.tmpl` は macOS で標準コマンドを GNU 版に統一する。
+`sed` を使うときは GNU 形式で書く (`sed -i 's/.../.../' file`)。
+BSD 形式の `sed -i '' ...` は空文字列が次の引数として解釈され失敗する。
+
 ## mise
 
 Node.js と npm で配布される CLI は `chezmoi/private_dot_config/mise/config.toml` で管理する。
