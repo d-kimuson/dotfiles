@@ -39,6 +39,8 @@ Always read every reference relevant to the task before making changes.
 | コードを書く・変更する | `docs/guidelines/coding/index.md` |
 | 変更を実際に動かして確かめる (QA Check)、テストの種類や範囲を決める、失敗したテストを再現する | `docs/guidelines/quality-assurance/index.md` |
 | ツールや依存を追加する | `docs/guidelines/local-dev.md` |
+| タスクを確かめる・起票する・状態を更新する | `docs/guidelines/backlog.md` |
+| ユーザーやチームに質問・報告する | `docs/guidelines/team-channel.md` |
 | コマンドやツールが想定外に失敗する | `.agents/troubleshots/` |
 
 <!-- decision: references-table

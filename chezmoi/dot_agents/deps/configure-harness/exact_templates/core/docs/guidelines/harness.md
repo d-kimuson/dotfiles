@@ -12,7 +12,7 @@
 
 <!-- decision: tool-links
   決めること: どのコーディングエージェントに対応し、ツール固有の場所から正本をどう指すか
-  観察: 既存の CLAUDE.md、.claude/、.codex/、.cursor/ など。ユーザーが使うエージェント
+  観察: 既存の CLAUDE.md、.claude/、.codex/、.cursor/ など。それらから分からなければユーザーに聞く: 使うエージェント
   書き方: 原則の最後の項目の後に、対応する組み合わせを括弧書きで列挙する (例: `.claude/skills` → `.agents/skills`)。AGENTS.md を直接読むエージェント (Claude Code、Codex など) のために CLAUDE.md などの指示ファイルは置かない。symlink は生成時に実際に作る。レビューの観点は `REVIEW.md` が正本なので、この列挙に含めない
 -->
 

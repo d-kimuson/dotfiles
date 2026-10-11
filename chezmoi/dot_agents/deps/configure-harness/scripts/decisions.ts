@@ -1,10 +1,11 @@
 // CLI over decision-block.ts. Run with Node.js 24+ (native TypeScript):
 //
-//   node scripts/decisions.ts files                every template file with its target path and optional unit
-//   node scripts/decisions.ts list                 decisions in the templates
-//   node scripts/decisions.ts check                syntax, id uniqueness, and optional markers of the templates
+//   node scripts/decisions.ts files <setup>        every template file of a setup with its target path and optional unit
+//   node scripts/decisions.ts list <setup>         decisions in a setup's templates
+//   node scripts/decisions.ts check                syntax, id uniqueness, and optional markers of every setup's templates
 //   node scripts/decisions.ts leftovers <path...>  unresolved decision blocks and TODOs in generated files
 //
+// A setup is a directory under templates/ (core, auto-pilot, ...), laid out as the target repository.
 // `files`, `list`, and `leftovers` print JSON. `check` and `leftovers` exit with 1 when something is left to fix.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -36,9 +37,23 @@ const readMarkdown = (root: string, paths: readonly string[]): SourceFile[] =>
     .filter((path) => path.endsWith(".md"))
     .map((path) => ({ path: relative(root, path), source: readFileSync(path, "utf8") }));
 
-const readTemplates = (): SourceFile[] => readMarkdown(TEMPLATES, [TEMPLATES]);
+const setups = (): string[] =>
+  readdirSync(TEMPLATES, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
 
-const templatePaths = (): string[] => walk(TEMPLATES).map((path) => relative(TEMPLATES, path));
+const setupRoot = (setup: string | undefined): string => {
+  if (setup === undefined || !setups().includes(setup)) {
+    process.stderr.write(`unknown setup: ${setup ?? "(none)"} (one of: ${setups().join(", ")})\n`);
+    process.exit(2);
+  }
+  return join(TEMPLATES, setup);
+};
+
+const readTemplates = (root: string): SourceFile[] => readMarkdown(root, [root]);
+
+const templatePaths = (root: string): string[] => walk(root).map((path) => relative(root, path));
 
 const print = (value: unknown): void => {
   process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
@@ -46,7 +61,7 @@ const print = (value: unknown): void => {
 
 const usage = (): never => {
   process.stderr.write(
-    "usage: node scripts/decisions.ts files | list | check | leftovers <path...>\n",
+    "usage: node scripts/decisions.ts files <setup> | list <setup> | check | leftovers <path...>\n",
   );
   process.exit(2);
 };
@@ -55,15 +70,16 @@ const [command, ...args] = process.argv.slice(2);
 
 switch (command) {
   case "files": {
-    print(templatePaths().map(toTemplateFile));
+    print(templatePaths(setupRoot(args[0])).map(toTemplateFile));
     break;
   }
   case "list": {
-    print(collectDecisions(readTemplates()).decisions);
+    print(collectDecisions(readTemplates(setupRoot(args[0]))).decisions);
     break;
   }
   case "check": {
-    const { decisions, issues } = collectDecisions(readTemplates());
+    // Ids stay unique across setups, so a decision can be named without its setup
+    const { decisions, issues } = collectDecisions(readMarkdown(TEMPLATES, [TEMPLATES]));
     if (issues.length > 0) {
       print(issues);
       process.exit(1);

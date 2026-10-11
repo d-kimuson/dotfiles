@@ -1,0 +1,13 @@
+name = "spec"
+defaultTargets = ["Spec", "spec-oracle"]
+
+# Lean specs live next to the code they specify, under the directories `globs` names (`src.+`: every module under src/)
+[[lean_lib]]
+name = "Spec"
+srcDir = "."
+globs = ["src.+"]
+
+# Evaluates the spec's definitions for differential tests against the implementation
+[[lean_exe]]
+name = "spec-oracle"
+root = "spec.Oracle"
