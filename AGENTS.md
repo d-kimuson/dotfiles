@@ -23,6 +23,7 @@
 ├── shell/           # ターゲット環境で読み込むシェル設定と秘密情報のテンプレート
 ├── scripts/         # 新しいマシンのセットアップと一括更新
 ├── observe/         # LLM 利用量の観測データ (Git 管理する集計とマスタ)
+├── local-llm/       # ローカル LLM (llama.cpp ルータ) の起動スクリプト、モデルプリセット、取得と計測
 ├── docs/            # 運用文書、用語 (CONTEXT.md)、機能仕様 (features/)、ガイドライン (guidelines/)
 └── .agents/         # このリポジトリ用の skills・prompts・troubleshots
 ```
@@ -66,4 +67,5 @@ Always read every reference relevant to the task before making changes.
 | Claude Code・Codex・Pi・Copilot の設定を変更する | `docs/coding-agents.md` |
 | 設定変更を反映する、初期セットアップや更新をする | `docs/commands.md` |
 | LLM 利用量の観測や集計を変更する | `docs/features/llm-usage-observation.md` |
+| ローカル LLM のサーバやモデルを変更・運用する | `docs/features/local-llm.md` |
 | コマンドやツールが想定外に失敗する | `.agents/troubleshots/` |

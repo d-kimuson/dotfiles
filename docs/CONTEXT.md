@@ -13,6 +13,7 @@
 | 配布 (deliver) | `mcp deliver`、`pi-agent deliver` | `config/` から各ツールの設定ファイルを生成して書き込む |
 | マージ設定 | `merge-config` | ツールが書き換える既存の設定を残し、管理するキーだけを合わせる |
 | dry-run | `--dry-run`、`internal/src/dry-run/describe-changes.ts` | 反映せず、変わるキーパスだけを示す |
+| ローカル LLM | `local-llm/`、`localLLM` (`chezmoi/.chezmoidata.toml`) | 同じマシンのツールに `https://llama.localhost` で提供する llama.cpp のルータ。`localLLM` が true のマシンでだけ動かす |
 | 秘密情報 | `shell/env-secrets.sh.tpl` | API キーなど。1Password の参照 (`op://…`) としてだけコミットする |
 
 ## Invariants

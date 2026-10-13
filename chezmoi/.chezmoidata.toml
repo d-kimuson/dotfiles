@@ -1,0 +1,4 @@
+# マシンごとの既定値。有効にするマシンでは ~/.config/chezmoi/chezmoi.toml の [data] で上書きする。
+
+# ローカル LLM (local-llm/) を動かすか。launchd agent の登録と LLAMA_BASE_URL の設定を切り替える (docs/features/local-llm.md)
+localLLM = false

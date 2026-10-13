@@ -12,6 +12,10 @@ export CHEZMOI_WORKING_TREE="{{ .chezmoi.workingTree }}"
 export CFLAGS=-I/usr/include/openssl
 export LDFLAGS=-L/usr/lib
 {{- end }}
+{{- if and .localLLM (eq .chezmoi.os "darwin") }}
+# ローカル LLM (local-llm/) の接続先。pi の llama.cpp プロバイダが読む
+export LLAMA_BASE_URL="https://llama.localhost"
+{{- end }}
 
 # ====================
 # Nix daemon environment

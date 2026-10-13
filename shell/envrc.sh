@@ -15,3 +15,9 @@ export CLAUDE_CODE_DISABLE_1M_CONTEXT=1
 export MCP_TIMEOUT=120000
 
 export PNPM_HOME="$HOME/Library/pnpm"
+
+# portless が発行するローカル CA を Node からも信頼させる（pi など portless の外で動く Node 製ツール用）
+# CA がないマシンで設定すると、Node が起動のたびに読み込み失敗の警告を出すため、あるときだけ設定する
+if [ -f "$HOME/.portless/ca.pem" ]; then
+  export NODE_EXTRA_CA_CERTS="$HOME/.portless/ca.pem"
+fi

@@ -214,6 +214,36 @@ in
   # `pueue add <command>` でタスク投入、`pueue status` で確認。
   services.pueue.enable = true;
 
+{{- if and .localLLM (eq .chezmoi.os "darwin") }}
+
+  # ローカル LLM のルータをログイン時から常駐させ、https://llama.localhost で公開する (local-llm/serve.sh)。
+  # ルータ自体は軽い。モデルの重みはリクエストが来たら読み込み、アイドルで解放する (local-llm/presets.ini)。
+  # llama.cpp は home.packages に入れず PATH で渡す。nix profile の whisper-cpp と libggml が衝突するため。
+  launchd.agents.local-llm = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${config.home.homeDirectory}/.local/share/mise/shims/portless"
+        "llama"
+        "{{ .chezmoi.workingTree }}/local-llm/serve.sh"
+      ];
+      EnvironmentVariables.PATH = lib.concatStringsSep ":" [
+        "${pkgs.llama-cpp}/bin"
+        "${config.home.profileDirectory}/bin"
+        "${config.home.homeDirectory}/.local/share/mise/shims"
+        "/usr/bin"
+        "/bin"
+        "/usr/sbin"
+        "/sbin"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "${config.home.homeDirectory}/Library/Logs/local-llm.log";
+      StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/local-llm.log";
+    };
+  };
+{{- end }}
+
   programs.tmux.enable = true;
 
   home.activation.installCursorAgent = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
