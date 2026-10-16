@@ -70,7 +70,7 @@ Add scripts to `package.json`:
 {
   "scripts": {
     "lint": "run-p lint:*",
-    "lint:oxlint": "oxlint --ignore-path .gitignore",
+    "lint:oxlint": "oxlint --ignore-path .gitignore --no-error-on-unmatched-pattern",
     "lint:oxfmt": "pnpm fix:oxfmt --check",
     "fix": "run-p fix:*",
     "fix:oxlint": "pnpm lint:oxlint --fix",
@@ -80,6 +80,8 @@ Add scripts to `package.json`:
 ```
 
 Copy `oxlint.config.ts`, `lefthook.yml` to project root, and `oxfmtrc.json` to project root as `.oxfmtrc.json`.
+
+Keep `--no-error-on-unmatched-pattern` on both `lint:oxlint` and `fix:oxfmt`. The lefthook pre-commit passes staged files explicitly, and when every staged file is excluded (JSON for oxlint, or paths in `ignorePatterns` such as `dev/**`), oxlint/oxfmt exit with an error and block the commit.
 
 The oxlint template includes these architecture rules:
 
@@ -188,7 +190,7 @@ For web apps, add Playwright browser install and E2E steps when `test:e2e` exist
 | `vitest.config.ts` | Remove unused projects per project type |
 | `configs/vitest/time.setup.ts` | None — use with `src/lib/clock.ts` |
 | `configs/vitest/db-required.setup.ts` | DB setup env vars |
-| `setup-node-action.yml` | Pin pnpm version if required |
+| `setup-node-action.yml` | Keep the pnpm version in sync with `packageManager` in `package.json` |
 | `ci.yml` | Add/remove steps — copy to `.github/workflows/check.yaml` or `ci.yml` |
 | `conventions.js` | Module names, dependency directions — copy to `dev/lints/conventions.js` when used |
 | `lib/typedIncludes.ts` | None — copy to `src/lib/typedIncludes.ts` |
