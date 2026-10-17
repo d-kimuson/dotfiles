@@ -23,11 +23,11 @@
   "languages": {
     "TypeScript": {
       "language_servers": [
-        "vtsls",
+        "typescript-ls",
         "oxlint",
         "oxfmt",
+        "!vtsls",
         "!typescript-language-server",
-        "!tsgo",
         "!prettier",
         "!eslint",
         "..."
@@ -49,11 +49,11 @@
     },
     "TSX": {
       "language_servers": [
-        "vtsls",
+        "typescript-ls",
         "oxlint",
         "oxfmt",
+        "!vtsls",
         "!typescript-language-server",
-        "!tsgo",
         "!prettier",
         "!eslint",
         "..."

@@ -213,9 +213,8 @@ For TypeScript projects, copy utility files from `lib/` to `src/lib/` as needed:
 
 ```json
 {
-  "js/ts.tsdk.path": "node_modules/typescript/lib",
-  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "node_modules/typescript",
   "js/ts.preferences.importModuleSpecifier": "relative",
   "editor.tabSize": 2,
   "oxc.enable": true,
@@ -233,6 +232,10 @@ For TypeScript projects, copy utility files from `lib/` to `src/lib/` as needed:
 }
 ```
 
+TypeScript 7 ships no `tsserver`, so VS Code's built-in TypeScript support cannot use the workspace version. Recommend the "TypeScript 7" extension (`TypeScriptTeam.native-preview`) in `.vscode/extensions.json`; `js/ts.experimental.useTsgo` turns it on and `js/ts.tsdk.path` points it at the workspace package.
+
 ### Zed
 
-Copy `zed-settings.json` to `.zed/settings.json`. Consolidates TypeScript language server (vtsls) + oxc + oxfmt settings.
+Copy `zed-settings.json` to `.zed/settings.json`. Consolidates TypeScript language server + oxc + oxfmt settings.
+
+The TypeScript language server is `typescript-ls` from the `tsgo` extension, which runs TypeScript 7's `tsc --lsp`. `vtsls` and `typescript-language-server` are disabled because TypeScript 7 ships no `tsserver` and they would fall back to their bundled TypeScript 5/6, duplicating diagnostics. Install the `tsgo` extension in Zed.

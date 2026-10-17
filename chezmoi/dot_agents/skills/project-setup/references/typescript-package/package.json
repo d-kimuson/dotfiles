@@ -11,7 +11,7 @@
     "fix": "run-p fix:*",
     "fix:oxlint": "pnpm lint:oxlint --fix",
     "fix:oxfmt": "oxfmt --ignore-path .gitignore --no-error-on-unmatched-pattern",
-    "typecheck": "tsgo -p . --noEmit",
+    "typecheck": "tsc -p . --noEmit",
     "test": "vitest run",
     "prepare": "lefthook install"
   },
