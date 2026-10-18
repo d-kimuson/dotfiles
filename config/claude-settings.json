@@ -15,6 +15,16 @@
     "typescript-lsp@claude-plugins-official": true
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/mise-shims.sh"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Read|Write|Edit|NotebookEdit|Bash|Grep",
@@ -45,7 +55,7 @@
           },
           {
             "type": "command",
-            "command": "~/.claude/hooks/language-guard/hook.mts",
+            "command": "~/.claude/hooks/mise-shims.sh ~/.claude/hooks/language-guard/hook.mts",
             "timeout": 10
           }
         ]
@@ -80,7 +90,7 @@
           },
           {
             "type": "command",
-            "command": "~/.claude/hooks/language-guard/hook.mts",
+            "command": "~/.claude/hooks/mise-shims.sh ~/.claude/hooks/language-guard/hook.mts",
             "timeout": 10
           }
         ]
@@ -91,7 +101,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/language-guard/hook.mts",
+            "command": "~/.claude/hooks/mise-shims.sh ~/.claude/hooks/language-guard/hook.mts",
             "timeout": 10
           }
         ]

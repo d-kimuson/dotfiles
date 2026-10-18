@@ -18,6 +18,7 @@ const CONFIG_ENTRIES = [
   {
     source: path.join(DOTFILES_ROOT, "config/claude-settings.json"),
     target: path.join(homedir(), ".claude/settings.json"),
+    hooksState: path.join(homedir(), ".local/state/dotfiles/claude-settings-hooks.json"),
   },
   {
     source: path.join(DOTFILES_ROOT, "config/codex-config.toml"),

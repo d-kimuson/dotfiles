@@ -2,24 +2,13 @@ import { readFile, writeFile, mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 import { parse as parseTOML, stringify as stringifyTOML } from "smol-toml"
 import { diffKeyPaths, formatDryRunReport } from "../dry-run/describe-changes.ts"
-
-type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | readonly JsonValue[]
-  | { readonly [key: string]: JsonValue }
-
-type JsonObject = Record<string, JsonValue>
+import { listReplacedHooks, mergeHookEvents, parseHookEvents, type HookEvents } from "./hooks.ts"
+import { isPlainObject, type JsonObject, type JsonValue } from "./json.ts"
 
 type MergeResult = {
   readonly written: boolean
   readonly extras: readonly string[]
 }
-
-const isPlainObject = (v: unknown): v is JsonObject =>
-  typeof v === "object" && v !== null && !Array.isArray(v)
 
 /**
  * Deep merge source into target.
@@ -103,6 +92,8 @@ export type MergeConfigEntry = {
   readonly source: string
   readonly target: string
   readonly format?: Format
+  /** 前回配布した hooks の記録先。指定すると、外部ツールが target に登録した hook を残す (./hooks.ts) */
+  readonly hooksState?: string
 }
 
 export type MergeConfigOptions = {
@@ -112,6 +103,52 @@ export type MergeConfigOptions = {
 
 const detectFormat = (filePath: string): Format =>
   filePath.endsWith(".toml") ? "toml" : "json"
+
+const mergeHooks = async (
+  entry: MergeConfigEntry,
+  source: JsonObject,
+  target: JsonObject | null,
+  merged: JsonObject
+): Promise<JsonObject> => {
+  const { hooksState } = entry
+  if (hooksState === undefined || source["hooks"] === undefined) return merged
+  const sourceHooks = parseHookEvents(source["hooks"], entry.source)
+  const targetHooks = parseHookEvents(target?.["hooks"], entry.target)
+  const previous = await readHooksState(hooksState)
+
+  if (previous === null) {
+    for (const { event, hook } of listReplacedHooks({ source: sourceHooks, target: targetHooks })) {
+      console.warn(`  First delivery replaces hooks.${event}; re-register if external: ${JSON.stringify(hook)}`)
+    }
+  }
+
+  return {
+    ...merged,
+    hooks: mergeHookEvents({ source: sourceHooks, target: targetHooks, previous }),
+  }
+}
+
+const readHooksState = async (hooksState: string): Promise<HookEvents | null> => {
+  try {
+    const previous = await readObjectFile(hooksState, "json")
+    return previous === null ? null : parseHookEvents(previous, hooksState)
+  } catch (err) {
+    throw new Error(
+      `Failed to read the delivered hooks record ${hooksState}. Delete it to fall back to the first delivery.`,
+      { cause: err }
+    )
+  }
+}
+
+const recordDeliveredHooks = async (
+  entry: MergeConfigEntry,
+  source: JsonObject
+): Promise<void> => {
+  const hooks = source["hooks"]
+  if (entry.hooksState === undefined || hooks === undefined) return
+  await mkdir(dirname(entry.hooksState), { recursive: true })
+  await writeFile(entry.hooksState, serializeContent(parseHookEvents(hooks, entry.source), "json"), "utf-8")
+}
 
 const mergeOne = async (
   entry: MergeConfigEntry,
@@ -127,27 +164,19 @@ const mergeOne = async (
   }
 
   const target = await readObjectFile(entry.target, targetFormat)
-
-  if (target === null) {
-    const output = serializeContent(source, targetFormat)
-    if (dryRun) {
-      console.log(formatDryRunReport(entry.target, diffKeyPaths(null, source)))
-    } else {
-      await mkdir(dirname(entry.target), { recursive: true })
-      await writeFile(entry.target, output, "utf-8")
-      console.log(`  Created: ${entry.target}`)
-    }
-    return { written: true, extras: [] }
-  }
-
-  const { merged, extras } = deepMerge(source, target)
+  const deepMerged =
+    target === null ? { merged: source, extras: [] } : deepMerge(source, target)
+  const merged = await mergeHooks(entry, source, target, deepMerged.merged)
+  const { extras } = deepMerged
   const output = serializeContent(merged, targetFormat)
 
   if (dryRun) {
     console.log(formatDryRunReport(entry.target, diffKeyPaths(target, merged)))
   } else {
+    await mkdir(dirname(entry.target), { recursive: true })
     await writeFile(entry.target, output, "utf-8")
-    console.log(`  Updated: ${entry.target}`)
+    console.log(`  ${target === null ? "Created" : "Updated"}: ${entry.target}`)
+    await recordDeliveredHooks(entry, source)
   }
 
   if (extras.length > 0) {

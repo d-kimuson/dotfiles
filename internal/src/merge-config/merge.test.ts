@@ -159,6 +159,68 @@ describe("mergeConfigs", () => {
   })
 })
 
+describe("mergeConfigs (hooks)", () => {
+  const ours = { hooks: [{ type: "command", command: "~/.claude/hooks/ours.sh" }] }
+  const external = { hooks: [{ type: "command", command: "bash ~/.claude/hooks/herdr.sh" }] }
+
+  it("replaces hooks on the first delivery and keeps external hooks afterwards", async () => {
+    const source = await writeTempJson("source.json", { hooks: { SessionStart: [ours] } })
+    const target = await writeTempJson("target.json", { hooks: { SessionStart: [external] } })
+    const hooksState = path.join(testDir, "state", "hooks.json")
+    const merge = () => mergeConfigs({ entries: [{ source, target, hooksState }], dryRun: false })
+
+    await merge()
+    expect(await readTempJson("target.json")).toEqual({ hooks: { SessionStart: [ours] } })
+    expect(await readTempJson("state/hooks.json")).toEqual({ SessionStart: [ours] })
+
+    await writeTempJson("target.json", { hooks: { SessionStart: [ours, external] } })
+    await merge()
+    expect(await readTempJson("target.json")).toEqual({ hooks: { SessionStart: [ours, external] } })
+  })
+
+  it("warns about hooks the first delivery replaces", async () => {
+    const source = await writeTempJson("source.json", { hooks: { SessionStart: [ours] } })
+    const target = await writeTempJson("target.json", { hooks: { SessionStart: [external] } })
+    const hooksState = path.join(testDir, "state", "hooks.json")
+
+    const warnings: string[] = []
+    const originalWarn = console.warn
+    console.warn = (...args: unknown[]) => {
+      warnings.push(args.join(" "))
+    }
+    try {
+      await mergeConfigs({ entries: [{ source, target, hooksState }], dryRun: false })
+    } finally {
+      console.warn = originalWarn
+    }
+
+    expect(warnings).toHaveLength(1)
+    expect(warnings[0]).toContain("hooks.SessionStart")
+    expect(warnings[0]).toContain("herdr.sh")
+  })
+
+  it("explains how to recover from a broken delivery record", async () => {
+    const source = await writeTempJson("source.json", { hooks: { SessionStart: [ours] } })
+    const target = await writeTempJson("target.json", {})
+    const hooksState = path.join(testDir, "hooks.json")
+    await writeFile(hooksState, "{", "utf-8")
+
+    await expect(
+      mergeConfigs({ entries: [{ source, target, hooksState }], dryRun: false })
+    ).rejects.toThrow("Delete it to fall back to the first delivery")
+  })
+
+  it("does not record the delivery in dry-run mode", async () => {
+    const source = await writeTempJson("source.json", { hooks: { SessionStart: [ours] } })
+    const target = await writeTempJson("target.json", {})
+    const hooksState = path.join(testDir, "state", "hooks.json")
+
+    await mergeConfigs({ entries: [{ source, target, hooksState }], dryRun: true })
+
+    await expect(readFile(hooksState, "utf-8")).rejects.toThrow("ENOENT")
+  })
+})
+
 const writeTempToml = async (name: string, content: string): Promise<string> => {
   const filePath = path.join(testDir, name)
   await writeFile(filePath, content, "utf-8")

@@ -37,8 +37,16 @@ chezmoi add ~/.agents/skills/<skill> ~/.agents/.skill-lock.json
 `~/.agents/.skill-lock.json` も管理対象にしているため、別マシンでも `npx skills update -g` と `npx skills list -g` が機能する。
 更新後は `chezmoi re-add ~/.agents/skills/<skill> ~/.agents/.skill-lock.json` で source state へ同期し、Git diff を確認する。
 
+### 設定のマージ
+
 `merge-config` は管理対象の値を優先し、target にしかないキーは保持する。
 更新時は `node internal/src/cli.ts merge-config --dry-run` を先に実行する。
+
+Claude Code の `hooks` だけは、イベントごとの配列も外部ツール (herdr、Orca など) が登録した hook を残してマージする。
+前回配布した hooks を `~/.local/state/dotfiles/claude-settings-hooks.json` に記録し、今回と前回の config にない command の hook を外部のものとみなす (`internal/src/merge-config/hooks.ts`)。
+記録がない初回は config にあるイベントを置き換え、消える hook を警告に出す。外部ツールのものなら、そのツールで登録し直す。
+
+node など mise で入れるツールで動く hook は `~/.claude/hooks/mise-shims.sh` 経由で呼ぶ (理由はスクリプトのコメント)。
 
 ### herdr-auto-title (Claude Code のタブ名自動付与)
 
