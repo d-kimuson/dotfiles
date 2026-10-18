@@ -7,6 +7,7 @@ Claude Code のサンドボックス内で、リポジトリ内のどの pnpm �
 - `internal/package.json` の `packageManager` と、home-manager が入れた pnpm のバージョンが違うと、pnpm がバージョンを切り替えようとして書き込みやダウンロードで失敗する。
 - `internal/src/llm-usage/dashboard.test.ts` はローカルのポートを listen するため、`listen EPERM` で失敗する。
 - registry.npmjs.org への接続が `invalid peer certificate: OSStatus -26276` で失敗することがある。副作用として、そのパッケージの `node_modules/` が空になり、リポジトリルートに `.pnpm-store/` が作られる。
+- lockfile の内容自体は変わらない場合でも `ERR_PNPM_LOCKFILE_WRITE_FILE: Failed to write lockfile content: Operation not permitted` で失敗することがある。
 
 ## Workaround
 
