@@ -21,20 +21,12 @@ if [ -s "${HOME}/.nix-profile/etc/profile.d/hm-session-vars.sh" ]; then
 fi
 
 # ====================
-# Activate tools
-# ====================
-if [ -s "/Users/kaito/.bun/_bun" ]; then
-  source "/Users/kaito/.bun/_bun"
-fi
-
-# ====================
 # SET PATH
 # ====================
 path=(
   ${HOME}/.nix-profile/bin # home-manager を最優先
   ${path:#${HOME}/.nix-profile/bin}
   ${HOME}/bin
-  $BUN_INSTALL/bin
   ${HOME}/.npm-global/bin
   ${HOME}/.local/share/chezmoi/shell/bin
   ${HOME}/.local/bin

@@ -5,7 +5,6 @@
 # ====================
 export STARSHIP_CONFIG=${CHEZMOI_DIR}/config/starship.toml
 export DOCKER_CONFIG=$HOME/.docker
-export BUN_INSTALL="$HOME/.bun"
 export DIRENV_WARN_TIMEOUT=1m
 export LITELLM_PORT="8082"
 
