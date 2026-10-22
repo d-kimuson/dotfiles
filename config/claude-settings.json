@@ -85,11 +85,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/herdr-auto-title.py",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "~/.claude/hooks/mise-shims.sh ~/.claude/hooks/language-guard/hook.mts",
             "timeout": 10
           }

@@ -38,7 +38,7 @@ const handlersOf = (groups: readonly HookGroup[] | undefined): readonly JsonValu
   (groups ?? []).flatMap((group) => group.hooks)
 
 /**
- * source の hooks を target に反映し、外部ツール (herdr、Orca など) が登録した hook を残す。
+ * source の hooks を target に反映し、外部ツール (Orca など) が登録した hook を残す。
  * 今回か前回配布した source にある handler を dotfiles のものとみなし、それ以外を外部のものとして残す。
  * 前回の配布記録がない (初回) ときは外部のものを見分けられないので、source にあるイベントだけを source で置き換える。
  */

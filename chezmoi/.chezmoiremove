@@ -1,3 +1,6 @@
 .pi/agent/skills/launch-chrome-debug/SKILL.md
 .agents/prompts/describe-visually.md
 .agents/prompts/explore-unknown-knowledge.md
+.claude/hooks/herdr-auto-title.py
+.config/herdr/config.toml
+.pi/agent/extensions/herdr-auto-title.ts
