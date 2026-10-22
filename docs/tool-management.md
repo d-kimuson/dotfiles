@@ -8,6 +8,7 @@
 
 通常は unstable の `pkgs` を使う。
 更新の安定性を優先する `mise`、`direnv`、`zed-editor` は `pkgsStable` を使う。
+ただし `mise` は、eMudhra 中間 CA の侵害に対応した版が nixpkgs に入るまで、`home.nix.tmpl` の `let` で公式リリースのバイナリを固定して使う。nixpkgs に入ったら `pkgsStable.mise` へ戻す。
 利用する属性は検索結果の最後の要素に対応させる。
 たとえば `legacyPackages.aarch64-darwin.ripgrep` は通常 `pkgs.ripgrep` と書く。
 
