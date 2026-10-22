@@ -164,6 +164,16 @@ let
         };
       };
 
+  # eMudhra 中間 CA の侵害 (https://emudhra.we-have-a-problem.com/) で
+  # 侵害された中間 CA の上位になるルートを外した CA バンドル。
+  # nixos-unstable の cacert が 3.131.1 以降になったら override を外して pkgs.cacert を使う。
+  cacertWithoutEmudhraRoots = pkgs.cacert.override {
+    blacklist = [
+      "Comodo AAA Services root"
+      "emSign ECC Root CA - G3"
+    ];
+  };
+
   ghosttyTerminfo = pkgs.runCommand "ghostty-terminfo" {
     nativeBuildInputs = [ pkgs.ncurses ];
   } ''
@@ -261,6 +271,15 @@ in
   # ~/.terminfo から解決できるようにする。
   home.file.".terminfo/x/xterm-ghostty".source =
     "${ghosttyTerminfo}/x/xterm-ghostty";
+
+{{- if eq .chezmoi.os "darwin" }}
+
+  # Nixpkgs の OpenSSL を使うツール (curl、wget など) が検証に使う CA バンドル。
+  # macOS では未設定だと nix-daemon.sh が Nix の default profile の cacert を指す。
+  # この cacert は Nix のインストール時のまま更新されないため、flake の nixpkgs に追従させる。
+  # Linux では nix-daemon.sh がディストリの CA バンドルを指すので上書きしない。
+  home.sessionVariables.NIX_SSL_CERT_FILE = "${cacertWithoutEmudhraRoots}/etc/ssl/certs/ca-bundle.crt";
+{{- end }}
 
   # Pueue: CLI process scheduler and manager
   # `pueue add <command>` でタスク投入、`pueue status` で確認。
