@@ -10,7 +10,7 @@
 "npm:@anthropic-ai/claude-code" = "2.1.307"
 "npm:@kimuson/npm-fw" = "0.0.4"
 "npm:cf" = "1.0.0-beta.20"
-node = "26.2.0"
+node = "26.12.1"
 
 [settings]
 idiomatic_version_file_enable_tools = ["node"]
