@@ -116,6 +116,15 @@ node internal/src/cli.ts pi-agent deliver
 npx vitest run internal/src/pi-agent/deliver.test.ts
 ```
 
+### MCP
+
+Pi の MCP は組み込みの `builtin:mcp` を使う。`pi-mcp-adapter` は入れない。
+
+- adapter は `/mcp` を登録して組み込みを置き換え、インストール時に `~/.pi/agent/settings.json` へ `-builtin:mcp` を書き込む。
+  このファイルは `pi-agent deliver` の生成物なので、配布のたびにその書き込みが巻き戻り、起動のたびに組み込みの `mcp` が読み込まれなかった旨の警告が出る。
+- サーバー定義は `~/.pi/agent/mcp.json` (`mcp deliver` の配布先) をそのまま読める。
+- OAuth を使うサーバー (atlassian、linear など) は `/mcp` または `pi mcp login <server>` でサインインする。トークンは `~/.pi/agent/mcp-auth.json` に保存される。
+
 ### model-profiles.json の制約
 
 - プロファイル名とエージェントの対応は `internal/src/pi-agent/deliver.ts` の `AGENT_MODEL_PROFILES` が唯一の定義場所。
