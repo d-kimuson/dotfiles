@@ -31,6 +31,11 @@ Codex、Pi、OpenCode、GitHub Copilot、Playwright、agent-browser などが対
 反映後は `mise install && mise reshim` を実行する。
 home-manager を反映する場合は activation hook がこの処理を行う。
 
+mise の `npm:` バックエンドは、既定ではライフサイクルスクリプト (preinstall・install・postinstall) を実行しない。
+postinstall でバイナリを配置するパッケージ (`opencode-ai` など) は、`"npm:opencode-ai" = { version = "...", allow_builds = ["opencode-ai"] }` のように `allow_builds` へパッケージ名を列挙する。
+指定しないと shim が postinstall 前のプレースホルダを実行し、`postinstall script was not run` で失敗する。
+`allow_builds` を後から足した場合は `mise install -f npm:<package>@<version>` で入れ直す。
+
 `scripts/update.sh` は指定された npm CLI を `mise upgrade --bump -y` で更新し、更新後の `~/.config/mise/config.toml` を source state へ同期する。
 このスクリプトを実行した後は Git diff を確認して、更新されたバージョンをコミット対象として扱う。
 
