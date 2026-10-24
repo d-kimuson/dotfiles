@@ -32,7 +32,7 @@ Codex、Pi、OpenCode、GitHub Copilot、Playwright、agent-browser などが対
 home-manager を反映する場合は activation hook がこの処理を行う。
 
 mise の `npm:` バックエンドは、既定ではライフサイクルスクリプト (preinstall・install・postinstall) を実行しない。
-postinstall でバイナリを配置するパッケージ (`opencode-ai` など) は、`"npm:opencode-ai" = { version = "...", allow_builds = ["opencode-ai"] }` のように `allow_builds` へパッケージ名を列挙する。
+postinstall でバイナリを配置するパッケージ (`@opencode/cli` など) は、`"npm:@opencode/cli" = { version = "...", allow_builds = ["@opencode/cli"] }` のように `allow_builds` へパッケージ名を列挙する。
 指定しないと shim が postinstall 前のプレースホルダを実行し、`postinstall script was not run` で失敗する。
 `allow_builds` を後から足した場合は `mise install -f npm:<package>@<version>` で入れ直す。
 
