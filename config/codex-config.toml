@@ -1,4 +1,4 @@
-model = "gpt-5.4"
+model = "gpt-6-luna"
 model_reasoning_effort = "medium"
 web_search = "live"
 
