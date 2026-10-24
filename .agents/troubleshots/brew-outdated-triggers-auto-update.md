@@ -23,4 +23,4 @@ HOMEBREW_NO_AUTO_UPDATE=1 brew outdated
 
 ## Why Not Fixed
 
-Homebrew の仕様。`config/claude-settings.json` の `env` に `HOMEBREW_NO_AUTO_UPDATE=1` を入れればエージェントの Bash では抑止できるが、エージェントが行う `brew install` でも formula が古いままになるため、入れるかどうかは方針が決まっていない。
+Homebrew の仕様。`config/agent/claude-settings.json` の `env` に `HOMEBREW_NO_AUTO_UPDATE=1` を入れればエージェントの Bash では抑止できるが、エージェントが行う `brew install` でも formula が古いままになるため、入れるかどうかは方針が決まっていない。

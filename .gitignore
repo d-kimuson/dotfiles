@@ -1,9 +1,8 @@
-config/modular-mcp.json
-config/mcp.template.local.json
-config/pi-agent/providers.local.json
-config/pi-agent/settings.local.json
-config/pi-agent/models.local.json
-config/pi-agent/agents/*.local.json
+config/agent/modular-mcp.json
+config/agent/pi-agent/providers.local.json
+config/agent/pi-agent/settings.local.json
+config/agent/pi-agent/models.local.json
+config/agent/pi-agent/agents/*.local.json
 shell/localrc.sh
 shell/env-secrets.sh
 .claude/settings.local.json

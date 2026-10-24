@@ -24,4 +24,4 @@ HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew upgrade 
 
 ## Why Not Fixed
 
-dependents の自動更新は Homebrew の既定動作。常に無効化すると dependents が outdated なまま残ったり linkage が壊れたりするため、`config/claude-settings.json` の `env` に入れるかどうかは方針が未定。
+dependents の自動更新は Homebrew の既定動作。常に無効化すると dependents が outdated なまま残ったり linkage が壊れたりするため、`config/agent/claude-settings.json` の `env` に入れるかどうかは方針が未定。

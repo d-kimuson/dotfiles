@@ -10,7 +10,7 @@
 | target state | `$HOME` 以下 | source state を apply した結果 |
 | 管理層 | — | chezmoi・home-manager・mise・internal CLI・nix profile の区分。ツールや設定はどれか 1 つで管理する (`docs/overview.md`) |
 | 反映 | — | 変更を対象マシンに適用すること (apply、switch、install、deliver) |
-| 配布 (deliver) | `mcp deliver`、`pi-agent deliver` | `config/` から各ツールの設定ファイルを生成して書き込む |
+| 配布 (deliver) | `mcp deliver`、`pi-agent deliver`、`keybindings deliver` | `config/` から各ツールの設定ファイルを生成して書き込む |
 | マージ設定 | `merge-config` | ツールが書き換える既存の設定を残し、管理するキーだけを合わせる |
 | dry-run | `--dry-run`、`internal/src/dry-run/describe-changes.ts` | 反映せず、変わるキーパスだけを示す |
 | ローカル LLM | `local-llm/`、`localLLM` (`chezmoi/.chezmoidata.toml`) | 同じマシンのツールに `https://llama.localhost` で提供する llama.cpp のルータ。`localLLM` が true のマシンでだけ動かす |

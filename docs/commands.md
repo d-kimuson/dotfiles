@@ -11,8 +11,9 @@
 | chezmoi の source state | `chezmoi diff`、`chezmoi apply`、`chezmoi verify` |
 | home-manager の設定 | `chezmoi apply`、`home-manager switch` |
 | mise の設定のみ | `chezmoi apply`、`mise install && mise reshim` |
-| Claude Code / Codex のマージ設定 | `node internal/src/cli.ts merge-config` |
+| Claude Code / Codex / Command Code のマージ設定 | `node internal/src/cli.ts merge-config` |
 | Pi の生成設定 | `node internal/src/cli.ts pi-agent deliver` |
+| キーバインドの配布 | `node internal/src/cli.ts keybindings deliver` |
 | MCP の共通設定 | `node internal/src/cli.ts mcp deliver` |
 
 この working tree は `~/.local/share/chezmoi` に置かれる前提である。
@@ -25,7 +26,7 @@
 
 | abbreviation | 展開内容 |
 | --- | --- |
-| `dotfiles-apply` | `chezmoi apply --no-tty --keep-going`、`envrc.sh` の読み込み、`home-manager switch`、`sharedrc.sh` の読み込み、Pi 設定配布、Claude/Codex 設定マージ |
+| `dotfiles-apply` | `chezmoi apply --no-tty --keep-going`、`envrc.sh` の読み込み、`home-manager switch`、`sharedrc.sh` の読み込み、Pi 設定配布、Claude/Codex/Command Code 設定マージ、キーバインド配布 |
 | `reload` | `chezmoi apply`、`home-manager switch`、`sharedrc.sh` の読み込み |
 | `reload-force` | `chezmoi apply`、`home-manager switch`、ログインシェルの再起動 |
 

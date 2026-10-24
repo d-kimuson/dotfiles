@@ -5,24 +5,33 @@ import path from "node:path"
 import { Command } from "commander"
 import { mergeConfigs } from "./merge-config/merge.ts"
 import { deliverMcpConfig } from "./mcp/deliver.ts"
+import {
+  deliverKeybindings,
+  KEYBINDING_TARGETS,
+  type KeybindingTarget,
+} from "./keybindings/deliver.ts"
 import { aggregateLlmUsage } from "./llm-usage/aggregate.ts"
 import { startDashboardServer } from "./llm-usage/dashboard.ts"
 import { deliverPiAgentConfig } from "./pi-agent/deliver.ts"
 
-const VALID_TARGETS = ["claude-code", "claude-desktop", "codex", "pi-agent"] as const
+const VALID_TARGETS = ["claude-code", "claude-desktop", "codex", "pi-agent", "command-code", "opencode"] as const
 type Target = (typeof VALID_TARGETS)[number]
 
 const DOTFILES_ROOT = path.join(homedir(), ".local/share/chezmoi")
 
 const CONFIG_ENTRIES = [
   {
-    source: path.join(DOTFILES_ROOT, "config/claude-settings.json"),
+    source: path.join(DOTFILES_ROOT, "config/agent/claude-settings.json"),
     target: path.join(homedir(), ".claude/settings.json"),
     hooksState: path.join(homedir(), ".local/state/dotfiles/claude-settings-hooks.json"),
   },
   {
-    source: path.join(DOTFILES_ROOT, "config/codex-config.toml"),
+    source: path.join(DOTFILES_ROOT, "config/agent/codex-config.toml"),
     target: path.join(homedir(), ".codex/config.toml"),
+  },
+  {
+    source: path.join(DOTFILES_ROOT, "config/agent/commandcode-config.json"),
+    target: path.join(homedir(), ".commandcode/config.json"),
   },
 ] as const
 
@@ -170,7 +179,7 @@ mcp
   .description("Deliver MCP configuration from template to target platforms")
   .option(
     "--target <targets>",
-    "Target platforms separated by | (all|claude-code|claude-desktop|codex|pi-agent)",
+    "Target platforms separated by | (all|claude-code|claude-desktop|codex|pi-agent|command-code|opencode)",
     parseTargets,
     ALL_TARGETS
   )
@@ -181,6 +190,49 @@ mcp
       readonly dryRun?: boolean
     }) => {
       await deliverMcpConfig({
+        targets: opts.target,
+        dryRun: opts.dryRun ?? false,
+      })
+    }
+  )
+
+const isKeybindingTarget = (value: string): value is KeybindingTarget =>
+  (KEYBINDING_TARGETS as readonly string[]).includes(value)
+
+const parseKeybindingTargets = (
+  value: string
+): readonly KeybindingTarget[] => {
+  if (value === "all") return KEYBINDING_TARGETS
+  const targets = value.split("|")
+  const invalid = targets.filter((target) => !isKeybindingTarget(target))
+  if (invalid.length > 0) {
+    throw new Error(
+      `Invalid target(s): ${invalid.join(", ")}. Valid targets: all, ${KEYBINDING_TARGETS.join(", ")}`
+    )
+  }
+  return targets as readonly KeybindingTarget[]
+}
+
+const keybindings = program
+  .command("keybindings")
+  .description("Keybinding configuration management")
+
+keybindings
+  .command("deliver")
+  .description("Deliver the shared keymap to each coding agent")
+  .option(
+    "--target <targets>",
+    "Targets separated by | (all|claude-code|codex|pi-agent|command-code|opencode)",
+    parseKeybindingTargets,
+    KEYBINDING_TARGETS
+  )
+  .option("--dry-run", "Show what would be written without making changes")
+  .action(
+    async (opts: {
+      readonly target: readonly KeybindingTarget[]
+      readonly dryRun?: boolean
+    }) => {
+      await deliverKeybindings({
         targets: opts.target,
         dryRun: opts.dryRun ?? false,
       })

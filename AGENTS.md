@@ -2,7 +2,7 @@
 
 ## Overview
 
-複数のマシンで同じ開発環境を再現するための個人用 dotfiles。マシン間で共通の設定と、chezmoi テンプレートでマシンごとに変える設定を 1 か所で管理し、コーディングエージェント (Claude Code・Codex・Pi・Copilot CLI) と MCP の設定も配布する。
+複数のマシンで同じ開発環境を再現するための個人用 dotfiles。マシン間で共通の設定と、chezmoi テンプレートでマシンごとに変える設定を 1 か所で管理し、コーディングエージェント (Claude Code・Codex・Pi・Copilot CLI・Command Code) と MCP の設定も配布する。
 
 技術スタック: chezmoi・home-manager (Nix)・mise・TypeScript (Node.js 26、pnpm) の internal-cli
 
@@ -12,13 +12,16 @@
 .
 ├── AGENTS.md        # エージェント向けの入口 (CLAUDE.md はこれへの symlink)
 ├── chezmoi/         # source state のルート (.chezmoiroot)。$HOME へ配布するファイル
-│   ├── dot_agents/          # ~/.agents: グローバルの skills、prompts、prompts が使う資料 (deps)
+│   ├── dot_agents/          # ~/.agents: グローバルの memory、skills、prompts、prompts が使う資料 (deps)
 │   ├── dot_claude/          # ~/.claude: Claude Code の設定、hooks (language-guard など)、ローカルプラグイン (local-plugins)
 │   ├── dot_codex/           # ~/.codex: Codex の指示と skills・prompts への symlink
+│   ├── dot_commandcode/     # ~/.commandcode: Command Code の memory と commands への symlink
 │   ├── dot_copilot/         # ~/.copilot: Copilot CLI の MCP 設定
-│   ├── private_dot_config/  # ~/.config: home-manager、mise、zabrze など
-│   └── private_dot_pi/      # ~/.pi: Pi の設定と extensions
-├── config/          # internal-cli がマージ・生成して配布する設定 (MCP、Claude/Codex、Pi)
+│   ├── private_dot_config/  # ~/.config: home-manager、mise、zabrze、opencode など
+│   └── private_dot_pi/      # ~/.pi: Pi の設定、AGENTS、拡張 (keybindings は internal-cli が生成)
+├── config/          # internal-cli がマージ・生成して配布する設定
+│   ├── agent/       # Agent 設定の master (MCP、キーバインド、Claude/Codex/Command Code、Pi)
+│   └── starship.toml
 ├── internal/        # internal-cli (TypeScript)。設定の配布とマージ、LLM 利用量の集計
 ├── shell/           # ターゲット環境で読み込むシェル設定と秘密情報のテンプレート
 ├── scripts/         # 新しいマシンのセットアップと一括更新
@@ -38,7 +41,7 @@
 | `home-manager switch` | Nix の設定がビルドでき、ツールが入る | home-manager の設定を変更した (`chezmoi apply` の後) |
 | `mise install && mise reshim` | CLI とランタイムが入る | mise の設定だけを変更した (`chezmoi apply` の後) |
 | `pnpm --dir internal exec tsc -p ~/.claude/local-plugins/<name> --noEmit` → 配布先で `claude plugin test` | ローカルプラグインの型検査とテスト | `chezmoi/dot_claude/local-plugins/` を変更した (`chezmoi apply` の後) |
-| `node internal/src/cli.ts mcp deliver` / `merge-config` / `pi-agent deliver` | 設定を生成・マージして配布できる | `config/` か配布ロジックを変更した (変更に対応するものだけ) |
+| `node internal/src/cli.ts mcp deliver` / `merge-config` / `pi-agent deliver` / `keybindings deliver` | 設定を生成・マージして配布できる | `config/` か配布ロジックを変更した (変更に対応するものだけ) |
 
 CI は `chezmoi init --apply` だけを実行し、型検査とテストは実行しない。
 反映のコマンドは、この working tree が `~/.local/share/chezmoi` にあるときだけ実行する。別の checkout (worktree など) では型検査とテストまでにする。
@@ -64,7 +67,8 @@ Always read every reference relevant to the task before making changes.
 | chezmoi・home-manager・mise・shell の設定を変更・反映する | `.agents/skills/chezmoi/` skill |
 | マシンに配るツールを追加・更新・削除する | `docs/tool-management.md` |
 | MCP の設定を変更する | `docs/mcp.md` |
-| Claude Code・Codex・Pi・Copilot の設定を変更する | `docs/coding-agents.md` |
+| キーバインドを変更する | `docs/keybindings.md` |
+| Claude Code・Codex・Pi・Copilot・Command Code の設定を変更する | `docs/coding-agents.md` |
 | 設定変更を反映する、初期セットアップや更新をする | `docs/commands.md` |
 | LLM 利用量の観測や集計を変更する | `docs/features/llm-usage-observation.md` |
 | ローカル LLM のサーバやモデルを変更・運用する | `docs/features/local-llm.md` |

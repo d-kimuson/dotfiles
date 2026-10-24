@@ -3,7 +3,7 @@
 ## 編集規約
 
 chezmoi が管理するターゲットファイルを直接編集しない。
-`~/.zshrc`、`~/.config/**`、`~/.claude/**`、`~/.codex/**`、`~/.pi/**` などを変更する場合は、対応する `chezmoi/` 配下の source state を変更する。
+`~/.zshrc`、`~/.config/**`、`~/.claude/**`、`~/.codex/**`、`~/.pi/**`、`~/.commandcode/**` などを変更する場合は、対応する `chezmoi/` 配下の source state を変更する。
 
 このリポジトリを working tree として開いているときは `chezmoi/` を直接編集する。
 稼働中のターゲットから変更を取り込むときは `chezmoi add`、`chezmoi re-add`、`chezmoi merge` を用途に応じて使う。

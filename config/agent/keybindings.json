@@ -1,0 +1,15 @@
+{
+  "editor.cursorUp": ["up", "ctrl+p"],
+  "editor.cursorDown": ["down", "ctrl+n"],
+  "editor.cursorLeft": ["left", "ctrl+b"],
+  "editor.cursorRight": ["right", "ctrl+f"],
+  "editor.lineStart": ["home", "ctrl+a"],
+  "editor.lineEnd": ["end", "ctrl+e"],
+  "editor.newline": ["shift+enter", "ctrl+enter", "alt+enter", "ctrl+j"],
+  "model.cycleForward": ["ctrl+alt+p"],
+  "model.cycleBackward": ["ctrl+shift+alt+p"],
+  "command.palette": ["ctrl+k"],
+  "history.previous": ["up", "ctrl+p"],
+  "history.next": ["down", "ctrl+n"],
+  "voice.dictationSingleTap": ["ctrl+m"]
+}

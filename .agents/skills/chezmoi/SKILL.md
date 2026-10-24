@@ -10,30 +10,53 @@ user-invocable: true
 このスキルは、このリポジトリの dotfiles を変更するときに使う。
 常に **chezmoi の source state** を正とし、ターゲットファイルを直接編集しない。
 
+## 設計原則
+
+- ローカルの Agent は特定の CLI にロックインしない。dotfiles 側に設定の抽象化レイヤーを置き、各 CLI は配布先として扱う。
+- 正本は 1 つにする。静的で共有できるものは chezmoi の symlink、形式変換が必要なものは `internal-cli` の deliver、アプリが書き換えるものは `merge-config` に任せる。
+- マシン固有の値は Git 管理外に置く。`*.local.json`、`shell/localrc.sh`、`shell/env-secrets.sh`、環境変数を使う。
+- 詳しい設計は `references/` に分割している。変更前に該当する reference を読む。
+
 ## リポジトリ構造
 
 - `.chezmoiroot` が source state のルートとして `chezmoi/` を指定する。
 - `chezmoi/` 配下の `dot_`、`private_dot_`、`executable_`、`symlink_` などは chezmoi の source state attributes である。
   属性を変えるときは命名規則を手で推測せず、`chezmoi chattr` と公式リファレンスを確認する。
-- `chezmoi/dot_claude/` は `~/.claude/`、`chezmoi/dot_zshrc.tmpl` は `~/.zshrc`、`chezmoi/private_dot_config/` は `~/.config/` に対応する。
+- `chezmoi/dot_claude/` は `~/.claude/`、`chezmoi/dot_codex/` は `~/.codex/`、`chezmoi/dot_commandcode/` は `~/.commandcode/`、`chezmoi/private_dot_pi/` は `~/.pi/` に対応する。
+  `chezmoi/dot_agents/` は `~/.agents/` で、グローバルの memory、skills、prompts の正本である。
 - `shell/` は working tree に置く共有シェルスクリプトである。
-  `.zshrc` は `shell/sharedrc.sh` を読み込み、`sharedrc.sh` は `shell/alias.sh` を読み込む。
+  `.zshrc` は `shell/sharedrc.sh` を読み込み、`sharedrc.sh` は `shell/alias.sh` と `shell/localrc.sh` を読み込む。
   `shell/localrc.sh` は Git 管理しないマシン固有の上書き用である。
-- `config/` は chezmoi のターゲットではない配布用設定、`scripts/` はセットアップ・保守スクリプト、`internal/` は設定を配布する TypeScript CLI である。
+- `config/` は chezmoi のターゲットではない配布用設定 (`config/agent/mcp.template.json`、`config/agent/keybindings.json`、`config/agent/commandcode-config.json` など)、`scripts/` はセットアップ・保守スクリプト、`internal/` は設定を配布する TypeScript CLI である。
+  Agent 関連の master は `config/agent/` に置き、`config/starship.toml` だけをルートに残す。
 
 ## このリポジトリでの編集規約
 
-1. `~/.zshrc`、`~/.config/**`、`~/.claude/**` など、chezmoi 管理下のターゲットは編集しない。
+1. `~/.zshrc`、`~/.config/**`、`~/.claude/**`、`~/.codex/**`、`~/.pi/**`、`~/.commandcode/**` など、chezmoi 管理下のターゲットは編集しない。
    対応する `chezmoi/` のソースを編集する。
-2. このリポジトリを checkout して作業するときは、`chezmoi/` を直接編集してよい。
+2. 1 つのターゲットを 2 つの層で管理しない。
+   chezmoi の `symlink_` と `internal-cli` の deliver が同じファイルを書くと `chezmoi verify` が失敗する。
+   例: Pi の keybindings は chezmoi から `keybindings deliver` に移した。
+3. このリポジトリを checkout して作業するときは、`chezmoi/` を直接編集してよい。
    稼働中のターゲットから取り込む必要があるときは `chezmoi add`、`chezmoi re-add`、または `chezmoi merge` を用途に応じて使う。
    `re-add` はテンプレートと併用できない。
-3. 対話的に source state を編集するだけなら `chezmoi edit <target>` も使える。
+4. 対話的に source state を編集するだけなら `chezmoi edit <target>` も使える。
    テンプレート・暗号化ファイルを透過的に扱えるが、このリポジトリの変更として残すには Git diff を必ず確認する。
-4. 新しい依存関係は、まず `nix search nixpkgs <package>` で nixpkgs を確認する。
+5. 新しい依存関係は、まず `nix search nixpkgs <package>` で nixpkgs を確認する。
    見つかった `legacyPackages.<system>.<name>` は通常 `pkgs.<name>` として `chezmoi/private_dot_config/home-manager/home.nix.tmpl` に追加する。
    npm のグローバルインストールや手動ダウンロードより home-manager を優先する。
-5. Node.js などのランタイムバージョンは `chezmoi/private_dot_config/mise/config.toml` で管理する。
+6. Node.js などのランタイムバージョンは `chezmoi/private_dot_config/mise/config.toml` で管理する。
+
+## 設計と配布パターン
+
+設計の背景と、target ごとの配布方法の使い分けは references に分割している。
+
+| いつ読むか | 参照先 |
+| --- | --- |
+| Agent 設定の抽象化、target の所有権、新しい CLI の追加 | `references/agent-config-model.md` |
+| MCP の layer / remote / マシン固有の追加分 | `references/mcp.md` |
+| memory / skills / prompts の一本化 | `references/memory-skills-prompts.md` |
+| chezmoi / merge-config / deliver の使い分け | `references/delivery-patterns.md` |
 
 ## Skill / Agent 設定を chezmoi で配布するときの注意
 
@@ -69,6 +92,12 @@ chezmoi managed | grep '<配布先の相対パス>'
 ファイルを削除・リネームしたときは、配布先の古いファイルが残らないか確認する。
 `chezmoi apply` は source state から消えたファイルを配布先から自動では消さず、`chezmoi verify` もこの残留を検出しない (`.agents/troubleshots/chezmoi-apply-does-not-remove-deleted-source-files.md`)。
 
+## 移行スクリプト (run_*)
+
+`run_once_*`、`run_onchange_*` で chezmoi 管理下のターゲットを削除しない。
+削除すると apply はそのターゲットを `<target> has changed since chezmoi last wrote it?` として確認を求め、対話できない環境では `could not open a new TTY` で止まる。
+実体のファイル・ディレクトリを symlink に置き換える移行では、`[ ! -L "$path" ]` を条件に加え、実体のときだけ消す。
+
 ## テンプレート
 
 - 環境差分が必要な部分だけ `.tmpl` を使う。
@@ -94,9 +123,10 @@ chezmoi managed | grep '<配布先の相対パス>'
 2. `chezmoi diff` で target state と現在のターゲットとの差分を確認する。
    影響範囲を先に確認するだけなら `chezmoi apply --dry-run --verbose` を使う。
 3. `chezmoi apply` で反映する。
-   このリポジトリでは zabrze の `dotfiles-apply` abbreviation が、`chezmoi apply --no-tty --keep-going`、環境変数の読み込み、`home-manager switch`、`internal-cli pi-agent deliver`、`internal-cli merge-config` を連結する。
+   このリポジトリでは zabrze の `dotfiles-apply` abbreviation が、`chezmoi apply --no-tty --keep-going`、環境変数の読み込み、`home-manager switch`、`internal-cli pi-agent deliver`、`internal-cli merge-config`、`internal-cli keybindings deliver` を連結する。
    これは zabrze の abbreviation であり、非対話シェルや CI でコマンドとして存在するとは限らない。
    必要な処理は個別コマンドとして明示して実行する。
+   MCP 設定は `dotfiles-apply` に含まれないため、変更時は `internal-cli mcp deliver` を明示的に実行する。
 4. 反映後は `chezmoi verify` で target state との一致を確認する。
    `chezmoi verify` は成功時に終了コード 0 を返すため、自動検証にも使える。
 5. Nix の変更は `home-manager switch` の成否も確認する。

@@ -3,8 +3,15 @@ import { homedir } from "node:os"
 import path from "node:path"
 import { parse as parseTOML, stringify as stringifyTOML } from "smol-toml"
 import { diffKeyPaths, formatDryRunReport } from "../dry-run/describe-changes.ts"
+import { isPlainObject } from "../merge-config/json.ts"
 
-type Target = "claude-code" | "claude-desktop" | "codex" | "pi-agent"
+type Target =
+  | "claude-code"
+  | "claude-desktop"
+  | "codex"
+  | "pi-agent"
+  | "command-code"
+  | "opencode"
 
 type McpServerEntry = Readonly<Record<string, unknown>>
 
@@ -16,15 +23,25 @@ type ExpandResult =
   | { readonly ok: true; readonly value: unknown }
   | { readonly ok: false; readonly missing: readonly string[] }
 
-const getTemplatePath = (): string => {
-  return path.join(homedir(), ".local/share/chezmoi/config/mcp.template.json")
-}
+const ALLOWED_LAYERS = ["core", "personal"] as const
+type Layer = (typeof ALLOWED_LAYERS)[number]
 
-const getTemplateLocalPath = (): string => {
-  return path.join(
-    homedir(),
-    ".local/share/chezmoi/config/mcp.template.local.json"
-  )
+/** cloud connector で代替できる target。remote な MCP は配らない */
+const CONNECTOR_TARGETS: ReadonlySet<Target> = new Set([
+  "claude-code",
+  "claude-desktop",
+  "codex",
+])
+
+/** 配布先の MCP 一覧をテンプレートで全置換する target */
+const REPLACE_TARGETS: ReadonlySet<Target> = new Set([
+  "pi-agent",
+  "command-code",
+  "opencode",
+])
+
+const getTemplatePath = (): string => {
+  return path.join(homedir(), ".local/share/chezmoi/config/agent/mcp.template.json")
 }
 
 const getTargetConfigPaths = (): Readonly<Record<Target, string>> => {
@@ -36,6 +53,8 @@ const getTargetConfigPaths = (): Readonly<Record<Target, string>> => {
     ),
     codex: path.join(homedir(), ".codex/config.toml"),
     "pi-agent": path.join(homedir(), ".pi/agent/mcp.json"),
+    "command-code": path.join(homedir(), ".commandcode/mcp.json"),
+    opencode: path.join(homedir(), ".config/opencode/opencode.json"),
   }
 }
 
@@ -106,12 +125,60 @@ const parseMcpTemplate = (content: string): McpTemplate => {
   return parsed as McpTemplate
 }
 
+const getEnabledLayers = (): ReadonlySet<Layer> => {
+  const raw = process.env["MCP_LAYERS"] ?? "core"
+  const layers = raw
+    .split(",")
+    .map((layer) => layer.trim())
+    .filter((layer) => layer.length > 0)
+  if (layers.length === 0) return new Set(["core"])
+  const invalid = layers.filter(
+    (layer): layer is string => !ALLOWED_LAYERS.includes(layer as Layer)
+  )
+  if (invalid.length > 0) {
+    throw new Error(
+      `Invalid MCP_LAYERS: ${invalid.join(", ")}. Valid layers: ${ALLOWED_LAYERS.join(", ")}`
+    )
+  }
+  return new Set(layers as readonly Layer[])
+}
+
+const getLayer = (name: string, entry: McpServerEntry): Layer => {
+  const value = entry["layer"] ?? "core"
+  if (
+    typeof value !== "string" ||
+    !ALLOWED_LAYERS.includes(value as Layer)
+  ) {
+    throw new Error(
+      `Server ${name} has an invalid layer: ${String(value)}. Valid layers: ${ALLOWED_LAYERS.join(", ")}`
+    )
+  }
+  return value as Layer
+}
+
 const resolveServers = (
-  template: McpTemplate
+  servers: Readonly<Record<string, McpServerEntry>>
 ): Record<string, McpServerEntry> => {
   const resolved: Record<string, McpServerEntry> = {}
 
-  for (const [name, entry] of Object.entries(template.mcpServers)) {
+  for (const [name, entry] of Object.entries(servers)) {
+    const requiredEnv = entry["requiresEnv"]
+    if (requiredEnv !== undefined) {
+      if (
+        !Array.isArray(requiredEnv) ||
+        !requiredEnv.every((envName): envName is string => typeof envName === "string")
+      ) {
+        throw new Error(`Server ${name} has invalid requiresEnv`)
+      }
+      const missing = requiredEnv.filter(
+        (envName) => resolveEnvVar(envName) === undefined
+      )
+      if (missing.length > 0) {
+        console.log(`  ⊘ Skipped (requires env not set): ${name}`)
+        continue
+      }
+    }
+
     const result = expandEnvVarsDeep(entry)
     if (!result.ok) {
       console.warn(
@@ -138,23 +205,24 @@ const getDisabledMcps = (): ReadonlySet<string> => {
 const readTemplate = async (): Promise<
   Readonly<Record<string, McpServerEntry>>
 > => {
+  const enabledLayers = getEnabledLayers()
+  console.log(`Layers: ${[...enabledLayers].join(", ")}`)
+
   const content = await readFile(getTemplatePath(), "utf-8")
   const template = parseMcpTemplate(content)
-  const resolved = resolveServers(template)
+  const selected: Record<string, McpServerEntry> = {}
 
-  // Merge local template if it exists
-  try {
-    const localPath = getTemplateLocalPath()
-    const localContent = await readFile(localPath, "utf-8")
-    const localTemplate = parseMcpTemplate(localContent)
-    const localResolved = resolveServers(localTemplate)
-    Object.assign(resolved, localResolved)
-    console.log(`Local template: ${localPath}`)
-  } catch {
-    // Local template does not exist, skip silently
+  for (const [name, entry] of Object.entries(template.mcpServers)) {
+    const layer = getLayer(name, entry)
+    if (!enabledLayers.has(layer)) {
+      console.log(`  ⊘ Layer ${layer} disabled: ${name}`)
+      continue
+    }
+    selected[name] = entry
   }
 
-  // Remove disabled servers
+  const resolved = resolveServers(selected)
+
   const disabled = getDisabledMcps()
   for (const name of disabled) {
     if (name in resolved) {
@@ -203,6 +271,105 @@ const mergeJsonMcpServers = async (
     console.log(`  Updated: ${filePath}`)
   }
   console.log(`  Merged servers: ${Object.keys(servers).join(", ")}`)
+}
+
+/** Convert a Claude Code style entry to Command Code's schema (`type` → `transport`) */
+const toCommandCodeEntry = (entry: McpServerEntry): McpServerEntry => {
+  const result: Record<string, unknown> = {
+    transport: entry["type"] === "http" ? "http" : "stdio",
+  }
+
+  for (const key of ["command", "args", "env", "url", "headers", "oauth"] as const) {
+    if (key in entry) result[key] = entry[key]
+  }
+
+  return result
+}
+
+/** Convert a Claude Code style entry to OpenCode's `mcp.servers` schema */
+const toOpenCodeEntry = (entry: McpServerEntry): McpServerEntry => {
+  if (entry["type"] === "http") {
+    const result: Record<string, unknown> = {
+      type: "remote",
+      url: entry["url"],
+    }
+    for (const key of ["headers", "oauth", "timeout", "enabled"] as const) {
+      if (key in entry) result[key] = entry[key]
+    }
+    return result
+  }
+
+  const command = entry["command"]
+  if (typeof command !== "string") {
+    throw new Error("OpenCode local MCP requires a command")
+  }
+  const rawArgs = entry["args"]
+  if (
+    rawArgs !== undefined &&
+    (!Array.isArray(rawArgs) ||
+      !rawArgs.every((arg) => typeof arg === "string"))
+  ) {
+    throw new Error("OpenCode MCP args must be strings")
+  }
+  const args = Array.isArray(rawArgs) ? (rawArgs as readonly string[]) : []
+  const result: Record<string, unknown> = {
+    type: "local",
+    command: [command, ...args],
+  }
+  if ("env" in entry) result["environment"] = entry["env"]
+  for (const key of ["cwd", "timeout", "enabled"] as const) {
+    if (key in entry) result[key] = entry[key]
+  }
+  return result
+}
+
+/**
+ * Generated MCP files are replaced, not merged, so servers from other agents
+ * or previous delivery do not linger.
+ */
+const replaceJsonMcpServers = async (
+  filePath: string,
+  servers: Readonly<Record<string, McpServerEntry>>,
+  dryRun: boolean
+): Promise<void> => {
+  const existing = await readJsonFile(filePath)
+  const merged = {
+    ...existing,
+    mcpServers: servers,
+  }
+
+  const output = JSON.stringify(merged, null, 2) + "\n"
+
+  if (dryRun) {
+    console.log(formatDryRunReport(filePath, diffKeyPaths(existing, merged)))
+  } else {
+    await writeFile(filePath, output, "utf-8")
+    console.log(`  Updated: ${filePath}`)
+  }
+  console.log(`  Replaced servers: ${Object.keys(servers).join(", ")}`)
+}
+
+const replaceOpenCodeMcpServers = async (
+  filePath: string,
+  servers: Readonly<Record<string, McpServerEntry>>,
+  dryRun: boolean
+): Promise<void> => {
+  const existing = await readJsonFile(filePath)
+  const existingMcp = isPlainObject(existing["mcp"]) ? existing["mcp"] : {}
+  const merged = {
+    ...existing,
+    mcp: { ...existingMcp, servers },
+  }
+
+  const output = JSON.stringify(merged, null, 2) + "\n"
+
+  if (dryRun) {
+    console.log(formatDryRunReport(filePath, diffKeyPaths(existing, merged)))
+  } else {
+    await writeFile(filePath, output, "utf-8")
+    console.log(`  Updated: ${filePath}`)
+  }
+  console.log(`  Replaced servers: ${Object.keys(servers).join(", ")}`)
 }
 
 const readTomlFile = async (
@@ -321,7 +488,13 @@ const toDesktopServers = async (
 }
 
 const ensureTargetParentDir = async (target: Target, filePath: string): Promise<void> => {
-  if (target !== "pi-agent") return
+  if (
+    target !== "pi-agent" &&
+    target !== "command-code" &&
+    target !== "opencode"
+  ) {
+    return
+  }
   await mkdir(path.dirname(filePath), { recursive: true })
 }
 
@@ -337,7 +510,17 @@ const filterServersForTarget = (
       console.log(`  ⊘ Excluded from ${target}: ${name}`)
       continue
     }
-    const { excludeTargets: _, ...rest } = entry as Record<string, unknown>
+    if (entry["remote"] === true && CONNECTOR_TARGETS.has(target)) {
+      console.log(`  ⊘ Remote MCP skipped for connector target ${target}: ${name}`)
+      continue
+    }
+    const {
+      excludeTargets: _excludeTargets,
+      layer: _layer,
+      remote: _remote,
+      requiresEnv: _requiresEnv,
+      ...rest
+    } = entry as Record<string, unknown>
     filtered[name] = rest as McpServerEntry
   }
 
@@ -365,12 +548,11 @@ const generateForTarget = async (
 
   if (Object.keys(targetServers).length === 0) {
     console.log(`  No servers for this target.`)
-    return
+    if (!REPLACE_TARGETS.has(target)) return
   }
 
   switch (target) {
     case "claude-code":
-    case "pi-agent":
       await mergeJsonMcpServers(configPath, targetServers, dryRun)
       break
     case "claude-desktop":
@@ -383,6 +565,29 @@ const generateForTarget = async (
     case "codex":
       await mergeTomlMcpServers(configPath, targetServers, dryRun)
       break
+    case "pi-agent":
+      await replaceJsonMcpServers(configPath, targetServers, dryRun)
+      break
+    case "command-code": {
+      const commandCodeServers = Object.fromEntries(
+        Object.entries(targetServers).map(([name, entry]) => [
+          name,
+          toCommandCodeEntry(entry),
+        ])
+      )
+      await replaceJsonMcpServers(configPath, commandCodeServers, dryRun)
+      break
+    }
+    case "opencode": {
+      const openCodeServers = Object.fromEntries(
+        Object.entries(targetServers).map(([name, entry]) => [
+          name,
+          toOpenCodeEntry(entry),
+        ])
+      )
+      await replaceOpenCodeMcpServers(configPath, openCodeServers, dryRun)
+      break
+    }
   }
 }
 
@@ -409,10 +614,9 @@ export const deliverMcpConfig = async (
 
   if (serverNames.length === 0) {
     console.log("No servers to deliver (all skipped).")
-    return
+  } else {
+    console.log(`Servers: ${serverNames.join(", ")}`)
   }
-
-  console.log(`Servers: ${serverNames.join(", ")}`)
 
   for (const target of options.targets) {
     await generateForTarget(target, servers, options.dryRun)

@@ -1,0 +1,7 @@
+{
+  "model": "deepseek/deepseek-v4.1-flash",
+  "reasoningEffort": {
+    "deepseek/deepseek-v4.1-flash": "high"
+  },
+  "imageVisionEnabled": true
+}

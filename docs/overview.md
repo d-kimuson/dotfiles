@@ -37,8 +37,9 @@
 | `chezmoi/` | `chezmoi apply` |
 | home-manager の Nix 設定 | `chezmoi apply` の後に `home-manager switch` |
 | mise 設定 | `chezmoi apply` の後に `mise install && mise reshim`。通常は `home-manager switch` が実行する |
-| `config/mcp.template.json` | `internal-cli mcp deliver` |
-| `config/claude-settings.json` または `config/codex-config.toml` | `internal-cli merge-config` |
-| `config/pi-agent/` または Pi のモデルプロファイル | `internal-cli pi-agent deliver` |
+| `config/agent/mcp.template.json` | `internal-cli mcp deliver` |
+| `config/agent/claude-settings.json`、`config/agent/codex-config.toml`、または `config/agent/commandcode-config.json` | `internal-cli merge-config` |
+| `config/agent/pi-agent/` または Pi のモデルプロファイル | `internal-cli pi-agent deliver` |
+| `config/agent/keybindings.json` | `internal-cli keybindings deliver` |
 
 各コマンドの詳細は [コマンド](commands.md) を参照する。

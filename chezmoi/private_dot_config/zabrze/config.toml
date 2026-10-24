@@ -86,6 +86,11 @@ trigger = "codex-auto"
 snippet = "codex --dangerously-bypass-approvals-and-sandbox"
 
 [[snippets]]
+name = "command code auto"
+trigger = "cmd-auto"
+snippet = "cmd --yolo"
+
+[[snippets]]
 name = "cursor auto"
 trigger = "cursor-auto"
 snippet = "agent --yolo"
@@ -94,7 +99,7 @@ snippet = "agent --yolo"
 [[snippets]]
 name = "dotfiles apply"
 trigger = "dotfiles-apply"
-snippet = "chezmoi apply --no-tty --keep-going && source ~/.local/share/chezmoi/shell/envrc.sh && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh && internal-cli pi-agent deliver && internal-cli merge-config"
+snippet = "chezmoi apply --no-tty --keep-going && source ~/.local/share/chezmoi/shell/envrc.sh && home-manager switch && source ~/.local/share/chezmoi/shell/sharedrc.sh && internal-cli pi-agent deliver && internal-cli merge-config && internal-cli keybindings deliver"
 
 [[snippets]]
 name = "reload"

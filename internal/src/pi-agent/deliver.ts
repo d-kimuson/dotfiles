@@ -45,7 +45,7 @@ const AGENT_MODEL_PROFILES = {
 
 const getPaths = () => {
   const dotfilesRoot = path.join(homedir(), ".local/share/chezmoi")
-  const piAgentConfigRoot = path.join(dotfilesRoot, "config/pi-agent")
+  const piAgentConfigRoot = path.join(dotfilesRoot, "config/agent/pi-agent")
 
   return {
     modelProfilesSource: path.join(

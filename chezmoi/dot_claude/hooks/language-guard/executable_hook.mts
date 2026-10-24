@@ -12,7 +12,7 @@
  *
  * ソース: chezmoi/dot_claude/hooks/language-guard/executable_hook.mts
  * 配布先: ~/.claude/hooks/language-guard/hook.mts (chezmoi)
- * 登録: config/claude-settings.json の hooks
+ * 登録: config/agent/claude-settings.json の hooks
  */
 
 import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";

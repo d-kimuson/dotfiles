@@ -17,7 +17,7 @@ const readJson = async (filePath: string): Promise<unknown> => {
 beforeEach(async () => {
   homeDir = await mkdtemp(testRootPrefix)
   process.env["HOME"] = homeDir
-  configDir = path.join(homeDir, ".local/share/chezmoi/config/pi-agent")
+  configDir = path.join(homeDir, ".local/share/chezmoi/config/agent/pi-agent")
   targetDir = path.join(homeDir, ".pi/agent")
   await mkdir(configDir, { recursive: true })
 })

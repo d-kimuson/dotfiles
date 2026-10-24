@@ -1,26 +1,31 @@
 # Coding Agent 設定の配布
 
-Claude Code、Codex、Pi、GitHub Copilot の設定は、chezmoi によるファイル配布と `internal-cli` によるマージ・生成配布を組み合わせて管理する。
+Claude Code、Codex、Pi、GitHub Copilot、Command Code の設定は、chezmoi によるファイル配布と `internal-cli` によるマージ・生成配布を組み合わせて管理する。
 ローカル固有の設定は `.local.json` と `settings.local.json` に置き、Git 管理しない。
 
-## Claude Code と Codex
+## Claude Code、Codex、Command Code
 
 | ソース | 配布先 | 配布方法 |
 | --- | --- | --- |
 | `chezmoi/dot_claude/` | `~/.claude/` | chezmoi |
 | `chezmoi/dot_codex/` | `~/.codex/` | chezmoi |
+| `chezmoi/dot_commandcode/` | `~/.commandcode/` | chezmoi |
 | `chezmoi/dot_agents/` | `~/.agents/` | chezmoi |
-| `config/claude-settings.json` | `~/.claude/settings.json` | `internal-cli merge-config` |
-| `config/codex-config.toml` | `~/.codex/config.toml` | `internal-cli merge-config` |
+| `config/agent/claude-settings.json` | `~/.claude/settings.json` | `internal-cli merge-config` |
+| `config/agent/codex-config.toml` | `~/.codex/config.toml` | `internal-cli merge-config` |
+| `config/agent/commandcode-config.json` | `~/.commandcode/config.json` | `internal-cli merge-config` |
 
 `chezmoi/dot_codex/symlink_prompts` は Claude Code の commands を Codex から共有する。`chezmoi/dot_claude/symlink_skills` と `chezmoi/dot_codex/symlink_skills` は、全 Agent 共通の `~/.agents/skills` を共有する。
+Command Code は `~/.agents/skills` を自動で発見するため、skills の symlink を持たない。`chezmoi/dot_commandcode/symlink_commands` は commands を `~/.agents/prompts` から共有する。
+OpenCode の `~/.config/opencode/skills` も `chezmoi/private_dot_config/opencode/symlink_skills` で `~/.agents/skills` を指す。
+グローバルの memory は `chezmoi/dot_agents/AGENTS.md` を正本とし、`~/.claude/CLAUDE.md` と `~/.commandcode/AGENTS.md` はそこへの symlink である。
 `~/.claude/settings.local.json` は Claude Code が直接読むローカル上書きであり、`merge-config` の入力ではない。
 
 ### グローバルの skills と prompts
 
 skill と prompt の分け方と、prompt の資料を `deps/` に分けるパターンは `docs/guidelines/harness.md` の Prompts に従う。グローバルのものは `chezmoi/dot_agents/` の `skills/<name>/`・`prompts/<name>.md`・`deps/<name>/` に置き、`~/.agents/` へ配布する。
 
-prompt の本体では、資料のディレクトリを配布先の絶対パス (`~/.agents/deps/<name>/`) で示す。本体は `~/.claude/commands`・`~/.codex/prompts`・`~/.pi/prompts` の symlink を通して読まれる。
+prompt の本体では、資料のディレクトリを配布先の絶対パス (`~/.agents/deps/<name>/`) で示す。本体は `~/.claude/commands`・`~/.codex/prompts`・`~/.pi/prompts`・`~/.commandcode/commands` の symlink を通して読まれる。
 skill や prompt を削除・移動したときは、配布先の古いディレクトリを `run_once_after_*.sh` で消す (`.agents/troubleshots/chezmoi-apply-does-not-remove-deleted-source-files.md`)。
 
 ### 外部 skill (skills CLI)
@@ -51,7 +56,7 @@ node など mise で入れるツールで動く hook は `~/.claude/hooks/mise-s
 ### ローカルプラグイン (mods)
 
 `chezmoi/dot_claude/local-plugins/` (→ `~/.claude/local-plugins/`) の各サブディレクトリを、Claude Code が全セッションでプラグインとして読み込む。
-読み込みは `config/claude-settings.json` の `env` で有効にする。`CLAUDE_CODE_PLUGIN_DIRS` がこのディレクトリを指し、`CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` が [mods](https://code.claude.com/docs/en/plugins/mods/overview) の hooks module (`hooks/register.ts`) を読み込ませる。
+読み込みは `config/agent/claude-settings.json` の `env` で有効にする。`CLAUDE_CODE_PLUGIN_DIRS` がこのディレクトリを指し、`CLAUDE_CODE_ENABLE_FUNCTION_HOOKS=1` が [mods](https://code.claude.com/docs/en/plugins/mods/overview) の hooks module (`hooks/register.ts`) を読み込ませる。
 mods は early access で、この環境変数がないと hooks module は読み込まれない。
 
 `self-compact` は、Claude が自分のコンテキストを compact して作業を続けるための `compact` ツールを追加する。
@@ -86,24 +91,42 @@ pi 側の `detect.mts` はそこへの symlink (`symlink_detect.mts`) である�
   「英語で書かれた〜」のように入力側を指す言い回しや、「日本語に訳して」のように日本語を求める入力は対象外。
 - pi は対話モード (`tui` / `rpc`) でのみ動き、subagent などの headless 実行には触らない。
 
-Claude Code の hook は `config/claude-settings.json` の `hooks` に登録する。
+Claude Code の hook は `config/agent/claude-settings.json` の `hooks` に登録する。
 変更時は次を実行する。
 
 ```bash
 cd internal && npx vitest run src/language-guard && npx tsc -p . --noEmit
 ```
 
+## キーバインド
+
+キーバインドは `config/agent/keybindings.json` を正本とし、`internal-cli keybindings deliver` で各エージェントへ配布する。
+target ごとの対応表と更新方法は [キーバインドの配布](keybindings.md) を参照する。
+
+## Command Code
+
+`chezmoi/dot_commandcode/` (→ `~/.commandcode/`) が AGENTS.md と commands の symlink を持つ。
+Command Code は `~/.agents/skills` を直接発見するため、`~/.commandcode/skills` は作らない。
+MCP は `mcp deliver` の `command-code` target が `~/.commandcode/mcp.json` をテンプレートから全置換する ([MCP 設定の配布](mcp.md))。
+`config/agent/commandcode-config.json` は `model`、`reasoningEffort`、`imageVisionEnabled` を持ち、`merge-config` が `installed` や `firstMessageSent` などの実行時キーを残してマージする。
+モデルを変えるときは `config/agent/commandcode-config.json` を更新して `merge-config` を実行する。
+
+`~/.commandcode/` に import された skills、commands、AGENTS.md の複製は `chezmoi/run_once_before_migrate-commandcode.sh` で削除する。
+
 ## Pi
 
-Pi の共有設定とモデルプロファイルは `config/pi-agent/` に置く。
+Pi の共有設定とモデルプロファイルは `config/agent/pi-agent/` に置く。
 `internal-cli pi-agent deliver` は共有設定、モデルプロファイル、Git 管理外の `.local.json` をマージして `~/.pi/agent/` へ配布する。
 
 | ソース | 配布先 |
 | --- | --- |
-| `config/pi-agent/settings.json` | `~/.pi/agent/settings.json` |
-| `config/pi-agent/models.json` | `~/.pi/agent/models.json` |
-| `config/pi-agent/agents/frontend_worker.md` | `~/.pi/agent/agents/frontend_worker.md` |
-| `chezmoi/private_dot_pi/agent/` | `~/.pi/agent/` の AGENTS、拡張、skills など |
+| `config/agent/pi-agent/settings.json` | `~/.pi/agent/settings.json` |
+| `config/agent/pi-agent/models.json` | `~/.pi/agent/models.json` |
+| `chezmoi/private_dot_pi/private_agent/` | `~/.pi/agent/` の AGENTS、拡張、skills など (keybindings を除く) |
+
+`internal-cli pi-agent deliver` は旧 `~/.pi/agent/agents/frontend_worker.md` を削除する。
+
+キーバインドは `config/agent/keybindings.json` から `keybindings deliver` が生成する ([キーバインドの配布](keybindings.md))。
 
 Git 管理外の `providers.local.json` は利用可能な provider を指定する。
 `settings.local.json`、`models.local.json`、`agents/*.local.json` はマシン固有の上書きである。
@@ -123,7 +146,7 @@ Pi の MCP は組み込みの `builtin:mcp` を使う。`pi-mcp-adapter` は入�
 - adapter は `/mcp` を登録して組み込みを置き換え、インストール時に `~/.pi/agent/settings.json` へ `-builtin:mcp` を書き込む。
   このファイルは `pi-agent deliver` の生成物なので、配布のたびにその書き込みが巻き戻り、起動のたびに組み込みの `mcp` が読み込まれなかった旨の警告が出る。
 - サーバー定義は `~/.pi/agent/mcp.json` (`mcp deliver` の配布先) をそのまま読める。
-- OAuth を使うサーバー (atlassian、linear など) は `/mcp` または `pi mcp login <server>` でサインインする。トークンは `~/.pi/agent/mcp-auth.json` に保存される。
+- OAuth を使うサーバーは `/mcp` または `pi mcp login <server>` でサインインする。トークンは `~/.pi/agent/mcp-auth.json` に保存される。
 
 ### model-profiles.json の制約
 
@@ -154,3 +177,4 @@ MCP 設定の詳細は [MCP 設定の配布](mcp.md) を参照する。
 Coding Agent の設定を変更した場合は、対応する配布経路を必ず実行する。
 chezmoi のファイルを変更しただけでは `config/` 配下のマージ・生成設定は更新されない。
 逆に `config/` だけを変更しても chezmoi 管理ファイルは更新されない。
+キーバインドは [キーバインドの配布](keybindings.md) の手順で `keybindings deliver` を実行する。

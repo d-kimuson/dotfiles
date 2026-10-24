@@ -65,7 +65,7 @@ describe("classifySegment", () => {
 
 describe("evaluateResponse", () => {
   it("accepts a Japanese response", () => {
-    const text = "変更を反映しました。\n\n- `config/claude-settings.json` に hook を追加\n- テストはすべて成功しています。"
+    const text = "変更を反映しました。\n\n- `config/agent/claude-settings.json` に hook を追加\n- テストはすべて成功しています。"
     expect(evaluateResponse(text)).toEqual({ kind: "ok" })
   })
 

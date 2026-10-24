@@ -74,25 +74,28 @@ export TERM=xterm-256color
 internal-cli mcp deliver
 internal-cli pi-agent deliver
 internal-cli merge-config
+internal-cli keybindings deliver
 ```
 
-- `internal-cli mcp deliver`: `config/mcp.template.json` を各種 MCP 設定へ配布
-  - `~/.pi/agent/` は必要に応じて自動作成
+- `internal-cli mcp deliver`: `config/agent/mcp.template.json` を各種 MCP 設定へ配布
+  - `~/.pi/agent/` / `~/.commandcode/` / `~/.config/opencode/` は必要に応じて自動作成
   - `~/.claude.json`
   - `~/Library/Application Support/Claude/claude_desktop_config.json`
   - `~/.codex/config.toml`
   - `~/.pi/agent/mcp.json`
+  - `~/.commandcode/mcp.json`
+  - `~/.config/opencode/opencode.json`
+- `internal-cli keybindings deliver`: `config/agent/keybindings.json` を各 Agent のキーバインド形式へ配布
 
 ### pi-agent のマシン別設定
 
-`config/pi-agent/` の共有設定とモデルプロファイルをベースに、git 管理しない local 設定を重ねて `~/.pi/agent/` へ配布する。
+`config/agent/pi-agent/` の共有設定とモデルプロファイルをベースに、git 管理しない local 設定を重ねて `~/.pi/agent/` へ配布する。
 
-- `config/pi-agent/providers.local.json`: このマシンで利用可能な provider を `availableProviders` で指定
-- `config/pi-agent/settings.json` + model profile + `config/pi-agent/settings.local.json` → `~/.pi/agent/settings.json`
-- `config/pi-agent/models.json` + existing target + `config/pi-agent/models.local.json` → `~/.pi/agent/models.json`
-- `config/pi-agent/agents/frontend_worker.md` + `design` profile + `config/pi-agent/agents/frontend_worker.local.json` → `~/.pi/agent/agents/frontend_worker.md`
+- `config/agent/pi-agent/providers.local.json`: このマシンで利用可能な provider を `availableProviders` で指定
+- `config/agent/pi-agent/settings.json` + model profile + `config/agent/pi-agent/settings.local.json` → `~/.pi/agent/settings.json`
+- `config/agent/pi-agent/models.json` + existing target + `config/agent/pi-agent/models.local.json` → `~/.pi/agent/models.json`
 
-```json:config/pi-agent/providers.local.json
+```json:config/agent/pi-agent/providers.local.json
 {
   "availableProviders": ["opencode-go", "openai-codex"]
 }
