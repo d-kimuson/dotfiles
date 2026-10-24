@@ -19,8 +19,9 @@ nixos-unstable の `cacert` が 3.131.1 以降になったら、override を外�
 `installCursorAgent` も activation hook として定義されているため、手動で同じ処理を重ねない。
 
 `home.nix.tmpl` は macOS で標準コマンドを GNU 版に統一する。
-`sed` を使うときは GNU 形式で書く (`sed -i 's/.../.../' file`)。
-BSD 形式の `sed -i '' ...` は空文字列が次の引数として解釈され失敗する。
+`sed`、`stat` は GNU 形式で書く (`sed -i 's/.../.../' file`、`stat -c '%a' file`)。
+BSD 形式の `sed -i '' ...` や `stat -f '%Lp' ...` は GNU 版では引数の意味が変わり、失敗する。
+`stat -f` はファイルシステムの情報を出す option で、`%Lp` をファイル名として扱うためである。
 
 ## mise
 
