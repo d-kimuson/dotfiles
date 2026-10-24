@@ -4,3 +4,4 @@
 .claude/hooks/herdr-auto-title.py
 .config/herdr/config.toml
 .pi/agent/extensions/herdr-auto-title.ts
+.pi/agent/extensions/opencode-muse-reasoning.ts
