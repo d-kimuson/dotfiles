@@ -2,6 +2,7 @@
 "npm:@openai/codex" = "0.163.0"
 "npm:@earendil-works/pi-coding-agent" = "1.4.0"
 "npm:@opencode/cli" = { version = "2.1.4", allow_builds = ["@opencode/cli"] }
+"npm:command-code" = "1.88.0"
 "npm:@playwright/cli" = "0.1.22"
 "npm:@github/copilot" = "1.0.102"
 "npm:portless" = "0.15.8"

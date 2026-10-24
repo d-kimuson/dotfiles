@@ -25,7 +25,7 @@ BSD 形式の `sed -i '' ...` は空文字列が次の引数として解釈さ�
 ## mise
 
 Node.js と npm で配布される CLI は `chezmoi/private_dot_config/mise/config.toml` で管理する。
-Codex、Pi、OpenCode、GitHub Copilot、Playwright、agent-browser などが対象である。
+Codex、Pi、OpenCode、Command Code、GitHub Copilot、Playwright、agent-browser などが対象である。
 
 新しい npm CLI はこのファイルへ追加する。
 反映後は `mise install && mise reshim` を実行する。

@@ -85,6 +85,7 @@ export PATH="$(dirname "$MISE_BIN"):$PATH"
   npm:@earendil-works/pi-coding-agent \
   npm:@openai/codex \
   npm:@opencode/cli \
+  npm:command-code \
   npm:@playwright/cli \
   npm:@github/copilot \
   npm:portless \
