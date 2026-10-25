@@ -1,26 +1,67 @@
 # Design
 
-project-scope の harness を設計するときの基本。スキルとプロンプトテンプレートの両方に適用する。
+スキルとプロンプトテンプレートを設計するときの基本。
 
 ## Scope
 
-- 管理する: `.agents/skills/`、`.agents/prompts/`、プロジェクト直下の `AGENTS.md`。
-- 対象 CLI: Claude Code、Command Code、Pi、OpenCode、Cursor Agent CLI。
-- 操作対象は project scope だけ。スキル自体の配布は dotfiles が行う。
-- subagent 定義は対象外。tool ごとの built-in と探索パスが違いすぎるため、必要になったプロジェクトで個別に設計する。
+| 対象 | 使う | 備考 |
+| --- | --- | --- |
+| `.agents/skills/` | 使う | エージェントが自動で読むスキル |
+| `.agents/prompts/` | 使う | ユーザーが `/name` で呼ぶプロンプト |
+| `AGENTS.md` | 使う | project memory。`.agents/AGENTS.md` は使わない |
+| subagent 定義 | 使わない | tool ごとの built-in と探索パスが違いすぎる |
+| rules | 使わない | 揃える対象にしない |
 
-## Progressive Disclosure
+## ディレクトリ構造
+
+### Skill
+
+```text
+.agents/skills/<name>/
+├── SKILL.md
+├── README.md
+├── references/
+└── scripts/
+```
+
+### Prompt
+
+```text
+.agents/prompts/<name>.md
+.agents/deps/<name>/
+├── references/
+├── scripts/
+└── playbooks/
+```
+
+prompt 本体は `.agents/prompts/<name>.md` の 1 ファイル。資料は `.agents/deps/<name>/` に置き、prompt から参照する。
+
+## 原則
+
+### Progressive Disclosure
 
 - 必要になったときだけ、必要な情報を読む。
 - 長い文章はコンテキストを圧迫し、エージェントを混乱させる。網羅性より論旨を優先する。短ければ短いほどよい。
-- `SKILL.md` は入口。詳細は `references/` に分け、`SKILL.md` に再掲しない。
 - 同じ情報を 2 箇所に書かない。正本を 1 つ決め、他はリンクする。
+
+### インデックスを軽くする
+
+- 常に読まれるもの (`AGENTS.md`、`SKILL.md`) は薄くする。
+- 詳細は `references/` に分ける。
+- reference はユースケースごとに分割し、読むべきものと読まないものを分ける。
+
+### `.agents` を正本にする
+
+- `.agents` を正本にし、ツール固有の差分は symlink で吸収する。
+- tool がネイティブに読むなら symlink を貼らない。
+- コピーを作らない。
 
 ## Skill
 
 - エージェントが自分の判断で読み込むもの。汎用的で最小限にする。
 - `description` は「いつ有効にすべきか」だけを書く。内部の手順や機能一覧を書かない。
-- `SKILL.md` は目的、スコープ、参照先、最小限の使い方だけにする。マトリクスや詳細手順は `references/` に置く。
+- `SKILL.md` は目的、スコープ、参照先、最小限の使い方だけにする。
+- `README.md` を必ず置く。運用上の事情や管理上の設計意図は `README.md` に分け、`SKILL.md` には書かない。
 - 機械的に処理できるものは `scripts/` に置き、`SKILL.md` からは実行方法だけ示す。
 
 ## Prompt
@@ -30,21 +71,13 @@ project-scope の harness を設計するときの基本。スキルとプロン
 - prompt 本体には起動後の手順と成果物だけを書き、起動前の判断材料は人間向けドキュメントに書く。
 - Claude Code は commands ディレクトリを skill としても読むため、`disable-model-invocation: true` を frontmatter に付ける。
 - 決定的な処理は `.agents/deps/<name>/scripts/` に落とす。prompt には判断と手順だけを残す。
-- 各 CLI の command / prompt ディレクトリへ symlink して配布する。配布先は `harness-matrix.md` に従う。
-
-## Harness
-
-- `.agents` を正本にする。tool がネイティブに読むなら symlink を貼らない。
-- memory はプロジェクト直下の `AGENTS.md`。`.agents/AGENTS.md` を project memory にしない。
-- tool ごとの探索パスは `harness-matrix.md` に分離する。
-- 追加・変更時は、まずこの design で形を決め、matrix で配布先を確認し、sync で symlink を揃える。
 
 ## Checklist
 
 - [ ] `description` は when only。
-- [ ] `SKILL.md` に matrix や詳細手順を書いていない。
+- [ ] `SKILL.md` に詳細・管理運用の話を書いていない。
+- [ ] `README.md` がある。
 - [ ] `references/` と重複していない。
 - [ ] prompt の資料は `.agents/deps/<name>/` にある。
 - [ ] command には `disable-model-invocation: true` がある。
 - [ ] 決定的な処理は scripts にある。
-- [ ] project scope only。
