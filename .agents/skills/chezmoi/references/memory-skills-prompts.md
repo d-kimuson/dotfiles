@@ -40,6 +40,8 @@
 project taste は `.commandcode/taste/` にローカル保存される。Git 共有ではなく `npx taste push` / `npx taste pull` を使い、グローバル gitignore で `**/.commandcode/taste/` を無視する。
 `**.commandcode/settings.local.json` も個人用なのでグローバル gitignore の対象にする。
 
+project scope の symlink 同期は `kimuson-harness` skill の `/harness-sync` を使う。
+
 ## 注意
 
 - 正本を 1 つにし、コピーを作らない。
