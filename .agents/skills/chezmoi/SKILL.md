@@ -119,6 +119,8 @@ chezmoi managed | grep '<配布先の相対パス>'
 
 ## 変更・適用・検証の手順
 
+コミット、push、実機への反映の可否は `docs/guidelines/delegate.md` に従う。進め方についてユーザーの承認を求めない。
+
 1. source state を変更する。
 2. `chezmoi diff` で target state と現在のターゲットとの差分を確認する。
    影響範囲を先に確認するだけなら `chezmoi apply --dry-run --verbose` を使う。

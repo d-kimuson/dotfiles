@@ -1,5 +1,11 @@
 # Commit
 
+## コミットの可否
+
+コミットしてよいかは `docs/guidelines/delegate.md` に従う。
+このリポジトリでは、作業の区切りごとのコミットは delegate.md の「やる」に含まれるため、ユーザーの明示的な指示を待たずにコミットする。
+push と実機への反映も同じく delegate.md を見る。
+
 ## メッセージ
 
 - Conventional Commits に従う。件名は `type(scope): <英語の命令形>` で書く。
