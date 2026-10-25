@@ -21,6 +21,7 @@
 ├── SKILL.md
 ├── README.md
 ├── references/
+├── playbooks/
 └── scripts/
 ```
 
@@ -68,6 +69,7 @@ prompt 本体は `.agents/prompts/<name>.md` の 1 ファイル。README、refer
 - `description` は「いつ有効にすべきか」だけを書く。内部の手順や機能一覧を書かない。
 - `SKILL.md` は目的、スコープ、参照先、最小限の使い方だけにする。
 - `README.md` を必ず置く。運用上の事情や管理上の設計意図は `README.md` に分け、`SKILL.md` には書かない。
+- タスクパターンが複数あるなら `playbooks/` に分ける。`SKILL.md` はキーワードと playbook の対応だけを持つ。
 - 機械的に処理できるものは `scripts/` に置き、`SKILL.md` からは実行方法だけ示す。
 
 ## Prompt

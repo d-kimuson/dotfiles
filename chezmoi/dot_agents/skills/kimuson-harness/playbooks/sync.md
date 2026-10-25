@@ -1,5 +1,6 @@
 # Sync
 
+skill が sync / check の要求をここにルーティングしたときに使う playbook。
 `.agents` を正本にし、project の各 tool が読めない場所だけを symlink で橋渡しする。
 
 ## Project links
@@ -42,6 +43,6 @@ scripts/sync-harness.sh --tool pi
 
 ## 注意
 
-- Pi の project prompt は `.pi/prompts`。`.pi/agent/prompts` があれば警告する。実装の根拠は `harness-matrix.md` を参照する。
+- Pi の project prompt は `.pi/prompts`。`.pi/agent/prompts` があれば警告する。実装の根拠は `references/harness-matrix.md` を参照する。
 - Claude Code は root `AGENTS.md` を読むが、`CLAUDE.md` がある場合は `CLAUDE.md` を優先する。`CLAUDE.md` が `AGENTS.md` への symlink なら現状のままでよい。
 - Cursor は `.cursor/commands` を custom command として読む。将来 `/migrate-to-skills` で skill に移行する場合は、この symlink を外して `.agents/skills` に寄せる。

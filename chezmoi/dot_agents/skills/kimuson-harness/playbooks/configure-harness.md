@@ -1,13 +1,14 @@
 # Configure Harness
 
-> この reference は `kimuson-harness` skill の scaffold 手順である。
-> 既存の `.agents` を各 CLI に同期するだけなら `scripts/sync-harness.sh` か `/harness-sync` を使う。
+> この playbook は `kimuson-harness` skill の scaffold 手順である。
+> skill が configure / setup / scaffold の要求をここにルーティングしたときに読む。
+> 既存の `.agents` を同期するだけなら `playbooks/sync.md` を使う。
 
 The templates, setups, references, and scripts live in `~/.agents/deps/configure-harness/`; the `templates/`, `setups/`, `references/`, and `scripts/` paths below are relative to it.
 
 ## Setup
 
-The setup to bring in is `$ARGUMENTS`, or `core` when it is empty: one of `core` (the base harness), `auto-pilot` (an agent that leads the project), and `deterministic` (checks that do not depend on judgment). Read `setups/<setup>.md` before anything else. It says what must exist first, what to observe, when to propose each optional unit, what the Plan page always shows, and what to do beyond the steps below. Where it differs from this file, follow it.
+The setup to bring in is the argument the user passed to the skill (`core`, `auto-pilot`, or `deterministic`), or `core` when it is empty. Read `setups/<setup>.md` before anything else. It says what must exist first, what to observe, when to propose each optional unit, what the Plan page always shows, and what to do beyond the steps below. Where it differs from this file, follow it.
 
 Bring the harness structure in `templates/<setup>/` into the target repository. Fixed rules in the templates are copied as they are; every project-specific point is a decision block, proposed from what the repository shows, and then replaced by what it says to write. The proposals that need the user's intent or can swing are reviewed on the Plan page.
 

@@ -10,5 +10,5 @@
 - `SKILL.md` / prompt 本体は、読む人がそのタスクに必要とする情報だけに絞る。
 - README という置き場所を用意することで、本体を太らせずに済む。
 
-`/harness-sync` で `.agents/skills` と `.agents/prompts` への symlink を check / 作成する。
-設計は `references/design.md`、探索パスは `references/harness-matrix.md`、同期は `references/sync.md` を参照する。
+指示が `playbooks/sync.md` または `playbooks/configure-harness.md` に当たるなら、その playbook に従う。
+設計は `references/design.md`、探索パスは `references/harness-matrix.md` を参照する。
