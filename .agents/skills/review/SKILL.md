@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review a change in this repository with the patterns given as the argument, as `docs/guidelines/review/index.md` defines them (default: chosen from what the change touches). Use when a review agent (such as a PR reviewer) or a user asks to review or verify a change in this repository, and for the internal review before completing an implementation task.
+description: "Review a change in this repository with the patterns given as the argument, as `docs/guidelines/review/index.md` defines them (default: chosen from what the change touches). Use when a review agent (such as a PR reviewer) or a user asks to review or verify a change in this repository, and for the internal review before completing an implementation task."
 ---
 
 # Review

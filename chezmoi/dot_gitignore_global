@@ -13,3 +13,7 @@ tmp.local.*
 .claude/trash/
 
 **/.claude/.cc-writes/
+
+# Command Code local state
+**/.commandcode/taste/
+**/.commandcode/settings.local.json

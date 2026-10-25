@@ -24,6 +24,22 @@
 - 資料は `chezmoi/dot_agents/deps/<name>/` に置き、prompt から絶対パスで参照する。
 - prompt は 1 ファイル。手順書・テンプレートは `deps/` に分ける。
 
+## Project scope (Command Code)
+
+プロジェクトでは `.agents/` を標準にし、Command Code が読めないものだけ `.commandcode/` に symlink する。
+
+| パス | Command Code | 対応 |
+| --- | --- | --- |
+| `.agents/skills/` | 自動発見する (`.commandcode/skills/` が優先) | symlink 不要 |
+| `.agents/prompts/` | 読まない (`.commandcode/commands/` のみ) | `.commandcode/commands` → `../.agents/prompts` |
+| root `AGENTS.md` | 読む | symlink 不要 |
+| `.agents/AGENTS.md` | 読まない | `.commandcode/AGENTS.md` → `../.agents/AGENTS.md` |
+| `.agents/agents/` | 読まない (`.commandcode/agents/` のみ) | `.commandcode/agents` → `../.agents/agents` |
+| `.agents/mods/` | 読まない (`.commandcode/mods/` のみ) | `.commandcode/mods` → `../.agents/mods` |
+
+project taste は `.commandcode/taste/` にローカル保存される。Git 共有ではなく `npx taste push` / `npx taste pull` を使い、グローバル gitignore で `**/.commandcode/taste/` を無視する。
+`**.commandcode/settings.local.json` も個人用なのでグローバル gitignore の対象にする。
+
 ## 注意
 
 - 正本を 1 つにし、コピーを作らない。
