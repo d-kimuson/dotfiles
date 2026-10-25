@@ -1,11 +1,7 @@
 # kimuson-harness
 
-`.agents` を正本にして Claude Code / Command Code / Pi / OpenCode / Cursor の harness を揃える skill。
+プロジェクトの `.agents` harness を管理する skill。
+対象 CLI: Claude Code、Command Code、Pi、OpenCode、Cursor Agent CLI。
 
-- `/harness-sync`: 現在のプロジェクトの symlink を check / 作成する user-scope prompt。
-- `scripts/sync-harness.sh`: project / global の symlink を check / 作成する script。
-- `references/harness-matrix.md`: tool ごとの探索パス。
-- `references/sync.md`: symlink の仕様と移行手順。
-- `references/configure-harness.md`: 新規プロジェクトの harness scaffold。
-
-詳細は `SKILL.md` を参照する。
+`/harness-sync` で `.agents/skills` と `.agents/prompts` への symlink を check / 作成する。
+設計は `references/design.md`、探索パスは `references/harness-matrix.md`、同期は `references/sync.md` を参照する。

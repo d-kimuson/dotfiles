@@ -3,7 +3,6 @@ set -u
 
 MODE="sync"
 DRY_RUN=0
-SCOPE="project"
 TOOL="all"
 ROOT=""
 
@@ -14,9 +13,6 @@ Usage: sync-harness.sh [options]
 Options:
   --check          Report only; exit 1 when a link is missing or conflicting
   --dry-run        Show what would be created without changing files
-  --project        Project scope (default)
-  --global         User scope
-  --all            Project and user scope
   --tool <name>    all | claude | command-code | pi | opencode | cursor
   --root <path>    Project root (default: git root, else current directory)
   -h, --help       Show this help
@@ -27,9 +23,6 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --check) MODE="check" ;;
     --dry-run) DRY_RUN=1 ;;
-    --project) SCOPE="project" ;;
-    --global) SCOPE="global" ;;
-    --all) SCOPE="all" ;;
     --tool)
       if [ $# -lt 2 ]; then
         echo "--tool requires a value" >&2
@@ -206,82 +199,11 @@ sync_project() {
   fi
 
   if [ -e "$root/.pi/agent/prompts" ]; then
-    print_status warn ".pi/agent/prompts exists; Pi 0.74 reads .pi/prompts, not .pi/agent/prompts"
+    print_status warn ".pi/agent/prompts exists; Pi 1.4.0 reads .pi/prompts, not .pi/agent/prompts"
   fi
 }
 
-sync_global() {
-  print_section "global: $HOME"
-  local agents="$HOME/.agents"
-
-  if [ -d "$agents/skills" ]; then
-    print_status native "~/.agents/skills (command-code, pi, opencode, cursor)"
-    if [ -e "$HOME/.commandcode/skills" ]; then
-      print_status warn "~/.commandcode/skills exists; it shadows ~/.agents/skills"
-    fi
-    if tool_enabled claude; then
-      check_link "$HOME/.claude/skills" "../.agents/skills" "~/.claude/skills"
-    fi
-  else
-    print_status skip "~/.agents/skills not found"
-    skipped_count=$((skipped_count + 1))
-  fi
-
-  if [ -d "$agents/prompts" ]; then
-    if tool_enabled claude; then
-      check_link "$HOME/.claude/commands" "../.agents/prompts" "~/.claude/commands"
-    fi
-    if tool_enabled command-code; then
-      check_link "$HOME/.commandcode/commands" "../.agents/prompts" "~/.commandcode/commands"
-    fi
-    if tool_enabled pi; then
-      check_link "$HOME/.pi/agent/prompts" "../../.agents/prompts" "~/.pi/agent/prompts"
-    fi
-    if tool_enabled opencode; then
-      check_link "$HOME/.config/opencode/commands" "../../.agents/prompts" "~/.config/opencode/commands"
-    fi
-    if tool_enabled cursor; then
-      check_link "$HOME/.cursor/commands" "../.agents/prompts" "~/.cursor/commands"
-    fi
-  else
-    print_status skip "~/.agents/prompts not found"
-    skipped_count=$((skipped_count + 1))
-  fi
-
-  if [ -f "$agents/AGENTS.md" ]; then
-    if tool_enabled claude; then
-      check_link "$HOME/.claude/CLAUDE.md" "../.agents/AGENTS.md" "~/.claude/CLAUDE.md"
-    fi
-    if tool_enabled command-code; then
-      check_link "$HOME/.commandcode/AGENTS.md" "../.agents/AGENTS.md" "~/.commandcode/AGENTS.md"
-    fi
-    if tool_enabled opencode; then
-      check_link "$HOME/.config/opencode/AGENTS.md" "../../.agents/AGENTS.md" "~/.config/opencode/AGENTS.md"
-    fi
-    if tool_enabled pi; then
-      print_status info "~/.pi/agent/AGENTS.md is Pi-specific; not linked"
-    fi
-    if tool_enabled cursor; then
-      print_status info "Cursor global rules are settings-based; project AGENTS.md is used"
-    fi
-  else
-    print_status skip "~/.agents/AGENTS.md not found"
-    skipped_count=$((skipped_count + 1))
-  fi
-
-  if [ -L "$HOME/.config/opencode/skills" ] && tool_enabled opencode; then
-    check_link "$HOME/.config/opencode/skills" "../../.agents/skills" "~/.config/opencode/skills"
-  fi
-}
-
-case "$SCOPE" in
-  project) sync_project "$ROOT" ;;
-  global) sync_global ;;
-  all)
-    sync_project "$ROOT"
-    sync_global
-    ;;
-esac
+sync_project "$ROOT"
 
 print_section "summary"
 printf 'ok=%d linked=%d missing=%d conflicts=%d skipped=%d\n' \

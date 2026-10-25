@@ -1,7 +1,7 @@
 ---
 name: harness-sync
-description: Check and create the symlinks that expose .agents/skills and .agents/prompts to Claude Code, Command Code, Pi, OpenCode, and Cursor.
-argument-hint: "[--check] [--dry-run] [--global|--all] [--tool <name>]"
+description: Check and create the project-scope symlinks that expose .agents/skills and .agents/prompts to Claude Code, Command Code, Pi, OpenCode, and Cursor.
+argument-hint: "[--check] [--dry-run] [--tool <name>]"
 disable-model-invocation: true
 user-invocable: true
 ---
@@ -21,8 +21,6 @@ Replace `$ARGUMENTS` with the flags the user passed after `/harness-sync`; leave
 - Default: check and create project-scope symlinks.
 - `--check`: report only; exit 1 when anything is missing or conflicting.
 - `--dry-run`: show what would be created without changing files.
-- `--global`: user-scope links.
-- `--all`: project and user scope.
 - `--tool claude|command-code|pi|opencode|cursor`: limit to one tool.
 
 Rules:
