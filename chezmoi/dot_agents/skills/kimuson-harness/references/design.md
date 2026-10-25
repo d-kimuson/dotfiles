@@ -29,12 +29,12 @@
 ```text
 .agents/prompts/<name>.md
 .agents/deps/<name>/
+├── README.md
 ├── references/
-├── scripts/
-└── playbooks/
+└── scripts/
 ```
 
-prompt 本体は `.agents/prompts/<name>.md` の 1 ファイル。資料は `.agents/deps/<name>/` に置き、prompt から参照する。
+prompt 本体は `.agents/prompts/<name>.md` の 1 ファイル。README、references、scripts は `.agents/deps/<name>/` に置き、prompt から参照する。
 
 ## 原則
 
@@ -56,6 +56,12 @@ prompt 本体は `.agents/prompts/<name>.md` の 1 ファイル。資料は `.ag
 - tool がネイティブに読むなら symlink を貼らない。
 - コピーを作らない。
 
+### 端的に書く
+
+- 冗長な文章を書かない。
+- 説得力を増すために同じ内容を表現を変えて何度も繰り返さない。
+- 端的でわかりやすい文章を書く。
+
 ## Skill
 
 - エージェントが自分の判断で読み込むもの。汎用的で最小限にする。
@@ -67,17 +73,8 @@ prompt 本体は `.agents/prompts/<name>.md` の 1 ファイル。資料は `.ag
 ## Prompt
 
 - ユーザーが `/name` で明示的に呼ぶもの。スキルにしない。
-- 1 ファイル。references、scripts、playbooks は `.agents/deps/<name>/` に置き、prompt から参照する。
+- 1 ファイル。README、references、scripts は `.agents/deps/<name>/` に置き、prompt から参照する。
+- `README.md` を置く。運用上の事情や管理上の設計意図は `.agents/deps/<name>/README.md` に分け、prompt 本体には書かない。
 - prompt 本体には起動後の手順と成果物だけを書き、起動前の判断材料は人間向けドキュメントに書く。
 - Claude Code は commands ディレクトリを skill としても読むため、`disable-model-invocation: true` を frontmatter に付ける。
 - 決定的な処理は `.agents/deps/<name>/scripts/` に落とす。prompt には判断と手順だけを残す。
-
-## Checklist
-
-- [ ] `description` は when only。
-- [ ] `SKILL.md` に詳細・管理運用の話を書いていない。
-- [ ] `README.md` がある。
-- [ ] `references/` と重複していない。
-- [ ] prompt の資料は `.agents/deps/<name>/` にある。
-- [ ] command には `disable-model-invocation: true` がある。
-- [ ] 決定的な処理は scripts にある。
