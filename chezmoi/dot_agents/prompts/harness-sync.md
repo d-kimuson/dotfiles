@@ -16,6 +16,8 @@ Run the sync script from the current project root:
 bash ~/.agents/skills/kimuson-harness/scripts/sync-harness.sh $ARGUMENTS
 ```
 
+Replace `$ARGUMENTS` with the flags the user passed after `/harness-sync`; leave it empty when there are none.
+
 - Default: check and create project-scope symlinks.
 - `--check`: report only; exit 1 when anything is missing or conflicting.
 - `--dry-run`: show what would be created without changing files.
