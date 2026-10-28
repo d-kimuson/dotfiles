@@ -111,69 +111,6 @@ let
         };
       };
 
-  # eMudhra 中間 CA の侵害 (https://emudhra.we-have-a-problem.com/) に対応した
-  # 2026.10.17 以降が nixpkgs に入るまで、公式リリースのバイナリを使う。
-  # nixpkgs に入ったら pkgsStable.mise へ戻す。
-  miseVersion = "2026.10.17";
-  misePlatform =
-    if pkgs.stdenv.hostPlatform.system == "x86_64-linux" then
-      {
-        suffix = "linux-x64-musl";
-        hash = "sha256-VNxfGg3hS933Ck2Cc2A2R8FA7t2LnQg6j3PKE6moL1M=";
-      }
-    else if pkgs.stdenv.hostPlatform.system == "aarch64-linux" then
-      {
-        suffix = "linux-arm64-musl";
-        hash = "sha256-dFoaVAHEIJCVOo2kkyQ9XGZv/8LJj5o97jO9ivx3qe4=";
-      }
-    else if pkgs.stdenv.hostPlatform.system == "aarch64-darwin" then
-      {
-        suffix = "macos-arm64";
-        hash = "sha256-18UMFoNSSnZCYJhszJxBwN5eH81JFxS1ZAtle3Z4GvY=";
-      }
-    else
-      null;
-
-  mise =
-    if misePlatform == null then
-      pkgsStable.mise
-    else
-      pkgs.stdenvNoCC.mkDerivation rec {
-        pname = "mise";
-        version = miseVersion;
-
-        src = pkgs.fetchurl {
-          url = "https://github.com/jdx/mise/releases/download/v${version}/mise-v${version}-${misePlatform.suffix}.tar.gz";
-          hash = misePlatform.hash;
-        };
-
-        installPhase = ''
-          install -Dm755 bin/mise "$out/bin/mise"
-        '';
-
-        meta = with lib; {
-          description = "Dev tools, env vars, task runner";
-          homepage = "https://github.com/jdx/mise";
-          license = licenses.mit;
-          platforms = [
-            "x86_64-linux"
-            "aarch64-linux"
-            "aarch64-darwin"
-          ];
-          sourceProvenance = [ sourceTypes.binaryNativeCode ];
-        };
-      };
-
-  # eMudhra 中間 CA の侵害 (https://emudhra.we-have-a-problem.com/) で
-  # 侵害された中間 CA の上位になるルートを外した CA バンドル。
-  # nixos-unstable の cacert が 3.131.1 以降になったら override を外して pkgs.cacert を使う。
-  cacertWithoutEmudhraRoots = pkgs.cacert.override {
-    blacklist = [
-      "Comodo AAA Services root"
-      "emSign ECC Root CA - G3"
-    ];
-  };
-
   ghosttyTerminfo = pkgs.runCommand "ghostty-terminfo" {
     nativeBuildInputs = [ pkgs.ncurses ];
   } ''
@@ -199,7 +136,7 @@ in
 
   home.packages = [
     # 開発環境で使うツール
-    mise
+    pkgs.mise
     pkgsStable.direnv
     pkgs.starship
     pkgs.colima
@@ -209,7 +146,7 @@ in
     pkgs.zsh
     pkgs.caddy
     pkgsStable.zed-editor
-    # direnv, zed-editor: stable pin で管理 (mise は一時的に公式リリースのバイナリ。上の let を参照)
+    # direnv, zed-editor: stable pin で管理
     # colima: stable の依存 lima が insecure 扱いになることがあるため unstable を使用
 
     # Language Servers
@@ -277,7 +214,7 @@ in
   # macOS では未設定だと nix-daemon.sh が Nix の default profile の cacert を指す。
   # この cacert は Nix のインストール時のまま更新されないため、flake の nixpkgs に追従させる。
   # Linux では nix-daemon.sh がディストリの CA バンドルを指すので上書きしない。
-  home.sessionVariables.NIX_SSL_CERT_FILE = "${cacertWithoutEmudhraRoots}/etc/ssl/certs/ca-bundle.crt";
+  home.sessionVariables.NIX_SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
 {{- end }}
 
   # Pueue: CLI process scheduler and manager
@@ -332,11 +269,11 @@ in
 
   home.activation.installMiseTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     miseConfigPath="${config.home.homeDirectory}/.config/mise/config.toml"
-    export PATH="${mise}/bin:$PATH"
+    export PATH="${pkgs.mise}/bin:$PATH"
 
     if [ -f "$miseConfigPath" ]; then
-      $DRY_RUN_CMD ${mise}/bin/mise install
-      $DRY_RUN_CMD ${mise}/bin/mise reshim
+      $DRY_RUN_CMD ${pkgs.mise}/bin/mise install
+      $DRY_RUN_CMD ${pkgs.mise}/bin/mise reshim
     fi
   '';
 
