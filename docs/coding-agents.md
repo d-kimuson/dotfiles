@@ -112,7 +112,7 @@ MCP は `mcp deliver` の `command-code` target が `~/.commandcode/mcp.json` �
 モデルを変えるときは `config/agent/commandcode-config.json` を更新して `merge-config` を実行する。
 `telemetry: false` で `ingestion.claicode.com` への利用テレメトリ (ユーザー ID とコマンド行動) を止める。
 `DO_NOT_TRACK=1` でも同じく止まるが、他のツールにも影響するためこのキーで個別に切る。
-自己更新は `shell/envrc.sh` の `COMMANDCODE_SKIP_UPDATES=1` で止めている ([ツール管理](tool-management.md))。
+自己更新は `shell/envrc.sh` で止めている ([ツール管理](tool-management.md))。
 
 `~/.commandcode/` に import された skills、commands、AGENTS.md の複製は `chezmoi/run_once_before_migrate-commandcode.sh` で削除する。
 
