@@ -54,5 +54,8 @@ Nix の入力と mise の対象 CLI を更新する場合は `./scripts/update.s
 稼働中のプロジェクトの `.node-version` などが参照するバージョンは残るため、既存プロジェクトには影響しない。
 削除対象を事前に確認する場合は `mise ls --prunable` と `mise prune --dry-run` を使う。
 npm CLI を `npm i -g` でインストールすると、その node バージョンの bin が mise の npm バックエンドをシャドウしてプロジェクトごとに古いバイナリが使われるため、npm CLI は必ず mise で管理する。
+CLI 自身の自己更新も同じ経路で `~/.npm-global` に入る。`shell/envrc.sh` で自己更新を止め、バージョンの正本は mise の config だけにする。
+Command Code は `COMMANDCODE_SKIP_UPDATES=1` で止めている。
+npm CLI を追加するときは、自己更新の無効化手段があるか確認して同じ場所に足す。
 
 パッケージを追加しただけなら、設定を適用して `home-manager switch` または `mise install && mise reshim` を実行する。

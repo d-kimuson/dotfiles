@@ -13,6 +13,9 @@ export CLAUDE_CODE_DISABLE_AUTO_MEMORY=1
 export CLAUDE_CODE_DISABLE_1M_CONTEXT=1
 export MCP_TIMEOUT=120000
 
+# 自己更新は npm i -g で mise をシャドウするため止める (docs/tool-management.md)
+export COMMANDCODE_SKIP_UPDATES=1
+
 export PNPM_HOME="$HOME/Library/pnpm"
 
 # portless が発行するローカル CA を Node からも信頼させる（pi など portless の外で動く Node 製ツール用）

@@ -3,5 +3,6 @@
   "reasoningEffort": {
     "deepseek/deepseek-v4.1-flash": "high"
   },
-  "imageVisionEnabled": true
+  "imageVisionEnabled": true,
+  "telemetry": false
 }

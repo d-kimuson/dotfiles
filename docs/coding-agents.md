@@ -108,8 +108,11 @@ target ごとの対応表と更新方法は [キーバインドの配布](keybin
 `chezmoi/dot_commandcode/` (→ `~/.commandcode/`) が AGENTS.md と commands の symlink を持つ。
 Command Code は `~/.agents/skills` を直接発見するため、`~/.commandcode/skills` は作らない。
 MCP は `mcp deliver` の `command-code` target が `~/.commandcode/mcp.json` をテンプレートから全置換する ([MCP 設定の配布](mcp.md))。
-`config/agent/commandcode-config.json` は `model`、`reasoningEffort`、`imageVisionEnabled` を持ち、`merge-config` が `installed` や `firstMessageSent` などの実行時キーを残してマージする。
+`config/agent/commandcode-config.json` の管理キーを `merge-config` が適用し、`installed` や `firstMessageSent` などの実行時キーは残す。
 モデルを変えるときは `config/agent/commandcode-config.json` を更新して `merge-config` を実行する。
+`telemetry: false` で `ingestion.claicode.com` への利用テレメトリ (ユーザー ID とコマンド行動) を止める。
+`DO_NOT_TRACK=1` でも同じく止まるが、他のツールにも影響するためこのキーで個別に切る。
+自己更新は `shell/envrc.sh` の `COMMANDCODE_SKIP_UPDATES=1` で止めている ([ツール管理](tool-management.md))。
 
 `~/.commandcode/` に import された skills、commands、AGENTS.md の複製は `chezmoi/run_once_before_migrate-commandcode.sh` で削除する。
 
