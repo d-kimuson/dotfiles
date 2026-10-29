@@ -72,4 +72,5 @@ Always read every reference relevant to the task before making changes.
 | 設定変更を反映する、初期セットアップや更新をする | `docs/commands.md` |
 | LLM 利用量の観測や集計を変更する | `docs/features/llm-usage-observation.md` |
 | ローカル LLM のサーバやモデルを変更・運用する | `docs/features/local-llm.md` |
+| 不審な通信や設定変更があり、侵害の痕跡を調べる | `docs/compromise-investigation.md` |
 | コマンドやツールが想定外に失敗する | `.agents/troubleshots/` |
