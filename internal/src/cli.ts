@@ -13,6 +13,11 @@ import {
 import { aggregateLlmUsage } from "./llm-usage/aggregate.ts"
 import { startDashboardServer } from "./llm-usage/dashboard.ts"
 import { deliverPiAgentConfig } from "./pi-agent/deliver.ts"
+import {
+  checkNpmShadowing,
+  DEFAULT_MISE_CONFIG_PATH,
+  resolveSearchRoots,
+} from "./npm-shadowing/check.ts"
 
 const VALID_TARGETS = ["claude-code", "claude-desktop", "codex", "pi-agent", "command-code", "opencode"] as const
 type Target = (typeof VALID_TARGETS)[number]
@@ -239,4 +244,38 @@ keybindings
     }
   )
 
-program.parse()
+const npmShadowing = program
+  .command("npm-shadowing")
+  .description("npm global installs that shadow mise-managed CLIs")
+
+npmShadowing
+  .command("check")
+  .description("Report npm global installs that shadow the tools in the mise config")
+  .option("--config <path>", "mise config to read", DEFAULT_MISE_CONFIG_PATH)
+  .action(async (opts: { readonly config: string }) => {
+    const shadowed = await checkNpmShadowing({
+      configPath: opts.config,
+      searchRoots: await resolveSearchRoots(),
+    })
+
+    if (shadowed.length === 0) {
+      console.log("No npm global install shadows the mise-managed CLIs")
+      return
+    }
+
+    for (const tool of shadowed) {
+      for (const installed of tool.installed) {
+        const relation =
+          installed.version === tool.version ? "duplicates" : "shadows"
+        console.log(
+          `${installed.root}: ${installed.name}@${installed.version} ${relation} mise ${tool.version}`
+        )
+      }
+    }
+    process.exitCode = 1
+  })
+
+program.parseAsync().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : String(error))
+  process.exitCode = 1
+})

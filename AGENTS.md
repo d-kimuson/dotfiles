@@ -42,6 +42,7 @@
 | `mise install && mise reshim` | CLI とランタイムが入る | mise の設定だけを変更した (`chezmoi apply` の後) |
 | `pnpm --dir internal exec tsc -p ~/.claude/local-plugins/<name> --noEmit` → 配布先で `claude plugin test` | ローカルプラグインの型検査とテスト | `chezmoi/dot_claude/local-plugins/` を変更した (`chezmoi apply` の後) |
 | `node internal/src/cli.ts mcp deliver` / `merge-config` / `pi-agent deliver` / `keybindings deliver` | 設定を生成・マージして配布できる | `config/` か配布ロジックを変更した (変更に対応するものだけ) |
+| `node internal/src/cli.ts npm-shadowing check` | mise の npm CLI を `npm i -g` 側がシャドウしていない | マシンに配る npm CLI を追加・更新・削除した (`mise install` の後) |
 
 CI は `chezmoi init --apply` だけを実行し、型検査とテストは実行しない。
 反映のコマンドは、この working tree が `~/.local/share/chezmoi` にあるときだけ実行する。別の checkout (worktree など) では型検査とテストまでにする。

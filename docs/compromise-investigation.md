@@ -17,8 +17,13 @@ tmp=$(mktemp -d)
 diff -r "$tmp/package" "$installed/node_modules/$pkg"
 ```
 
-mise の外 (`~/.npm-global`、`~/.local/bin`、`~/.pi/agent/npm-global`) に同じ CLI が入っていないかも見る。
+mise の外 (`~/.npm-global`、`~/.pi/agent/npm-global`、mise の node prefix) に同じ CLI が入っていないかも見る。
 CLI の自己更新はここに入り、mise の管理をシャドウする (`docs/tool-management.md`)。
+この重複は次のコマンドで一覧できる。
+
+```sh
+node internal/src/cli.ts npm-shadowing check
+```
 
 ## 2. 常駐プロセス
 
