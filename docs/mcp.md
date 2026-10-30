@@ -48,7 +48,6 @@ export MCP_LAYERS=core,personal
 - `excludeTargets: ["target"]`: 特定の target だけ明示的に除外する。
 - `${VAR}` が未定義のサーバは警告して配布対象から外す。
 - `DISABLE_MCPS` にカンマ区切りで指定したサーバも配布しない。
-- `chezmoi/dot_copilot/mcp-config.json.tmpl` と `config/agent/modular-mcp.json` は GitHub Copilot 用。
 
 ## 配布先
 
@@ -60,7 +59,6 @@ export MCP_LAYERS=core,personal
 | `pi-agent` | `~/.pi/agent/mcp.json` | JSON の `mcpServers` | 配る |
 | `command-code` | `~/.commandcode/mcp.json` | JSON の `mcpServers` (`transport` 形式) | 配る |
 | `opencode` | `~/.config/opencode/opencode.json` | JSON の `mcp.servers` (`local` / `remote`) | 配る |
-| GitHub Copilot | `~/.copilot/mcp-config.json` | chezmoi によるテンプレート配布 | 対象外 |
 
 Claude Code / Claude Desktop / Codex は既存の `mcpServers` / `mcp_servers` にマージする。
 アプリや別ツールが登録した local MCP (Codex の `node_repl` など) を消さないためである。
@@ -79,8 +77,7 @@ remote サーバを `{ "type": "remote", "url": "...", "headers": {...} }` に�
 3. 必要な環境変数を読み込む。
 4. `node internal/src/cli.ts mcp deliver --dry-run` で出力を確認する。
 5. `node internal/src/cli.ts mcp deliver` で配布する。
-6. Copilot のテンプレートを更新した場合は `chezmoi apply` も実行する。
-7. `npx vitest run internal/src/mcp/deliver.test.ts` を実行する。
+6. `npx vitest run internal/src/mcp/deliver.test.ts` を実行する。
 
 `dotfiles-apply` は MCP 設定を配布しない。
 MCP 定義を変更したときは `mcp deliver` を明示的に実行する。

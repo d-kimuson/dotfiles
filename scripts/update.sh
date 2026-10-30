@@ -87,7 +87,6 @@ export PATH="$(dirname "$MISE_BIN"):$PATH"
   npm:@opencode/cli \
   npm:command-code \
   npm:@playwright/cli \
-  npm:@github/copilot \
   npm:portless \
   npm:agent-browser \
   npm:cf || \

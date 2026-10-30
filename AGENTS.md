@@ -2,7 +2,7 @@
 
 ## Overview
 
-複数のマシンで同じ開発環境を再現するための個人用 dotfiles。マシン間で共通の設定と、chezmoi テンプレートでマシンごとに変える設定を 1 か所で管理し、コーディングエージェント (Claude Code・Codex・Pi・Copilot CLI・Command Code) と MCP の設定も配布する。
+複数のマシンで同じ開発環境を再現するための個人用 dotfiles。マシン間で共通の設定と、chezmoi テンプレートでマシンごとに変える設定を 1 か所で管理し、コーディングエージェント (Claude Code・Codex・Pi・Command Code) と MCP の設定も配布する。
 
 技術スタック: chezmoi・home-manager (Nix)・mise・TypeScript (Node.js 26、pnpm) の internal-cli
 
@@ -16,7 +16,6 @@
 │   ├── dot_claude/          # ~/.claude: Claude Code の設定、hooks (language-guard など)、ローカルプラグイン (local-plugins)
 │   ├── dot_codex/           # ~/.codex: Codex の指示と skills・prompts への symlink
 │   ├── dot_commandcode/     # ~/.commandcode: Command Code の memory と commands への symlink
-│   ├── dot_copilot/         # ~/.copilot: Copilot CLI の MCP 設定
 │   ├── private_dot_config/  # ~/.config: home-manager、mise、zabrze、opencode など
 │   └── private_dot_pi/      # ~/.pi: Pi の設定、AGENTS、拡張 (keybindings は internal-cli が生成)
 ├── config/          # internal-cli がマージ・生成して配布する設定
@@ -69,7 +68,7 @@ Always read every reference relevant to the task before making changes.
 | マシンに配るツールを追加・更新・削除する | `docs/tool-management.md` |
 | MCP の設定を変更する | `docs/mcp.md` |
 | キーバインドを変更する | `docs/keybindings.md` |
-| Claude Code・Codex・Pi・Copilot・Command Code の設定を変更する | `docs/coding-agents.md` |
+| Claude Code・Codex・Pi・Command Code の設定を変更する | `docs/coding-agents.md` |
 | 設定変更を反映する、初期セットアップや更新をする | `docs/commands.md` |
 | LLM 利用量の観測や集計を変更する | `docs/features/llm-usage-observation.md` |
 | ローカル LLM のサーバやモデルを変更・運用する | `docs/features/local-llm.md` |

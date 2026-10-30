@@ -1,6 +1,6 @@
 # Coding Agent 設定の配布
 
-Claude Code、Codex、Pi、GitHub Copilot、Command Code の設定は、chezmoi によるファイル配布と `internal-cli` によるマージ・生成配布を組み合わせて管理する。
+Claude Code、Codex、Pi、Command Code の設定は、chezmoi によるファイル配布と `internal-cli` によるマージ・生成配布を組み合わせて管理する。
 ローカル固有の設定は `.local.json` と `settings.local.json` に置き、Git 管理しない。
 
 ## Claude Code、Codex、Command Code
@@ -168,12 +168,6 @@ pi extension `chezmoi/private_dot_pi/private_agent/extensions/self-compact.ts`
 compact に失敗したときは、理由を `resume` の前に付けて送る。
 print・json モードでは実行が終わるとプロセスも終わり、`resume` を続けられないため、ツールは予約を断る。
 変更時は `npx vitest run internal/src/pi-agent/self-compact.test.ts` を実行する。
-
-## GitHub Copilot
-
-`chezmoi/dot_copilot/` は chezmoi で `~/.copilot/` に配布する。
-Copilot CLI 自体は mise で管理する。
-MCP 設定の詳細は [MCP 設定の配布](mcp.md) を参照する。
 
 ## 設定変更の反映
 

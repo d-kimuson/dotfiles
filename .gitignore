@@ -1,4 +1,3 @@
-config/agent/modular-mcp.json
 config/agent/pi-agent/providers.local.json
 config/agent/pi-agent/settings.local.json
 config/agent/pi-agent/models.local.json
