@@ -61,3 +61,4 @@ npm CLI を追加するときは、自己更新の無効化手段があるか確
 検出したら外側のインストールを消し、mise のバージョンに寄せる。
 
 パッケージを追加しただけなら、設定を適用して `home-manager switch` または `mise install && mise reshim` を実行する。
+mise 管理のツールを外したあとに shim が残る場合は `.agents/troubleshots/mise-uninstall-leaves-stale-shim.md` を見る。
