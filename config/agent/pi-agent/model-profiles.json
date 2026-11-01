@@ -1,6 +1,10 @@
 {
-  "_comment": "2026-10-24: 既定モデルとすべての SubAgent プロファイルを opencode-go/deepseek-v4.1-flash に統一した。grok-4.7・glm・gpt・gemini などの他のモデルは選択肢から外している。deepseek は off/medium/xhigh の思考レベルを受け付けないため、プロファイルには low/high/max だけを書く。opencode-go の deepseek-v4.1-flash は 2026-10-19 以降 V4.1-Flash-1017 checkpoint を提供している (OpenCode の告知)。models.dev が表示する release 2026-09-10 はモデル ID のメタデータであり、/v1/models も checkpoint を返さないので、レジストリの日付から古いビルドだと判断しないこと。",
-  "scoped": ["opencode-go/deepseek-v4.1-flash"],
+  "_comment": "2026-10-29: scoped に openai-codex/gpt-6.1-terra と openai-codex/gpt-6-luna を戻した。scoped はモデル切り替えの選択肢 (settings.json の enabledModels) になるため、deepseek だけだと切り替え先が無くなる。2026-10-24: 既定モデルとすべての SubAgent プロファイルを opencode-go/deepseek-v4.1-flash に統一した。grok-4.7・glm・gemini などの他のモデルは選択肢から外している。deepseek は off/medium/xhigh の思考レベルを受け付けないため、プロファイルには low/high/max だけを書く。opencode-go の deepseek-v4.1-flash は 2026-10-19 以降 V4.1-Flash-1017 checkpoint を提供している (OpenCode の告知)。models.dev が表示する release 2026-09-10 はモデル ID のメタデータであり、/v1/models も checkpoint を返さないので、レジストリの日付から古いビルドだと判断しないこと。",
+  "scoped": [
+    "opencode-go/deepseek-v4.1-flash",
+    "openai-codex/gpt-6.1-terra",
+    "openai-codex/gpt-6-luna"
+  ],
   "hard": ["opencode-go/deepseek-v4.1-flash:max"],
   "oracle": ["opencode-go/deepseek-v4.1-flash:max"],
   "medium": ["opencode-go/deepseek-v4.1-flash:high"],
