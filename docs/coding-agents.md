@@ -47,6 +47,14 @@ chezmoi add ~/.agents/skills/<skill> ~/.agents/.skill-lock.json
 `merge-config` は管理対象の値を優先し、target にしかないキーは保持する。
 更新時は `node internal/src/cli.ts merge-config --dry-run` を先に実行する。
 
+source から消したキーは、target にしかないキーとして残り続ける。
+配布先からも消すキーは、`internal/src/cli.ts` の `CONFIG_ENTRIES` の `removedKeys` にパス (`["env", "FOO"]`) で宣言する。
+`merge-config` は毎回、宣言されたキーを target から取り除いてからマージする。配布の記録に頼らないので、新しいバージョンを一度も実行していないマシンでも同じ結果になる。
+取り除くキーは `--dry-run` に `-` で出る。source にも定義されたキーを宣言するとエラーになる。全マシンに反映したら、宣言を消してよい。
+消す理由は宣言の隣のコメントに書く。
+
+Claude Code の `sandbox.excludedCommands` は配列が設定ファイルをまたいで結合される。エントリは、ワイルドカードがないと引数なしの完全一致になるため、`orca *` のように `*` を付ける。
+
 Claude Code の `hooks` だけは、イベントごとの配列も外部ツール (Orca など) が登録した hook を残してマージする。
 前回配布した hooks を `~/.local/state/dotfiles/claude-settings-hooks.json` に記録し、今回と前回の config にない command の hook を外部のものとみなす (`internal/src/merge-config/hooks.ts`)。
 記録がない初回は config にあるイベントを置き換え、消える hook を警告に出す。外部ツールのものなら、そのツールで登録し直す。

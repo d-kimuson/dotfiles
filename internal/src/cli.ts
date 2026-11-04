@@ -29,6 +29,13 @@ const CONFIG_ENTRIES = [
     source: path.join(DOTFILES_ROOT, "config/agent/claude-settings.json"),
     target: path.join(homedir(), ".claude/settings.json"),
     hooksState: path.join(homedir(), ".local/state/dotfiles/claude-settings-hooks.json"),
+    // 全マシンで反映したら宣言を消してよい
+    removedKeys: [
+      // `claude --effort` より優先され、起動時の effort を上書きできなくなる。effortLevel を使う
+      ["env", "CLAUDE_CODE_EFFORT_LEVEL"],
+      // SubAgent ごとのモデル指定を上書きしうる
+      ["env", "CLAUDE_CODE_SUBAGENT_MODEL"],
+    ],
   },
   {
     source: path.join(DOTFILES_ROOT, "config/agent/codex-config.toml"),

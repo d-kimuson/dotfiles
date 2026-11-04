@@ -4,6 +4,7 @@ import { parse as parseTOML, stringify as stringifyTOML } from "smol-toml"
 import { diffKeyPaths, formatDryRunReport } from "../dry-run/describe-changes.ts"
 import { listReplacedHooks, mergeHookEvents, parseHookEvents, type HookEvents } from "./hooks.ts"
 import { isPlainObject, type JsonObject, type JsonValue } from "./json.ts"
+import { findPresentKeyPaths, removeKeyPaths, type KeyPath } from "./remove-keys.ts"
 
 type MergeResult = {
   readonly written: boolean
@@ -94,6 +95,12 @@ export type MergeConfigEntry = {
   readonly format?: Format
   /** 前回配布した hooks の記録先。指定すると、外部ツールが target に登録した hook を残す (./hooks.ts) */
   readonly hooksState?: string
+  /**
+   * 配布先から取り除くキーのパス。source から消したキーは deep merge では target に残り続けるため、
+   * 消したキーをここに宣言する。冪等で、どのマシンでも (初回でも) 同じ結果になる。
+   * 全マシンで反映されたあとに宣言を消してよい。source に残っているキーは宣言できない
+   */
+  readonly removedKeys?: readonly KeyPath[]
 }
 
 export type MergeConfigOptions = {
@@ -150,6 +157,25 @@ const recordDeliveredHooks = async (
   await writeFile(entry.hooksState, serializeContent(parseHookEvents(hooks, entry.source), "json"), "utf-8")
 }
 
+const formatKeyPath = (path: KeyPath): string => path.join(".")
+
+/** removedKeys を target から取り除く。source にも定義されたキーは矛盾なので投げる */
+const applyRemovedKeys = (
+  entry: MergeConfigEntry,
+  source: JsonObject,
+  target: JsonObject | null
+): JsonObject | null => {
+  const { removedKeys } = entry
+  if (removedKeys === undefined || removedKeys.length === 0) return target
+  const conflicts = findPresentKeyPaths(source, removedKeys)
+  if (conflicts.length > 0) {
+    throw new Error(
+      `removedKeys of ${entry.target} are still defined in ${entry.source}: ${conflicts.map(formatKeyPath).join(", ")}`
+    )
+  }
+  return target === null ? null : removeKeyPaths(target, removedKeys)
+}
+
 const mergeOne = async (
   entry: MergeConfigEntry,
   dryRun: boolean
@@ -164,9 +190,10 @@ const mergeOne = async (
   }
 
   const target = await readObjectFile(entry.target, targetFormat)
+  const retained = applyRemovedKeys(entry, source, target)
   const deepMerged =
-    target === null ? { merged: source, extras: [] } : deepMerge(source, target)
-  const merged = await mergeHooks(entry, source, target, deepMerged.merged)
+    retained === null ? { merged: source, extras: [] } : deepMerge(source, retained)
+  const merged = await mergeHooks(entry, source, retained, deepMerged.merged)
   const { extras } = deepMerged
   const output = serializeContent(merged, targetFormat)
 

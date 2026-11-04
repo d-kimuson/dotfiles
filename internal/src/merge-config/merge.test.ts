@@ -221,6 +221,99 @@ describe("mergeConfigs (hooks)", () => {
   })
 })
 
+describe("mergeConfigs (removedKeys)", () => {
+  const captureLogs = async (run: () => Promise<void>): Promise<string> => {
+    const logs: string[] = []
+    const originalLog = console.log
+    console.log = (...args: unknown[]) => {
+      logs.push(args.join(" "))
+    }
+    try {
+      await run()
+    } finally {
+      console.log = originalLog
+    }
+    return logs.join("\n")
+  }
+
+  it("removes the declared keys from the target and keeps target-only keys", async () => {
+    const source = await writeTempJson("source.json", { env: { KEEP: "1" }, effortLevel: "high" })
+    const target = await writeTempJson("target.json", {
+      env: { KEEP: "0", OLD: "x", FOREIGN: "y" },
+      hooks: { Stop: [] },
+    })
+
+    await mergeConfigs({
+      entries: [{ source, target, removedKeys: [["env", "OLD"]] }],
+      dryRun: false,
+    })
+
+    expect(await readTempJson("target.json")).toEqual({
+      env: { KEEP: "1", FOREIGN: "y" },
+      effortLevel: "high",
+      hooks: { Stop: [] },
+    })
+  })
+
+  it("is idempotent and tolerates a target that never had the key", async () => {
+    const source = await writeTempJson("source.json", { a: 1 })
+    const target = await writeTempJson("target.json", { env: { B: "2" } })
+    const entry = { source, target, removedKeys: [["env", "OLD"], ["gone"]] }
+
+    await mergeConfigs({ entries: [entry], dryRun: false })
+    const first = await readTempJson("target.json")
+    await mergeConfigs({ entries: [entry], dryRun: false })
+
+    expect(first).toEqual({ a: 1, env: { B: "2" } })
+    expect(await readTempJson("target.json")).toEqual(first)
+  })
+
+  it("does nothing for a target that does not exist yet", async () => {
+    const source = await writeTempJson("source.json", { a: 1 })
+    const target = path.join(testDir, "target.json")
+
+    await mergeConfigs({ entries: [{ source, target, removedKeys: [["env", "OLD"]] }], dryRun: false })
+
+    expect(await readTempJson("target.json")).toEqual({ a: 1 })
+  })
+
+  it("shows the removal in dry-run without touching the target or printing values", async () => {
+    const source = await writeTempJson("source.json", { a: 1 })
+    const target = await writeTempJson("target.json", { env: { OLD: "secret-value", B: "2" } })
+    const before = await readFile(target, "utf-8")
+
+    const output = await captureLogs(() =>
+      mergeConfigs({ entries: [{ source, target, removedKeys: [["env", "OLD"]] }], dryRun: true })
+    )
+
+    expect(output).toContain("- env.OLD")
+    expect(output).not.toContain("secret-value")
+    expect(output).not.toContain("env.B")
+    expect(await readFile(target, "utf-8")).toBe(before)
+  })
+
+  it("does not list a removed key as an extra key", async () => {
+    const source = await writeTempJson("source.json", { a: 1 })
+    const target = await writeTempJson("target.json", { env: { OLD: "x" }, extra: true })
+
+    const output = await captureLogs(() =>
+      mergeConfigs({ entries: [{ source, target, removedKeys: [["env", "OLD"]] }], dryRun: false })
+    )
+
+    expect(output).toContain("- extra")
+    expect(output).not.toContain("OLD")
+  })
+
+  it("rejects a removed key that the source still defines", async () => {
+    const source = await writeTempJson("source.json", { env: { OLD: "1" } })
+    const target = await writeTempJson("target.json", {})
+
+    await expect(
+      mergeConfigs({ entries: [{ source, target, removedKeys: [["env", "OLD"]] }], dryRun: false })
+    ).rejects.toThrow("env.OLD")
+  })
+})
+
 const writeTempToml = async (name: string, content: string): Promise<string> => {
   const filePath = path.join(testDir, name)
   await writeFile(filePath, content, "utf-8")

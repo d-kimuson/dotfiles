@@ -2,9 +2,7 @@
   "env": {
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
     "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
-    "CLAUDE_CODE_EFFORT_LEVEL": "high",
     "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1",
-    "CLAUDE_CODE_SUBAGENT_MODEL": "sonnet",
     "CLAUDE_CODE_NO_FLICKER": "1",
     "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1",
     "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/local-plugins"
@@ -104,6 +102,9 @@
     ]
   },
   "language": "日本語",
+  "sandbox": {
+    "excludedCommands": ["orca *", "pi *", "command-code *", "cmd *"]
+  },
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
     "command": "~/.claude/statusline.sh",
