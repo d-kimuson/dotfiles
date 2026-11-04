@@ -1,0 +1,52 @@
+{
+  "kinds": [
+    {
+      "name": "worker",
+      "description": "主力の実装担当。指示がはっきりしていて、長く自律的に進める作業",
+      "candidates": [
+        "command-code:deepseek/deepseek-v4.1-flash:high",
+        "pi:opencode-go/deepseek-v4.1-flash:high"
+      ]
+    },
+    {
+      "name": "judge",
+      "description": "判断とレビューのメイン",
+      "candidates": [
+        "claude-code:claude-opus-5-5:high",
+        "pi:openai-codex/gpt-6.1-terra:high"
+      ]
+    },
+    {
+      "name": "arbiter",
+      "description": "本当に重要な判断とレビューに限って使う。conditions のいずれかに当たるときだけ使い、当たらなければ judge を使う",
+      "conditions": [
+        "間違えるとタスクそのもの、またはタスクをまたぐ中期の戦略を誤る可能性がある、重要な設計レビュー",
+        "すでに何度も失敗を繰り返しており、難易度の高い方針の設計が必要なとき",
+        "一段メタな Agent の Goal を検討するとき。例: 決定論的に判定できる goal を設計し、worker に達成までループさせる戦略を取る場合の、その goal の設計"
+      ],
+      "candidates": [
+        "claude-code:claude-fable-5-1:xhigh",
+        "pi:openai-codex/gpt-6-astra:xhigh"
+      ]
+    },
+    {
+      "name": "scout",
+      "description": "explore など、範囲が限られた簡単な作業",
+      "candidates": [
+        "command-code:deepseek/deepseek-v4.1-flash:low",
+        "pi:opencode-go/deepseek-v4.1-flash:low",
+        "pi:openai-codex/gpt-6-luna:low",
+        "claude-code:claude-haiku-5-5:low"
+      ]
+    }
+  ],
+  "efforts": {
+    "claude-opus-5-5": ["low", "medium", "high", "xhigh", "max"],
+    "claude-fable-5-1": ["low", "medium", "high", "xhigh", "max"],
+    "claude-haiku-5-5": ["low", "medium", "high", "xhigh", "max"],
+    "gpt-6-astra": ["low", "medium", "high", "xhigh", "max"],
+    "gpt-6.1-terra": ["none", "low", "medium", "high", "xhigh", "max"],
+    "gpt-6-luna": ["none", "low", "medium", "high", "xhigh", "max"],
+    "deepseek-v4.1-flash": ["none", "low", "high", "max"]
+  }
+}

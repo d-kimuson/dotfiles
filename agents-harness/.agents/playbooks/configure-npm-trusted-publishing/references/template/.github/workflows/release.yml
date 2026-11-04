@@ -1,0 +1,101 @@
+name: Release
+
+# `npm version` + `git push --follow-tags` (.agents/skills/release) pushes a signed
+# `v<version>` tag; this publishes that version to npm with Trusted Publishing (OIDC), so no
+# npm token is stored in the repository.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Reads the pnpm version from `packageManager`, so the release uses the same pnpm as a
+      # local checkout and as CI.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          registry-url: https://registry.npmjs.org
+          # A release installs from a cold store: a cache shared with other runs is one more
+          # piece of state the published bytes could depend on.
+          package-manager-cache: false
+
+      # `--ignore-scripts`: a dependency's install script must not run inside the job that can
+      # mint the publishing identity.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      # A known vulnerability in any installed package (the build tools run in this job too)
+      # stops the release. Accepted advisories are listed in the `audit:deps` script.
+      - name: Audit dependencies
+        run: pnpm audit:deps
+
+      # A tag that does not name the committed version would publish a version nobody pinned.
+      # The ref comes from the environment, not from an expression, so a tag name cannot inject
+      # a command into this script.
+      - name: Check the tag names the package version
+        run: |
+          VERSION="$(node -p 'require("./package.json").version')"
+          if [[ "${GITHUB_REF_NAME}" != "v${VERSION}" ]]; then
+            echo "tag ${GITHUB_REF_NAME} does not match package.json version ${VERSION}" >&2
+            exit 1
+          fi
+
+      # Trusted Publishing is npm CLI 11.5.1 or later; the OIDC exchange lives in the npm CLI
+      # bundled with the Node in `.node-version`. Fail here, not with an ENEEDAUTH mid-publish.
+      - name: Check the npm CLI supports Trusted Publishing
+        run: |
+          NPM_VERSION="$(npm --version)"
+          node -e '
+            const [major, minor, patch] = process.argv[1].split(".").map(Number);
+            const ok = major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+            if (!ok) {
+              console.error(`npm ${process.argv[1]} is too old for Trusted Publishing; npm >= 11.5.1 is required.`);
+              process.exit(1);
+            }
+          ' "$NPM_VERSION"
+
+      # A prerelease (`0.1.1-beta.0`) goes to the dist-tag of its identifier (`beta`), so
+      # `@latest` only ever resolves to a release.
+      - name: Determine npm dist-tag
+        id: dist-tag
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "$TAG" == *-* ]]; then
+            echo "tag=$(printf '%s' "${TAG#*-}" | sed 's/\.[0-9]*$//')" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the package
+        run: pnpm build
+
+      # clean-pkg-json strips the development-only fields (scripts, devDependencies, …) from the
+      # published package.json; it rewrites the file in place, which is why it runs here and not
+      # in a lifecycle script a local `pnpm pack` would trigger.
+      - name: Strip development fields from package.json
+        run: pnpm exec clean-pkg-json
+
+      # The npm CLI bundled with Node does the OIDC exchange and publish. No token and no
+      # `--provenance`: the repository is public, so npm generates the provenance attestation
+      # from the OIDC identity automatically, and the flag would only be a second way to ask.
+      - name: Publish to npm
+        env:
+          DIST_TAG: ${{ steps.dist-tag.outputs.tag }}
+        run: npm publish --access public --tag "$DIST_TAG"
