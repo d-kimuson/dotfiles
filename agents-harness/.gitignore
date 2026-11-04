@@ -1,3 +1,6 @@
 node_modules
 tmp
 .agents/providers.json
+.agents/skills/.system/
+.agents/skills/.trash/
+.agents/skills/synced/

@@ -2,10 +2,8 @@
 
 ## Symptom
 
-`chezmoi/` 配下でファイルを削除・リネームしてから `chezmoi apply` しても、配布先 (`~/.agents/...` など) に古いファイルが残る。
+`chezmoi/` 配下でファイルを削除・リネームしてから `chezmoi apply` しても、配布先 (`~/.claude/...` など) に古いファイルが残る。
 `chezmoi verify` は「現在 chezmoi が管理していると認識しているターゲット」だけを見るため、この残留ファイルがあっても成功してしまい、気付けない。
-
-例: `chezmoi/dot_agents/skills/learn-it/references/explanatory-video/` を削除して `chezmoi apply` した後も `~/.agents/skills/learn-it/references/explanatory-video/` が残った。
 
 ## Workaround
 

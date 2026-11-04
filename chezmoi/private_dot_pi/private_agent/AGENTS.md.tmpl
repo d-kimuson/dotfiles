@@ -1,0 +1,14 @@
+{{- /* 共通のメモリは harness の AGENTS.md を正本にし、Pi 固有の指示だけを足す。 */ -}}
+{{ joinPath .chezmoi.workingTree "agents-harness/.agents/AGENTS.md" | include }}
+## Pi
+
+### pueue: Long-running Tasks and Development Servers
+
+- Do not start long-running processes such as development servers, watchers, or daemons directly from the CLI; use **`pueue`** instead.
+- Start them with `pueue add -- <command>`, and use `pueue status` / `pueue log` / `pueue follow` / `pueue kill` / `pueue remove` to check status or manage them.
+
+### Timeout Discipline for Long-running Commands
+
+- Whenever you run a command that may take a while (including `pueue wait` / `pueue follow`), estimate how long it should take and **always pass an explicit `timeout` (in seconds) to the bash tool with margin**. Example: a lint that normally finishes in ~1 minute → `timeout: 90`.
+- For very long tasks, do not settle into a long wait up front: wait ~1 minute, check progress (`pueue status` / `pueue log`), confirm the task is actually advancing, and only then start a longer wait with an explicit timeout.
+- Never wait 5+ minutes without an intermediate status check.

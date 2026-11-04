@@ -2,7 +2,7 @@
 
 ## Symptom
 
-Claude Code のサンドボックス内で、リポジトリ内のどの pnpm パッケージ (`internal/` や `chezmoi/dot_agents/deps/learn-it/scripts/` など、独自の `package.json`/`pnpm-lock.yaml` を持つディレクトリ) でも `pnpm typecheck`/`pnpm test` が失敗することがある。
+Claude Code のサンドボックス内で、リポジトリ内のどの pnpm パッケージ (`internal/` や `agents-harness/.agents/deps/learn-it/scripts/` など、独自の `package.json`/`pnpm-lock.yaml` を持つディレクトリ) でも `pnpm typecheck`/`pnpm test` が失敗することがある。
 
 - `internal/package.json` の `packageManager` と、home-manager が入れた pnpm のバージョンが違うと、pnpm がバージョンを切り替えようとして書き込みやダウンロードで失敗する。
 - `internal/src/llm-usage/dashboard.test.ts` はローカルのポートを listen するため、`listen EPERM` で失敗する。

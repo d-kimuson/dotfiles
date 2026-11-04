@@ -30,7 +30,7 @@
 理由を添えて提案し、承認を得てから実行する。
 
 - ツールと依存の追加・更新: home-manager のパッケージ、mise の CLI とランタイム、`internal/` の npm 依存 (`docs/tool-management.md`、`docs/guidelines/local-dev.md`)。
-- 管理している設定・ツールの削除: `chezmoi/` のファイル、home-manager のパッケージ、MCP サーバーなどを管理から外す。反映すると実機から消える。
+- 管理している設定・ツールの削除: `chezmoi/` のファイル、home-manager のパッケージ、MCP サーバーなどを管理から外す。反映すると実機から消える。`agents-harness/.agents/` のファイルは `~/.agents` が symlink なので、消した時点で実機からも消える。
 - 秘密情報の参照の追加・変更: `shell/env-secrets.sh.tpl` や `config/` に置く 1Password の参照 (`op://…`)。値は読まない。
 
 ### やらない

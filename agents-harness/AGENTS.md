@@ -1,7 +1,8 @@
-# User Scope Harness 設計用の一時リポジトリ
+# User Scope Harness
 
-- User Scope に配置する私専用のハーネスを構成する
-- このリポジトリ直下を `~/` と見立てて構成していく
+- `~/.agents` の正本。chezmoi が `~/.agents` をこのリポジトリの `.agents/` への symlink にする
+- このリポジトリ直下を `~/` と見立てて構成する
+- Prompt を書くときは `.agents/guidelines/harness.md` に従う
 
 ## 開発中の CLI
 

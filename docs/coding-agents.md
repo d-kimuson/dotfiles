@@ -10,7 +10,7 @@ Claude Code、Codex、Pi、Command Code の設定は、chezmoi によるファ�
 | `chezmoi/dot_claude/` | `~/.claude/` | chezmoi |
 | `chezmoi/dot_codex/` | `~/.codex/` | chezmoi |
 | `chezmoi/dot_commandcode/` | `~/.commandcode/` | chezmoi |
-| `chezmoi/dot_agents/` | `~/.agents/` | chezmoi |
+| `agents-harness/.agents/` | `~/.agents/` | chezmoi (`chezmoi/symlink_dot_agents.tmpl` による symlink) |
 | `config/agent/claude-settings.json` | `~/.claude/settings.json` | `internal-cli merge-config` |
 | `config/agent/codex-config.toml` | `~/.codex/config.toml` | `internal-cli merge-config` |
 | `config/agent/commandcode-config.json` | `~/.commandcode/config.json` | `internal-cli merge-config` |
@@ -18,29 +18,29 @@ Claude Code、Codex、Pi、Command Code の設定は、chezmoi によるファ�
 `chezmoi/dot_codex/symlink_prompts` は Claude Code の commands を Codex から共有する。`chezmoi/dot_claude/symlink_skills` と `chezmoi/dot_codex/symlink_skills` は、全 Agent 共通の `~/.agents/skills` を共有する。
 Command Code は `~/.agents/skills` を自動で発見するため、skills の symlink を持たない。`chezmoi/dot_commandcode/symlink_commands` は commands を `~/.agents/prompts` から共有する。
 OpenCode の `~/.config/opencode/skills` も `chezmoi/private_dot_config/opencode/symlink_skills` で `~/.agents/skills` を指す。
-グローバルの memory は `chezmoi/dot_agents/AGENTS.md` を正本とし、`~/.claude/CLAUDE.md` と `~/.commandcode/AGENTS.md` はそこへの symlink である。
+グローバルの memory は `agents-harness/.agents/AGENTS.md` を正本とし、`~/.claude/CLAUDE.md` と `~/.commandcode/AGENTS.md` はそこへの symlink である。
 `~/.claude/settings.local.json` は Claude Code が直接読むローカル上書きであり、`merge-config` の入力ではない。
 
 ### グローバルの skills と prompts
 
-skill と prompt の分け方と、prompt の資料を `deps/` に分けるパターンは `docs/guidelines/harness.md` の Prompts に従う。グローバルのものは `chezmoi/dot_agents/` の `skills/<name>/`・`prompts/<name>.md`・`deps/<name>/` に置き、`~/.agents/` へ配布する。
+グローバルの skills・prompts・prompts が使う資料 (`deps/<name>/`) は、`agents-harness/.agents/` の `skills/<name>/`・`prompts/<name>.md`・`deps/<name>/` に置く。`~/.agents` への反映は `docs/overview.md` に従う。構成と書き方は `agents-harness/README.md` と `agents-harness/.agents/guidelines/harness.md` に従う。
 
 prompt の本体では、資料のディレクトリを配布先の絶対パス (`~/.agents/deps/<name>/`) で示す。本体は `~/.claude/commands`・`~/.codex/prompts`・`~/.pi/prompts`・`~/.commandcode/commands` の symlink を通して読まれる。
-skill や prompt を削除・移動したときは、配布先の古いディレクトリを `run_once_after_*.sh` で消す (`.agents/troubleshots/chezmoi-apply-does-not-remove-deleted-source-files.md`)。
 
 ### 外部 skill (skills CLI)
 
-外部リポジトリの skill は `npx skills add` で global にインストールし、結果を chezmoi に取り込む。
+外部リポジトリの skill は `npx skills add` で global にインストールする。インストール結果は `agents-harness/.agents/skills/` に入る (`docs/overview.md`)。git で commit すれば取り込みは完了する。
 全 Agent が `~/.agents/skills` を参照するため、universal 配置になる `-a codex` を指定する。
 `~/.claude/skills` は `~/.agents/skills` への symlink なので、`claude-code` を指定しない。
 
 ```bash
 npx skills add <owner>/<repo> -g -a codex -s <skill> -y
-chezmoi add ~/.agents/skills/<skill> ~/.agents/.skill-lock.json
 ```
 
-`~/.agents/.skill-lock.json` も管理対象にしているため、別マシンでも `npx skills update -g` と `npx skills list -g` が機能する。
-更新後は `chezmoi re-add ~/.agents/skills/<skill> ~/.agents/.skill-lock.json` で source state へ同期し、Git diff を確認する。
+`~/.agents/.skill-lock.json` も Git 管理しているため、別マシンでも `npx skills update -g` と `npx skills list -g` が機能する。
+更新後は Git diff を確認する。
+
+CLI が書き込む `skills/.system/` (Codex)・`skills/synced/` (Claude Code が claude.ai から同期)・`skills/.trash/`、マシン固有の `providers.json` は `agents-harness/.gitignore` で除外している。
 
 ### 設定のマージ
 
@@ -136,6 +136,8 @@ Pi の共有設定とモデルプロファイルは `config/agent/pi-agent/` に
 | `chezmoi/private_dot_pi/private_agent/` | `~/.pi/agent/` の AGENTS、拡張、skills など (keybindings を除く) |
 
 `internal-cli pi-agent deliver` は旧 `~/.pi/agent/agents/frontend_worker.md` を削除する。
+
+`~/.pi/agent/AGENTS.md` は `AGENTS.md.tmpl` が `agents-harness/.agents/AGENTS.md` を取り込み、Pi 固有の指示 (pueue、タイムアウト) を足して生成する。共通の指示は harness 側で直す。
 
 キーバインドは `config/agent/keybindings.json` から `keybindings deliver` が生成する ([キーバインドの配布](keybindings.md))。
 

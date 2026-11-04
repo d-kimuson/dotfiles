@@ -23,7 +23,7 @@ user-invocable: true
 - `chezmoi/` 配下の `dot_`、`private_dot_`、`executable_`、`symlink_` などは chezmoi の source state attributes である。
   属性を変えるときは命名規則を手で推測せず、`chezmoi chattr` と公式リファレンスを確認する。
 - `chezmoi/dot_claude/` は `~/.claude/`、`chezmoi/dot_codex/` は `~/.codex/`、`chezmoi/dot_commandcode/` は `~/.commandcode/`、`chezmoi/private_dot_pi/` は `~/.pi/` に対応する。
-  `chezmoi/dot_agents/` は `~/.agents/` で、グローバルの memory、skills、prompts の正本である。
+  `~/.agents/` は `chezmoi/symlink_dot_agents.tmpl` による `agents-harness/.agents/` への symlink で、グローバルの memory、skills、prompts の正本である。
 - `shell/` は working tree に置く共有シェルスクリプトである。
   `.zshrc` は `shell/sharedrc.sh` を読み込み、`sharedrc.sh` は `shell/alias.sh` と `shell/localrc.sh` を読み込む。
   `shell/localrc.sh` は Git 管理しないマシン固有の上書き用である。
@@ -58,20 +58,17 @@ user-invocable: true
 | memory / skills / prompts の一本化 | `references/memory-skills-prompts.md` |
 | chezmoi / merge-config / deliver の使い分け | `references/delivery-patterns.md` |
 
-## Skill / Agent 設定を chezmoi で配布するときの注意
+## Agent 設定を chezmoi で配布するときの注意
 
-`chezmoi/dot_agents/skills/`、`chezmoi/dot_claude/`、`chezmoi/dot_codex/` 配下は chezmoi の source state である。
+`chezmoi/dot_claude/`、`chezmoi/dot_codex/` 配下は chezmoi の source state である。
 source state のルールがそのまま効くため、**普通のディレクトリのつもりでファイルを置くと配布されない**。
 
 - **ドット始まりのファイル・ディレクトリは配布されない。**
   chezmoi は source state 内の `.` 始まりエントリを chezmoi 自身の特殊ファイル (`.chezmoiignore` など) として扱い、
-  それ以外は無視する。`references/core/.envrc` のようにコミットしても `~/.agents/.../core/.envrc` は生成されない。
+  それ以外は無視する。`chezmoi/dot_claude/.../.envrc` のようにコミットしても `~/.claude/.../.envrc` は生成されない。
   Git 上には存在するので `ls` では気付けない。
   - dotfile を配布したい場合は `dot_` 属性を使う (`dot_envrc` → `.envrc`)。
-  - **skill の reference テンプレート**は、そのまま使う dotfile ではなくコピー元なので、
-    ドットなしの名前 (`envrc`、`oxfmtrc.json`、`agents/`) にして、コピー先を index.md に明記する方を優先する。
-    配布後も可視ファイルとして残り、skill を使うエージェントが発見できる。
-- `README` のような普通の名前でも、`.chezmoiignore` の対象に入っていないか確認する。
+  - `agents-harness/.agents/` は symlink で配布するため、この制約は当てはまらない。
 - 属性付きの名前 (`private_`、`executable_`、`symlink_`、`literal_` など) は意図せず解釈されることがある。
   ファイル名そのものを残したいときは `literal_` を使う。
 

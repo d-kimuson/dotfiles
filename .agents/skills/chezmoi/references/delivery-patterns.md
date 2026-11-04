@@ -3,7 +3,7 @@
 ## chezmoi
 
 使う: 静的なファイル、テンプレート、symlink。
-例: `~/.agents/skills`、`~/.claude/CLAUDE.md`、`~/.config/opencode/skills`。
+例: `~/.agents`、`~/.claude/CLAUDE.md`、`~/.config/opencode/skills`。
 
 - source state の属性 (`dot_`、`private_`、`symlink_`、`executable_`) を確認する。
 - ドット始まりのファイルは配布されない。

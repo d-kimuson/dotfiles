@@ -12,12 +12,12 @@
 .
 ├── AGENTS.md        # エージェント向けの入口 (CLAUDE.md はこれへの symlink)
 ├── chezmoi/         # source state のルート (.chezmoiroot)。$HOME へ配布するファイル
-│   ├── dot_agents/          # ~/.agents: グローバルの memory、skills、prompts、prompts が使う資料 (deps)
 │   ├── dot_claude/          # ~/.claude: Claude Code の設定、hooks (language-guard など)、ローカルプラグイン (local-plugins)
 │   ├── dot_codex/           # ~/.codex: Codex の指示と skills・prompts への symlink
 │   ├── dot_commandcode/     # ~/.commandcode: Command Code の memory と commands への symlink
 │   ├── private_dot_config/  # ~/.config: home-manager、mise、zabrze、opencode など
 │   └── private_dot_pi/      # ~/.pi: Pi の設定、AGENTS、拡張 (keybindings は internal-cli が生成)
+├── agents-harness/  # ~/.agents の正本 (.agents/) と agent-core CLI の開発用ワークスペース。~/.agents は chezmoi がこれへの symlink にする
 ├── config/          # internal-cli がマージ・生成して配布する設定
 │   ├── agent/       # Agent 設定の master (MCP、キーバインド、Claude/Codex/Command Code、Pi)
 │   └── starship.toml
@@ -41,6 +41,8 @@
 | `mise install && mise reshim` | CLI とランタイムが入る | mise の設定だけを変更した (`chezmoi apply` の後) |
 | `pnpm --dir internal exec tsc -p ~/.claude/local-plugins/<name> --noEmit` → 配布先で `claude plugin test` | ローカルプラグインの型検査とテスト | `chezmoi/dot_claude/local-plugins/` を変更した (`chezmoi apply` の後) |
 | `node internal/src/cli.ts mcp deliver` / `merge-config` / `pi-agent deliver` / `keybindings deliver` | 設定を生成・マージして配布できる | `config/` か配布ロジックを変更した (変更に対応するものだけ) |
+| `pnpm --dir agents-harness test` → `pnpm --dir agents-harness exec tsc -p . --noEmit` → `node agents-harness/.agents/scripts/agent-core.ts --root agents-harness verify` | agent-core CLI のテストと型検査、harness の構成 (frontmatter・参照) | `agents-harness/` を変更した。symlink なので `chezmoi apply` なしで実機に反映される |
+| `node --test agents-harness/.agents/deps/configure-harness/scripts` → `node agents-harness/.agents/deps/configure-harness/scripts/decisions.ts check` | configure-harness のテストとテンプレートの判断記録 | `agents-harness/.agents/deps/configure-harness/` を変更した |
 | `node internal/src/cli.ts npm-shadowing check` | mise の npm CLI を `npm i -g` 側がシャドウしていない | マシンに配る npm CLI を追加・更新・削除した (`mise install` の後) |
 
 CI は `chezmoi init --apply` だけを実行し、型検査とテストは実行しない。
@@ -58,6 +60,7 @@ Always read every reference relevant to the task before making changes.
 | 変更をレビューする | `docs/guidelines/review/index.md` |
 | ドキュメントを書く | `docs/guidelines/writing/index.md` と文書タイプ別のガイド |
 | AGENTS.md、ガイドライン、skills、prompts を変更する | `docs/guidelines/harness.md` |
+| グローバルのハーネス (`agents-harness/`、`~/.agents`) の memory・skills・prompts・playbooks などを変更する | `agents-harness/README.md` と `agents-harness/.agents/guidelines/harness.md` |
 | コードを書く・変更する | `docs/guidelines/coding/index.md` |
 | テストの種類や範囲を決める、失敗したテストを再現する | `docs/guidelines/quality-assurance/index.md` |
 | `internal/` の依存を追加・更新する | `docs/guidelines/local-dev.md` |

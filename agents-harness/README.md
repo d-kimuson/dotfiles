@@ -1,7 +1,9 @@
-# Harness 設計
+# User Scope Harness
 
-- User Scope に配置する私専用のハーネスを構成する
-- このリポジトリ直下を `~/` と見立てて構成していく
+- User Scope に配置する私専用のハーネス
+- `.agents/` が `~/.agents` の正本。chezmoi (`chezmoi/symlink_dot_agents.tmpl`) が `~/.agents` をここへの symlink にする
+- `npx skills add` で入れた skill など、`~/.agents` への変更のうち必要なものを commit する
+- CLI が書き込む `.agents/skills/{.system,.trash,synced}/` と、マシン固有の `.agents/providers.json` は gitignore している
 
 ## 開発中の CLI
 

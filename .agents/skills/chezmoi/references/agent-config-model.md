@@ -5,7 +5,7 @@
 - 正本は dotfiles 側に置く。各 CLI の設定ディレクトリは配布先であり、直接編集しない。
 - 特定の CLI の都合 (ファイル形式、キー名、symlink の対応) は `internal-cli` の adapter に閉じ込める。
   CLI を乗り換えても、正本と配布の考え方をそのまま使えるようにする。
-- 共有できるものは共有する。memory、skills、prompts は `~/.agents` を正本にし、各 CLI へ symlink する。
+- 共有できるものは共有する。memory、skills、prompts は `agents-harness/.agents` (`~/.agents`) を正本にし、各 CLI へ symlink する。
 - 形式変換が必要なものだけ `internal-cli` で生成する。MCP、keybindings、アプリが書き換える settings が該当する。
 - マシン固有値は Git 管理外に置く。`*.local.json`、`shell/localrc.sh`、`shell/env-secrets.sh`、`MCP_LAYERS`。
 
@@ -13,7 +13,7 @@
 
 | 層 | 役割 | 例 |
 | --- | --- | --- |
-| chezmoi | 静的なファイル、テンプレート、symlink | `~/.agents/skills`、`~/.claude/CLAUDE.md` |
+| chezmoi | 静的なファイル、テンプレート、symlink | `~/.agents`、`~/.claude/CLAUDE.md` |
 | `merge-config` | アプリも書き換える設定。管理キーだけ合わせる | `~/.claude/settings.json`、`~/.codex/config.toml`、`~/.commandcode/config.json` |
 | `internal-cli <domain> deliver` | 形式変換が必要な生成物 | MCP、keybindings、Pi 設定 |
 | ローカル上書き | マシン固有の値 | `*.local.json`、`shell/localrc.sh`、環境変数 |

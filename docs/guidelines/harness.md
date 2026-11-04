@@ -33,7 +33,7 @@ Skills は Agent が自発的に利用する知識・能力に限る。ユーザ
 
 Prompts は 1 ファイルなので、手順書・スクリプト・テンプレートなどの資料は `.agents/deps/<name>/` に分ける。本体の冒頭で資料のディレクトリを示し、本体と資料の中のパスはそこからの相対パスで書く。本体は symlink を通して読まれるため、本体の位置からの相対パスは使わない。
 
-全マシンに配るグローバルの skills と prompts も同じパターンを使う (`docs/coding-agents.md`)。
+全マシンに配るグローバルの skills と prompts は `agents-harness/` に置き、`agents-harness/.agents/guidelines/harness.md` に従う (`docs/coding-agents.md`)。
 
 ## 更新
 

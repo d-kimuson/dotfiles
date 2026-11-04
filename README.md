@@ -12,11 +12,11 @@
 ```
 .chezmoiroot           # chezmoi/ をソースディレクトリとして指定
 chezmoi/               # chezmoi 以下が同期される設定ファイル群
-  dot_agents/          # → ~/.agents
   dot_claude/          # → ~/.claude
   dot_zshrc.tmpl       # → ~/.zshrc
   private_dot_config/  # → ~/.config/
     home-manager/      # home-manager 設定
+agents-harness/        # ~/.agents の正本 (chezmoi が ~/.agents をこのディレクトリへの symlink にする)
 shell/                 # 共有シェルスクリプト (.zshrc から読み込み)
 scripts/               # セットアップ・メンテナンス用スクリプト
 config/                # $HOME 以下に同期はしない設定ファイル (starship, MCP)
