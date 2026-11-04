@@ -8,7 +8,8 @@ Claude Code の `Bash` から `chezmoi apply` を実行し、`~/.claude/CLAUDE.m
 
 ## Workaround
 
-- Claude Code の外のターミナルで `chezmoi apply ~/.claude/CLAUDE.md ~/.claude/commands ~/.claude/skills` を実行する。
+- Claude Code を終了してから、別のターミナルで `chezmoi apply --force ~/.claude/CLAUDE.md ~/.claude/commands ~/.claude/skills` を実行する。
+  symlink が消えている間に、Claude Code は `~/.claude/skills/synced/` を実ディレクトリとして作り直す。`--force` を付けないと、chezmoi が置き換えの確認を求める。消える中身は、Claude Code が `~/.agents/skills/synced/` に同期し直す。
 - エージェントは `~/.claude` の symlink を作り直そうとせず、ユーザーに上記の実行を頼む。
 
 ## Why Not Fixed
