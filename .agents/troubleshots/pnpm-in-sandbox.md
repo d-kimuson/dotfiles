@@ -5,6 +5,12 @@
 Claude Code のサンドボックス内で、リポジトリ内のどの pnpm パッケージ (`internal/` や `agents-harness/.agents/deps/learn-it/scripts/` など、独自の `package.json`/`pnpm-lock.yaml` を持つディレクトリ) でも `pnpm typecheck`/`pnpm test` が失敗することがある。
 
 - `internal/package.json` の `packageManager` と、home-manager が入れた pnpm のバージョンが違うと、pnpm がバージョンを切り替えようとして書き込みやダウンロードで失敗する。
+  `agents-harness/` (`pnpm test`、`pnpm exec tsc`、`pnpm agent-core:dev`) でも同じで、次のエラーになる。
+
+  ```
+  [WARN] Cannot use the pnpm version this project pins: ERR_PNPM_STORE_DIR_OPEN_OPERATION_LOCK: lock the package-manager engine store: Failed to open the store operation lock at "pnpm-store-operation-locks": Operation not permitted (os error 1)
+  ```
+
 - `internal/src/llm-usage/dashboard.test.ts` はローカルのポートを listen するため、`listen EPERM` で失敗する。
 - registry.npmjs.org への接続が `invalid peer certificate: OSStatus -26276` で失敗することがある。副作用として、そのパッケージの `node_modules/` が空になり、リポジトリルートに `.pnpm-store/` が作られる。
 - lockfile の内容自体は変わらない場合でも `ERR_PNPM_LOCKFILE_WRITE_FILE: Failed to write lockfile content: Operation not permitted` で失敗することがある。
@@ -12,7 +18,7 @@ Claude Code のサンドボックス内で、リポジトリ内のどの pnpm �
 ## Workaround
 
 - サンドボックスの外で実行する。
-- サンドボックスの中で実行するなら、対象パッケージのディレクトリで `./node_modules/.bin/tsc -p . --noEmit` と `./node_modules/.bin/vitest run` を直接実行する。`dashboard.test.ts` も通すには、設定で `sandbox.network.allowLocalBinding: true` にする。
+- サンドボックスの中で実行するなら、対象パッケージのディレクトリで `./node_modules/.bin/tsc -p . --noEmit` と `./node_modules/.bin/vitest run` を直接実行する。`agents-harness/` では `node --test .agents/scripts`、`./node_modules/.bin/tsc -p . --noEmit`、`node .agents/scripts/agent-core.ts --root . <command>` を直接実行する。`dashboard.test.ts` も通すには、設定で `sandbox.network.allowLocalBinding: true` にする。
 - `node_modules/` が空になった場合は、サンドボックスの外で (対象パッケージのディレクトリで) `pnpm install --frozen-lockfile` を実行して復元する。リポジトリルートに残った `.pnpm-store/` は削除する。
 
 ## Why Not Fixed
