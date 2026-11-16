@@ -4,3 +4,7 @@ saveExact: true
 enableGlobalVirtualStore: true
 
 minimumReleaseAge: 1440
+
+# Packages allowed to run install scripts. Add more with `pnpm approve-builds <pkg>` (e.g. esbuild when tsx is added).
+allowBuilds:
+  lefthook: true

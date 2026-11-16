@@ -7,7 +7,7 @@ type ServerOptions = {
   readonly port?: number;
 };
 
-const defaultPort = 3000;
+const defaultPort = 8787;
 
 export const startServer = (options?: ServerOptions) => {
   const { port = defaultPort } = options ?? {};

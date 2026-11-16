@@ -5,7 +5,7 @@ export type RuntimeEnvironment = 'local' | 'dev' | 'preview' | 'prod';
 export type HonoContext = {
   Variables: {
     env: RuntimeEnvironment;
-    user: unknown | undefined;
+    user: unknown;
     // {Customize: add db (Kysely<Database>) or other request-scoped handles when needed}
   };
 };

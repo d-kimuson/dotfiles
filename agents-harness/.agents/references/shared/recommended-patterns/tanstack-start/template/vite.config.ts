@@ -3,6 +3,9 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+// Keep in sync with `defaultPort` in src/server/server.ts (hono pattern).
+const apiServerPort = 8787;
+
 const config = defineConfig(() => ({
   plugins: [
     tailwindcss(),
@@ -28,10 +31,9 @@ const config = defineConfig(() => ({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:8787',
+      '/api': `http://localhost:${apiServerPort}`,
     },
   },
-  clean: true,
 }));
 
 export default config;

@@ -29,6 +29,7 @@
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {
           packages = [
+            # {Customize: pkgs.nodejs_<major> matching .node-version, e.g. pkgs.nodejs_26}
             pkgs.nodejs
             pkgs.pnpm
           ];

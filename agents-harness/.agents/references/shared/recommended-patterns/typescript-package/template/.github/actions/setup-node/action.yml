@@ -10,7 +10,7 @@ runs:
 
     - name: Setup pnpm
       shell: bash
-      run: npm install -g pnpm@11.25.0
+      run: npm install -g pnpm@12.18.0
 
     - name: Install Dependencies
       shell: bash

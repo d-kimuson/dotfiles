@@ -16,6 +16,8 @@
   "ignorePatterns": [
     "**/*.gen.*",
     "**/*.generated.*",
-    "src/server/worker-configuration.d.ts"
+    "src/server/worker-configuration.d.ts",
+    "src/web/components/ui/**",
+    "src/web/hooks/use-mobile.ts"
   ]
 }

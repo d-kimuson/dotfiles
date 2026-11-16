@@ -4,11 +4,13 @@ import type { RouteType } from '../../../server/routes';
 // マルチパッケージの場合: import type { RouteType } from '<pkg-name-backend>/types';
 
 export class HttpError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly statusText: string,
-  ) {
+  readonly status: number;
+  readonly statusText: string;
+
+  constructor(status: number, statusText: string) {
     super(`HttpError: ${status} ${statusText}`);
+    this.status = status;
+    this.statusText = statusText;
   }
 }
 

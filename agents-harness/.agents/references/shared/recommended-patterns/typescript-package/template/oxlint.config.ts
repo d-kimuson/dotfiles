@@ -44,13 +44,15 @@ const restrictedBackendWorkflowImportPatterns = [
   },
 ];
 
+const restrictedFrontendBackendValueImportPattern = {
+  group: ['**/server/**'],
+  allowTypeImports: true,
+  message:
+    'frontend から backend のコード import は禁止です。必要な契約は models の type import に限定してください。',
+};
+
 const restrictedFrontendBackendImportPatterns = [
-  {
-    group: ['**/server/**'],
-    allowTypeImports: true,
-    message:
-      'frontend から backend のコード import は禁止です。必要な契約は models の type import に限定してください。',
-  },
+  restrictedFrontendBackendValueImportPattern,
   {
     group: ['**/server/**', '!**/server/**/models/**', '!**/server/models/**'],
     message: 'frontend から backend への type import は models 配下の契約だけ許可されています。',
@@ -70,8 +72,14 @@ export default defineConfig({
     'react',
     'jsx-a11y',
   ],
+  jsPlugins: ['./dev/lints/conventions.js'],
   categories: {},
   rules: {
+    /* Project conventions (dev/lints/conventions.js) */
+    'conventions/no-barrel-file': 'error',
+    'conventions/colocated-tests': 'error',
+    'conventions/module-boundaries': 'error',
+
     /* Correctness (違反するとそのままランタイムエラーになるような無条件適用しやすいルール群) */
     'constructor-super': 'error',
     'for-direction': 'error',
@@ -285,9 +293,9 @@ export default defineConfig({
   },
   overrides: [
     {
-      files: ['**/routes/**/*.tsx'],
+      files: ['**/app/**/page.tsx'],
       rules: {
-        'func-style': 'off', // TanStack Router の慣例的な function declaration を許可
+        'func-style': 'off', // TanStack Router の慣例的な function declaration を許可 (tanstack-start の route file)
       },
     },
     {
@@ -384,7 +392,7 @@ export default defineConfig({
       },
     },
     {
-      files: ['src/web/lib/test/renderHook.ts'],
+      files: ['src/web/lib/test/renderHook.{ts,tsx}'],
       rules: {
         'no-restricted-imports': [
           'error',
@@ -401,6 +409,13 @@ export default defineConfig({
     {
       files: ['src/web/lib/api/client.ts'],
       rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: restrictedBaseImportPaths,
+            patterns: [restrictedFrontendBackendValueImportPattern],
+          },
+        ], // Hono RPC の RouteType を server/routes から type import するため models 制限を緩和
         'no-restricted-globals': [
           'error',
           {
@@ -517,6 +532,7 @@ export default defineConfig({
     'src/server/worker-configuration.d.ts',
     'src/server/env.d.ts',
     'src/web/components/ui/**',
+    'src/web/hooks/use-mobile.ts', // shadcn `sidebar` が生成する vendored hook
     'dev/**',
     'public/sw.js',
   ],

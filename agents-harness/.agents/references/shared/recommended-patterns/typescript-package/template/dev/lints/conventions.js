@@ -62,15 +62,13 @@ const colocatedTests = {
 // --- module-boundaries ---
 
 // {Customize: define your project's module names}
-const MODULE_NAMES = ['core', 'web', 'server', 'cli', 'platform'];
+const MODULE_NAMES = ['lib', 'server', 'web'];
 
 // {Customize: define allowed runtime dependency directions}
 const ALLOWED_RUNTIME_DEPS = {
-  core: ['platform'],
-  web: [],
-  server: ['core', 'platform'],
-  cli: ['core', 'platform'],
-  platform: [],
+  lib: [],
+  server: ['lib'],
+  web: ['lib'],
 };
 
 // {Customize: define allowed type-only dependency directions}

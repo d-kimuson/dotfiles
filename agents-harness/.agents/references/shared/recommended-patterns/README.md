@@ -2,7 +2,7 @@
 
 Reference documents and template files for project tooling, frameworks, and conventions. Read the relevant `index.md` for each pattern, then copy and customize template files as documented.
 
-Each pattern's `template/` mirrors a single-package project: `template/<path>` is copied to `<path>` in the project, dotfiles included. `index.md` refers to template files by that path. In a workspace, place package-level files under `apps/<name>/` or `packages/<name>/`.
+Each pattern's `template/` mirrors a single-package project: `template/<path>` is copied to `<path>` in the project, dotfiles included. `index.md` refers to template files by that path. When copying a directory, copy its contents with a trailing `/.` (e.g. `mkdir -p src/web && cp -R <pattern>/template/src/web/. src/web/`); `cp -R template/src/web/ src/web/` can nest into `src/web/web/` depending on the `cp` implementation and whether the destination exists. In a workspace, place package-level files under `apps/<name>/` or `packages/<name>/`.
 
 | Pattern | Description |
 |---------|-------------|
