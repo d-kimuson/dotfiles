@@ -14,5 +14,6 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": [".agents/scripts/**/*.ts"]
+  "include": [".agents/scripts/**/*.ts", ".agents/playbooks/*/scripts/**/*.ts"],
+  "exclude": [".agents/playbooks/explainer-video/scripts"]
 }
