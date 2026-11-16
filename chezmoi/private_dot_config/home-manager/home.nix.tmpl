@@ -189,20 +189,6 @@ in
 
   programs.tmux.enable = true;
 
-  home.activation.installCursorAgent = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    cursorAgentPath="${config.home.homeDirectory}/.local/bin/cursor-agent"
-    homeBinDir="${config.home.homeDirectory}/bin"
-
-    if [ ! -x "$cursorAgentPath" ]; then
-      $DRY_RUN_CMD bash -c "$(${pkgs.curl}/bin/curl -fsSL https://cursor.com/install)"
-    fi
-
-    $DRY_RUN_CMD mkdir -p "$homeBinDir"
-    if [ -x "$cursorAgentPath" ]; then
-      $DRY_RUN_CMD ln -sf "$cursorAgentPath" "$homeBinDir/agent"
-    fi
-  '';
-
   home.activation.installMiseTools = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     miseConfigPath="${config.home.homeDirectory}/.config/mise/config.toml"
     export PATH="${pkgs.mise}/bin:$PATH"

@@ -13,7 +13,6 @@
 たとえば `legacyPackages.aarch64-darwin.ripgrep` は通常 `pkgs.ripgrep` と書く。
 
 `home-manager switch` は `home.activation.installMiseTools` により `mise install` と `mise reshim` も実行する。
-`installCursorAgent` も activation hook として定義されているため、手動で同じ処理を重ねない。
 
 `home.nix.tmpl` は macOS で標準コマンドを GNU 版に統一する。
 `sed`、`stat` は GNU 形式で書く (`sed -i 's/.../.../' file`、`stat -c '%a' file`)。
