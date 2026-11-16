@@ -1,0 +1,24 @@
+{
+  "version": 3,
+  "skills": {
+    "dev-process-kit": {
+      "source": "d-kimuson/dev-process-kit",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/d-kimuson/dev-process-kit.git",
+      "skillPath": "skills/dev-process-kit/SKILL.md",
+      "skillFolderHash": "06ecb91134ed7f4b6ab3915e15944655820fe5eb",
+      "installedAt": "2026-11-04T17:49:59.234Z",
+      "updatedAt": "2026-11-04T17:49:59.234Z"
+    },
+    "motion-kit": {
+      "source": "d-kimuson/motion-kit",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/d-kimuson/motion-kit.git",
+      "skillPath": "skills/motion-kit/SKILL.md",
+      "skillFolderHash": "a2902ad3b48ebaabfa0a4922b00b674d003606d9",
+      "installedAt": "2026-11-04T17:50:39.730Z",
+      "updatedAt": "2026-11-04T17:50:39.730Z"
+    }
+  },
+  "dismissed": {}
+}
