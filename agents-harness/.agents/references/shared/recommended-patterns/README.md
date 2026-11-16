@@ -13,3 +13,5 @@ Each pattern's `template/` mirrors a single-package project: `template/<path>` i
 | `tanstack-start/` | Frontend — TanStack Start with selectable `prerender` (`/` + `/home`) or `spa` mode |
 | `shadcn-ui/` | UI components — Tailwind + shadcn init, `components.json` for shared packages |
 | `cloudflare-workers/` | Cloudflare Workers deploy — `cf` CLI + `cloudflare.config.ts`, `worker.ts`, D1 + Kysely + Atlas migrations, manual deploy scripts |
+| `agent-harness/` | Coding agent harness — `AGENTS.md`, `REVIEW.md`, `docs/guidelines/`, `.agents/troubleshots/`; applied by the `configure-harness` playbook |
+| `agent-auto-pilot/` | Agent that leads the project — `docs/guidelines/auto-pilot.md`, `.agents/auto-pilot/` maintenance tasks; builds on `agent-harness/`, applied by the `configure-harness` playbook |
