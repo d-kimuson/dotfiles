@@ -4,6 +4,7 @@
 
 - 旧 `kimuson-harness` skill の `playbooks/configure-harness.md` と `~/.agents/deps/configure-harness/` の移植。`~/repos/agentic-cf` で育てたハーネスの構造をテンプレートにしている
 - テンプレートと観察・提案の条件は `references/shared/recommended-patterns/agent-harness/` (`template/` と `index.md`) に置く
+- tool ごとの symlink は旧 `kimuson-harness` skill の sync playbook (`sync-harness.sh`) から、今使っている Claude Code・Pi・Command Code の分だけを `scripts/link-tools.sh` に移した。Codex・Pi・Command Code は `.agents/skills` を直接読み、Codex にはプロジェクトの prompts がない
 - 旧版の setup のうち core だけを移した。プロジェクトの進行をエージェントがリードする `auto-pilot` と、決定論的な検査 (Lean による仕様の証明と差分テスト、CodeQL、gitleaks など) を持ち込む `deterministic` は移植の対象外にした
 
 ## 保守

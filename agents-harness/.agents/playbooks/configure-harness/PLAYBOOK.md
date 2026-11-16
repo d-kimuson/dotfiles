@@ -50,6 +50,7 @@ Run with Node.js 24 or later.
 - `node scripts/decisions.ts list`: the decision blocks as JSON, with template and target paths and optional unit.
 - `node scripts/decisions.ts leftovers <path...>`: unresolved decision blocks (exit 1) and TODO comments in generated files.
 - `node scripts/decisions.ts check`: validate the templates. Run it after changing a template.
+- `scripts/link-tools.sh [root]`: link `.claude/skills`, `.claude/commands`, `.pi/prompts`, and `.commandcode/commands` to `.agents/skills` and `.agents/prompts`. It reports anything already at those paths instead of replacing it (exit 1): move its contents into `.agents/`, remove it, and run the script again.
 
 ## Steps
 
