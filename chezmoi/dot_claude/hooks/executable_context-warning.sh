@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PreCompact (auto) hook - warn user to run /handoff before auto-compact
+# PreCompact (auto) hook - warn user to update the handoff file before auto-compact
 # Blocks the FIRST auto-compact per session; subsequent ones proceed normally.
 set -euo pipefail
 
@@ -15,8 +15,8 @@ touch "$state_file"
 
 cat <<'JSON'
 {
-  "systemMessage": "コンテキスト枠の残量が小さくなっています。/handoff を使って autocompact 前に情報を残してください。",
+  "systemMessage": "コンテキスト枠の残量が小さくなっています。autocompact 前に handoff ファイル (.agents/handoff/) を最新にしてください。",
   "continue": false,
-  "stopReason": "コンテキスト枠の残量が小さくなっています。/handoff を使って autocompact 前に情報を残してください。"
+  "stopReason": "コンテキスト枠の残量が小さくなっています。autocompact 前に handoff ファイル (.agents/handoff/) を最新にしてください。"
 }
 JSON

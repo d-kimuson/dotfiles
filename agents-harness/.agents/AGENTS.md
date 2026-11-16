@@ -22,6 +22,10 @@
 - `~/.agents/scripts/agent-core.ts playbooks list` で一覧を取得する (`playbooks search <query>` で全文検索も可)。description から今回のユーザー要求に合うものがあれば、`~/.agents/scripts/agent-core.ts playbooks use 'initialize-project'` のように本文を取得し、手順に従う
 - 合う Playbook が無ければ使わずに進めてよい
 
+### Handoff
+
+- 作業 (ファイルの変更、調査、複数ステップのタスクなど) を伴うセッションでは、作業を始める前に `~/.agents/scripts/agent-core.ts playbooks use handoff` で手順を取得し、カレントディレクトリに handoff ファイル (`.agents/handoff/${identifier}/index.md`) を作る
+
 ### SubAgent Delegation
 
 - SubAgent をタスクの本筋に集中するために利用する
