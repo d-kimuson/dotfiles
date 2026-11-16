@@ -42,7 +42,7 @@
 | `pnpm --dir internal exec tsc -p ~/.claude/local-plugins/<name> --noEmit` → 配布先で `claude plugin test` | ローカルプラグインの型検査とテスト | `chezmoi/dot_claude/local-plugins/` を変更した (`chezmoi apply` の後) |
 | `node internal/src/cli.ts mcp deliver` / `merge-config` / `pi-agent deliver` / `keybindings deliver` | 設定を生成・マージして配布できる | `config/` か配布ロジックを変更した (変更に対応するものだけ) |
 | `pnpm --dir agents-harness test` → `pnpm --dir agents-harness exec tsc -p . --noEmit` → `node agents-harness/.agents/scripts/agent-core.ts --root agents-harness verify` | agent-core CLI のテストと型検査、harness の構成 (frontmatter・参照) | `agents-harness/` を変更した。symlink なので `chezmoi apply` なしで実機に反映される |
-| `node agents-harness/.agents/playbooks/configure-harness/scripts/decisions.ts check` | configure-harness のテンプレートの判断記録 | `agents-harness/.agents/playbooks/configure-harness/` か recommended-patterns の `agent-harness/`・`agent-auto-pilot/` を変更した |
+| `node agents-harness/.agents/playbooks/configure-harness/scripts/decisions.ts check` | configure-harness のテンプレートの判断記録 | `agents-harness/.agents/playbooks/configure-harness/` か recommended-patterns の `agent-harness/` を変更した |
 | `node internal/src/cli.ts npm-shadowing check` | mise の npm CLI を `npm i -g` 側がシャドウしていない | マシンに配る npm CLI を追加・更新・削除した (`mise install` の後) |
 
 CI は `chezmoi init --apply` だけを実行し、型検査とテストは実行しない。

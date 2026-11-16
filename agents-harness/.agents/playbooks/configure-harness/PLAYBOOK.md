@@ -1,22 +1,15 @@
 ---
 name: configure-harness
-description: リポジトリにコーディングエージェント向けのハーネス (AGENTS.md、REVIEW.md、docs/guidelines/) や auto-pilot を構成する
+description: リポジトリにコーディングエージェント向けのハーネス (AGENTS.md、REVIEW.md、docs/guidelines/) を構成する
 ---
 
 # Configure Harness
 
-Bring a coding agent harness into a repository from the recommended patterns, filling in every project-specific point from what the repository shows.
+Bring a coding agent harness into a repository from the `agent-harness` recommended pattern, filling in every project-specific point from what the repository shows.
 
-Paths in this playbook are relative to `~/.agents/playbooks/configure-harness/`, except the patterns, which are in `~/.agents/references/shared/recommended-patterns/`.
+Paths in this playbook are relative to `~/.agents/playbooks/configure-harness/`, except the pattern, which is `~/.agents/references/shared/recommended-patterns/agent-harness/`.
 
-## Setup
-
-The setup to bring in is the one the caller passed (`core` or `auto-pilot`), or `core` when none is given. Each setup is a pattern:
-
-| Setup | Pattern |
-| --- | --- |
-| `core` | `agent-harness/` |
-| `auto-pilot` | `agent-auto-pilot/` |
+## Pattern
 
 Read the pattern's `index.md` before anything else. It says what must exist first, what to observe, when to propose each optional unit, what the Plan page always shows, and what to do beyond the steps below. Where it differs from this file, follow it.
 
@@ -53,17 +46,17 @@ When a decision is settled, replace its block in one of three ways:
 
 Run with Node.js 24 or later.
 
-- `node scripts/decisions.ts files <setup>`: every template file of the setup as JSON, with its target path and the optional unit it belongs to.
-- `node scripts/decisions.ts list <setup>`: the setup's decision blocks as JSON, with template and target paths and optional unit.
+- `node scripts/decisions.ts files`: every template file as JSON, with its target path and the optional unit it belongs to.
+- `node scripts/decisions.ts list`: the decision blocks as JSON, with template and target paths and optional unit.
 - `node scripts/decisions.ts leftovers <path...>`: unresolved decision blocks (exit 1) and TODO comments in generated files.
-- `node scripts/decisions.ts check`: validate the templates of every setup. Run it after changing a template.
+- `node scripts/decisions.ts check`: validate the templates. Run it after changing a template.
 
 ## Steps
 
-1. **Observe.** Check the setup's prerequisites, then read what its Observe section lists. For each decision from `list <setup>`, gather what its 観察 field asks for. If any file the setup generates already exists, read `references/merge.md` now.
-2. **Plan.** Read `references/plan.md` and the setup's Plan page section, then build the Plan page and iterate with the user until the plan is agreed.
-3. **Generate and merge.** Do what the setup's Generate section says, and for each template file in the agreed plan, write the target file: keep the fixed text, and replace each decision block by what its 書き方 field says, using the agreed proposal. Write every generated file in the agreed document language. Write only what the agent reading the file uses for its task; leave out explanations it does not act on, such as why the file exists or which other tools read it. Defects of the product you find on the way (a bug, code that contradicts its documents) are not harness content: keep them out of the generated files and report them.
-4. **Verify.** Run `leftovers` on the generated files; no decision block may remain. Check that every path in the AGENTS.md References table exists and that every symlink resolves. Run the setup's Verify section, if it has one. Report to the user the generated files, every remaining TODO, the product defects you found, and what the setup's Report section adds.
+1. **Observe.** Read what the pattern's Observe section lists. For each decision from `list`, gather what its 観察 field asks for. If any file the pattern generates already exists, read `references/merge.md` now.
+2. **Plan.** Read `references/plan.md` and the pattern's Plan page section, then build the Plan page and iterate with the user until the plan is agreed.
+3. **Generate and merge.** For each template file in the agreed plan, write the target file: keep the fixed text, and replace each decision block by what its 書き方 field says, using the agreed proposal. Write every generated file in the agreed document language. Write only what the agent reading the file uses for its task; leave out explanations it does not act on, such as why the file exists or which other tools read it. Defects of the product you find on the way (a bug, code that contradicts its documents) are not harness content: keep them out of the generated files and report them.
+4. **Verify.** Run `leftovers` on the generated files; no decision block may remain. Check that every path in the AGENTS.md References table exists and that every symlink resolves. Report to the user the generated files, every remaining TODO, and the product defects you found.
 
 ## Pages
 

@@ -1,8 +1,8 @@
 # Agent Harness
 
-The base harness for coding agents: `AGENTS.md`, `REVIEW.md`, `docs/guidelines/`, `.agents/troubleshots/`. `agent-auto-pilot/` builds on it.
+The base harness for coding agents: `AGENTS.md`, `REVIEW.md`, `docs/guidelines/`, `.agents/troubleshots/`.
 
-Apply it with the `configure-harness` playbook (setup `core`), which reads this file. `template/` uses the playbook's conventions: a `.optional` marker in a file or directory name makes it an optional unit, and `<!-- decision: <id> -->` blocks are the project-specific points to fill in.
+Apply it with the `configure-harness` playbook, which reads this file. `template/` uses the playbook's conventions: a `.optional` marker in a file or directory name makes it an optional unit, and `<!-- decision: <id> -->` blocks are the project-specific points to fill in.
 
 ## Observe
 
@@ -46,7 +46,3 @@ Propose the `definition-of-done` decision from the history:
 Judge the merge levels by the pull requests the user authored (`gh pr list --author @me --state merged --json mergedBy`). Pull requests from bots and other contributors show how the user reviews others, not how the user's own work lands, so leave them out.
 
 The Definition of Done is the core of how the user delegates. Offer the five levels as options, mark the level the history points to with `（推奨）`, and put the evidence and the proposed checks in the description. Without a remote or a pull request history, recommend nothing from history and ask the checks in a second question.
-
-## Report
-
-Also tell the user, in one line, that `/configure-harness auto-pilot` adds an agent that leads the project, only when the observations suggest it (a tracker with many open tasks).
