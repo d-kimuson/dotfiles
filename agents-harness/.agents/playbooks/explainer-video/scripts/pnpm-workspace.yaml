@@ -1,0 +1,11 @@
+# agents-harness の設定から切り離す。Vite がパッケージを読めるよう、仮想ストアは使わず node_modules に実体を置く
+saveExact: true
+engineStrict: true
+enableGlobalVirtualStore: false
+minimumReleaseAge: 1440
+# 自作パッケージ。公開から 1 日待たずに最新へ固定する
+minimumReleaseAgeExclude:
+  - "@kimuson/motion-kit"
+# esbuild の postinstall は不要 (バイナリは optional dependency で入る)
+allowBuilds:
+  esbuild: false
