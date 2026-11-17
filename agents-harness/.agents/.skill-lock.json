@@ -238,16 +238,6 @@
       "skillFolderHash": "f892c6f03fe8e6fbd6eca4d403e253a8f9f80f70",
       "installedAt": "2026-11-17T08:21:38.013Z",
       "updatedAt": "2026-11-17T08:21:38.013Z"
-    },
-    "orchestration": {
-      "source": "stablyai/orca",
-      "sourceType": "github",
-      "sourceUrl": "https://github.com/stablyai/orca.git",
-      "commit": "6497676a682fdfc5d6b930b8bfa7d38028841178",
-      "skillPath": "skills/orchestration/SKILL.md",
-      "skillFolderHash": "2bde01b1734684a1371a6bbfec13339c08336d02",
-      "installedAt": "2026-11-17T08:21:38.014Z",
-      "updatedAt": "2026-11-17T08:21:38.014Z"
     }
   },
   "dismissed": {}

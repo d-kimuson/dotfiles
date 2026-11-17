@@ -7,6 +7,7 @@
 - `orca` はパイプ・リダイレクト・`cd`・`$'...'` を付けずに単独で実行する (付けると sandbox の除外から外れて失敗する)
 - `--worktree path:<dir>` の `<dir>` は Orca に登録済みの repo に限る
 - 親が Orca の terminal 内で動いている (`ORCA_TERMINAL_HANDLE` がある)。無ければ Orca は使えない
+- ここにないコマンドやフラグが要るとき、またはコマンドが想定外に失敗したときは、`orca skills get orchestration` でインストール済みの Orca に合った手順書を読む
 
 ## 起動コマンド
 
