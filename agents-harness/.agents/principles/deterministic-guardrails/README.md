@@ -9,6 +9,6 @@
 
 ## 推奨する Role
 
-product-engineer、pdm
+product-engineer、coordinator
 
 本文: [PRINCIPLE.md](./PRINCIPLE.md)

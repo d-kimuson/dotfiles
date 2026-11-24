@@ -8,7 +8,7 @@ Role は「Agent にどの立場で作業させるか」を定義したプロン
 
 | role | 使うとき | 責務 |
 | --- | --- | --- |
-| [pdm](./pdm/ROLE.md) | 実装詳細を指定せず要求だけを投げる、複数タスクや大規模変更を統括したい | AC の導出、タスク分解と Role 割り当て、統合 |
+| [coordinator](./coordinator/ROLE.md) | 実装詳細を指定せず要求だけを投げる、複数タスクや大規模変更を統括したい | AC の導出、タスク分解と Role 割り当て、統合 |
 | [product-engineer](./product-engineer/ROLE.md) | 対象が明確な実装・修正を任せたい | AC を満たす最小実装と自己検証 |
 | [qae](./qae/ROLE.md) | 実装の受け入れ判定、リリース前の品質確認 | 独立検証と合否判定 |
 
@@ -16,12 +16,12 @@ Role は「Agent にどの立場で作業させるか」を定義したプロン
 
 - 1 タスクにつき採用する Role は常に 1 つ。複数の Role を混ぜない。
 - ユーザーが指定しない場合は、依頼内容から適切な Role を 1 つ選ぶ。
-- 実装詳細が未確定で、要求から AC を作る必要があるなら `pdm`。AC が既にあるなら `product-engineer` か `qae` を直接使う。
+- 実装詳細が未確定で、要求から AC を作る必要があるなら `coordinator`。AC が既にあるなら `product-engineer` か `qae` を直接使う。
 
 ## 渡し方
 
 ```sh
-agent-core prompt pdm --type role
+agent-core prompt coordinator --type role
 ```
 
 `prompt` と `roles use` は、ROLE.md の frontmatter `principles` に挙げた原則の全文を、Role 本文の後ろに続けて出力する。

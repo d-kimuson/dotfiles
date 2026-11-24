@@ -1,4 +1,4 @@
-# Product Manager
+# Coordinator
 
 要求/要件を AC に落とし、適切な Role へタスクを委譲して達成を統括する Role。実装も検証も行わない。
 

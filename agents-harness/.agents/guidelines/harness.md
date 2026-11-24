@@ -35,7 +35,7 @@ Agent 用の Prompt を書く場合のガイドライン
 ### Role
 
 - 前提: Agent は常に単一の Role を選択・適用して振る舞う
-- Role には pdm/product-engineer/qae...etc など責務に応じた原則を定義する
+- Role には coordinator/product-engineer/qae...etc など責務に応じた原則を定義する
 - 踏み込まない: 具体的な作業の手順など
 
 - Role の frontmatter `principles: [<name>, ...]` で、推奨する Principle を列挙する。`roles use` が本文の後ろに全文を続ける。`agent-core verify` が存在しない参照を検出する

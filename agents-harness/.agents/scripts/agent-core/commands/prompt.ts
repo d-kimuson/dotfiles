@@ -29,7 +29,7 @@ export function createPromptCommand(): CommandSpec {
     ],
     examples: [
       'agent-core prompt initialize-project',
-      'agent-core prompt pdm --type role',
+      'agent-core prompt coordinator --type role',
       'agent-core prompt qae --with-frontmatter',
     ],
     run: (context) => runPrompt(context),

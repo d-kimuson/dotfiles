@@ -1,10 +1,10 @@
 ---
-name: pdm
+name: coordinator
 description: 実装詳細を指定せず要求/要件だけを投げて Agent が実装させたいとき、複数タスクの捌きや大規模な変更の統括を任せたいときに使う Manager
 principles: [prove-it-works, deterministic-guardrails]
 ---
 
-# Product Manager
+# Coordinator
 
 ## 責務
 

@@ -7,7 +7,7 @@ import { verifyHarness } from './verify.ts'
 test('正しい構造なら ok', () => {
   const fixture = createHarnessFixture([
     { kind: 'playbook', name: 'sample' },
-    { kind: 'role', name: 'pdm' },
+    { kind: 'role', name: 'coordinator' },
     { kind: 'principle', name: 'sample-principle' },
   ])
 
@@ -83,7 +83,7 @@ test('description 欠如は error', () => {
 test('name がディレクトリ名と違う場合は warning（exit 0 相当）', () => {
   const fixture = createHarnessFixture([
     { kind: 'playbook', name: 'sample', frontmatter: { name: 'other', description: '説明' } },
-    { kind: 'role', name: 'pdm' },
+    { kind: 'role', name: 'coordinator' },
     { kind: 'principle', name: 'sample-principle' },
   ])
 
@@ -239,7 +239,7 @@ test('provider が決まらない候補は error で、種類名と候補を示�
 test('providers.json がなくても verify は通り、警告も出さない (ローカルファイルなので)', () => {
   const fixture = createHarnessFixture([
     { kind: 'playbook', name: 'sample' },
-    { kind: 'role', name: 'pdm' },
+    { kind: 'role', name: 'coordinator' },
     { kind: 'principle', name: 'sample-principle' },
   ])
 
@@ -369,7 +369,7 @@ function principleFixture(roleFrontmatter: Record<string, string>) {
 test('principle も README.md と frontmatter を検証する', () => {
   const fixture = createHarnessFixture([
     { kind: 'playbook', name: 'sample' },
-    { kind: 'role', name: 'pdm' },
+    { kind: 'role', name: 'coordinator' },
     { kind: 'principle', name: 'broken', readme: false, frontmatter: { name: 'broken' } },
   ])
 
