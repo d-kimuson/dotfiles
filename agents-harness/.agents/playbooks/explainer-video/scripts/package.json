@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@fontsource/m-plus-rounded-1c": "5.3.0",
-    "@kimuson/motion-kit": "0.2.2",
+    "@kimuson/motion-kit": "0.2.3",
     "commander": "15.0.0",
     "playwright": "1.64.1",
     "react": "19.3.1",
