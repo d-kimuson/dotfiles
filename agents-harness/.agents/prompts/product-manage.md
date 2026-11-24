@@ -1,6 +1,6 @@
 ---
 name: product-manage
-description: product-manage playbook で、判断が要る事項を選んで Personal Task Board に積む
+description: product-manage playbook で、タスク管理元から本人がやるタスクを選んで Personal Task Board に積む
 argument-hint: [観点]
 disable-model-invocation: true
 user-invocable: true

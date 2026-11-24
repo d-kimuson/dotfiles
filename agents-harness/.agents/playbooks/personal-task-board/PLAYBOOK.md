@@ -12,11 +12,11 @@ description: 本人がやることを Personal Task Board に積む・動かす�
 | コマンド | すること |
 | --- | --- |
 | `list` | 列ごとにカードを出力する |
-| `add --column <id> --title <t> [--description d] [--tag t]... [--link 'url label']...` | 列の末尾にカードを足し、`TASK-<n>` を出力する |
+| `add --column <id> --title <t> [--description d] [--tag t]... [--link 'url label']... [--project]` | 列の末尾にカードを足し、`TASK-<n>` を出力する。`--project` はカレントディレクトリのプロジェクト名 (remote のリポジトリ名、なければディレクトリ名) をタグに足す |
 | `move <n> --column <id>` | カードを列の末尾へ移す |
 | `render [--fresh]` | ページを生成する。`--fresh` はページ上の下書きを捨てる |
 
-列は `learning-backlog` (学習バックログ)、`todo`、`doing`、`done`。タグは `判断`・`学習`・`作業` から 1 つ付ける。`--link` は `http(s)` の URL だけを受け付けるので、ローカルのパスは description に書く。
+列は `learning-backlog` (学習バックログ)、`todo`、`doing`、`done`。タグは `判断`・`学習`・`作業` から 1 つ付ける。プロジェクトに属するカードは `--project` を付け、ページのタグで絞れるようにする。`--link` は `http(s)` の URL だけを受け付けるので、ローカルのパスは description に書く。
 
 カードを積んだ・動かしたら、ページの URL を本人に渡す。
 

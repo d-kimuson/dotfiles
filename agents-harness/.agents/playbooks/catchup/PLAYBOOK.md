@@ -5,7 +5,7 @@ description: 前回以降の Slack や社内ドキュメントの変化を拾い
 
 # catchup
 
-前回の catchup 以降の情報源の変化を拾い、Context Store に蓄え、本人が読むダイジェストを作る。ダイジェストを読むことはタスクにしない。
+前回の catchup 以降の情報源の変化を拾い、Context Store に蓄え、本人が読むダイジェストを作る。
 
 Context ディレクトリの選び方とファイルは `~/.agents/references/contexts.md` に従う。
 

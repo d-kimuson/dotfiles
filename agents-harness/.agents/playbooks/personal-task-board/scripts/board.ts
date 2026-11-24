@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Personal Task Board の board.json を読み書きし、dev-process-kit の Kanban ページ (public/index.html) を生成する。
+import { execFileSync } from "node:child_process"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
-import { join } from "node:path"
+import { basename, join } from "node:path"
 import { pathToFileURL } from "node:url"
 import { parseArgs } from "node:util"
 
@@ -51,6 +52,20 @@ export const moveCard = (board: Board, number: number, columnId: string): Card =
   throw new Error(`unknown card: TASK-${number}`)
 }
 
+// remote があればリポジトリ名、なければディレクトリ名。
+export const projectName = (remoteUrl: string | undefined, cwd: string): string =>
+  remoteUrl === undefined || remoteUrl === "" ? basename(cwd) : basename(remoteUrl.replace(/\/+$/, "")).replace(/\.git$/, "")
+
+const currentProject = (): string => {
+  let remote: string | undefined
+  try {
+    remote = execFileSync("git", ["remote", "get-url", "origin"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim()
+  } catch {
+    remote = undefined
+  }
+  return projectName(remote, process.cwd())
+}
+
 const json = (value: unknown): string => JSON.stringify(value).replace(/</g, "\\u003c")
 
 // storage-key に revision を含め、brief を反映した後 (render --fresh) に古い下書きが再生されないようにする。
@@ -93,6 +108,7 @@ const main = (): void => {
       description: { type: "string" },
       tag: { type: "string", multiple: true },
       link: { type: "string", multiple: true },
+      project: { type: "boolean" },
       fresh: { type: "boolean" },
     },
   })
@@ -113,10 +129,11 @@ const main = (): void => {
       return
     case "add": {
       if (values.column === undefined || values.title === undefined) throw new Error("add requires --column and --title")
+      const tags = [...(values.tag ?? []), ...(values.project === true ? [currentProject()] : [])]
       const card = addCard(board, values.column, {
         title: values.title,
         ...(values.description !== undefined && { description: values.description }),
-        ...(values.tag !== undefined && { tags: values.tag }),
+        ...(tags.length > 0 && { tags }),
         ...(values.link !== undefined && { links: values.link.map(parseLink) }),
       })
       save()
@@ -135,7 +152,7 @@ const main = (): void => {
       save()
       break
     default:
-      throw new Error("usage: board.ts list | add --column <id> --title <t> [--description d] [--tag t]... [--link 'url label']... | move <number> --column <id> | render [--fresh]")
+      throw new Error("usage: board.ts list | add --column <id> --title <t> [--description d] [--tag t]... [--link 'url label']... [--project] | move <number> --column <id> | render [--fresh]")
   }
   console.log(`board: ${boardPath}`)
   console.log(`page: ${pathToFileURL(pagePath).href}`)
