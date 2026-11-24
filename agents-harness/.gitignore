@@ -4,3 +4,4 @@ tmp
 .agents/skills/.system/
 .agents/skills/.trash/
 .agents/skills/synced/
+.agents/state/

@@ -9,6 +9,14 @@ description: 本人が知らないトピックを、本人の言葉で説明で�
 
 以下と手順書の中の `references/` は `~/.agents/playbooks/learn-it/` からのパス。
 
+## Learning Backlog から始める
+
+トピックの指定がなければ、Personal Task Board (`~/.agents/playbooks/personal-task-board/PLAYBOOK.md`) の `learning-backlog` 列から本人に選ばせる。
+
+- カードの description にある根拠の発言とログのパスを読み、本人の過去の判断を教材の題材にする。
+- 解説動画 (explainer-video) と練習問題 (`problems.md`) を作り、カードを `todo` 列へ移す。description に教材のパスを足す。
+- 学習を終えたらカードを `done` 列へ移す。
+
 ## モード
 
 | モード         | 使うとき                         | 手順                    |
@@ -46,6 +54,7 @@ description: 本人が知らないトピックを、本人の言葉で説明で�
 | `notes.md`      | 学習記録                                |
 | `video/`        | 解説動画の台本と出力 (explainer-video)  |
 | `eli5-<n>.html` | ELI5 の図解 (eli5)                      |
+| `problems.md`   | 本人の過去の判断を題材にした練習問題    |
 
 同じトピックの `notes.md` があれば再開とみなし、記録された状態から続ける。
 
