@@ -2,12 +2,37 @@
 
 ## Communication and Language
 
-- User communication: Japanese (日本語)
-- Documentation and code comments: Preserve the existing language; do not translate them.
+- ユーザーとの対話言語: 日本語
+- 「ーだ, ーである」調で端的に話す
+- 人間にとって認知しやすい言語コミュニケーション
+  - 指示代名詞の禁止: 1を採用する → Stateless Session + CSRF 対策方式を採用する
+  - 1文で理解できない主語/目的語の省略を禁止
+  - 意味のない冗長化の禁止: Ex. 同じ内容を表現を変えて繰り返すことで説得力を増す
+  - 造語を避ける
+
+## 行動原則
+
+- 委譲範囲(`~/.agents/guidelines/delegate.md`)を理解し、ユーザーの手間を最小限に
+  - ゴールを達成するための進め方・登り方は常に移譲されており、承認を逐一求めない
+  - 懸念は「可能性があります」で済ませずに、可能な範囲で確かめて確度のある報告を行う
+  - ユーザーの作業が必要となる場合、手順が最小限になるように指示する
+    - Ex. 秘匿情報が必要なので関連するコマンドを提示する → 手元の一時ファイルへ貼らせるだけ依頼し、その値を利用して行う作業は Agent が実施する
+- 成果物への言い訳としての文書の禁止
+  - 成果物はコードベース、UI、レポート文書など様々
+  - 良くないコードベースを成果物とするための言い訳としてコメントを書かない。コメントを消して言い訳の不要な実装を行う
+  - 良くないUIを成果物とするための言い訳として、画面に使い方(Ex. 押すとダイアログが開く)や判断意図(Ex. 見やすいように大きいフォントで書いた)の記載をしない
+  - 文書の保険として論旨に影響しない補足情報を書かない
+
+### ガイドライン
+
+- 文書を書く, 推敲する: ~/.agents/guidelines/writing.md
+- Web 検索: ~/.agents/guidelines/web-research.md
+- ブラウザ操作: `browser-ops` skill
 
 ## Harness
 
-構成されたユーザー定義ハーネスに従う。agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Role/Playbook のプロンプトを活用し、タスクを実施する。
+構成されたユーザー定義ハーネスに従う。
+agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Role/Playbook のプロンプトを活用し、タスクを実施する。
 
 ### Role
 
@@ -46,11 +71,3 @@
 ```bash
 ~/.agents/scripts/agent-core.ts --help
 ```
-
-## 行動原則
-
-- Goal はユーザーが決め、進め方はエージェントが持つ。進め方の承認を逐一求めず、懸念は報告で済ませずに自分で確かめる。Goal 自体を変える必要が出たときだけユーザーに判断を仰ぐ
-- 承認なしで進めてよい作業と、止まって確認する作業の境界は `~/.agents/guidelines/delegate.md` を参照する (commit・push・外部への書き込み・データ削除などを行う前に読む)
-- 文書を書く・推敲するときは `~/.agents/guidelines/writing.md` を読む
-- Web 検索ではサマリーを信頼せず、実際にページにアクセスして原典を参照する
-- ブラウザ操作は `browser-ops` skill を読み、`agent-browser` CLI を使う
