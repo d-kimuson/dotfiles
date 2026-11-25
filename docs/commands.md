@@ -54,6 +54,8 @@ Nix daemon を使えないリモート環境では `scripts/setup-nix-flakes-for
 
 このスクリプトは Nix を利用可能にしてから、Nix の garbage collection、chezmoi apply、flake update、移行済みの nix profile パッケージ削除、home-manager switch、mise 対象 CLI の更新、mise 設定の source state への同期、`mise prune`、reshim、npm キャッシュの削除を実行する。
 
+失敗時の修正・再発防止とコミットまでエージェントに任せる場合は `/update` (`docs/agents/prompts/update.md`) を使う。
+
 ## 検証
 
 - chezmoi の配布結果：`chezmoi verify`
