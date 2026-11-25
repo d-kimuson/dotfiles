@@ -11,7 +11,7 @@ export const PROVIDERS_CONFIG_PATH = 'providers.json'
 export const CONFIGURE_PROVIDERS_PLAYBOOK = 'configure-providers'
 
 /** モデルを提供する契約・認証の単位。ここに挙げたものだけを providers.json に書ける。 */
-export const PROVIDERS = ['claude-code', 'opencode-go', 'openai-codex', 'command-code'] as const
+export const PROVIDERS = ['claude-code', 'opencode-go', 'openai-codex', 'command-code', 'antigravity'] as const
 
 export type Provider = (typeof PROVIDERS)[number]
 
@@ -43,6 +43,7 @@ const CONFIG_KEYS = ['providers']
 const RUNTIME_PROVIDERS: Readonly<Record<string, Provider>> = {
   'claude-code': 'claude-code',
   'command-code': 'command-code',
+  antigravity: 'antigravity',
 }
 
 /** pi は model の接頭辞 (`<prefix>/<model>`) で provider が決まる。 */

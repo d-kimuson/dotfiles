@@ -16,9 +16,11 @@
 | claude-code | `claude --model <model> --effort <effort> --dangerously-skip-permissions` |
 | pi | `pi --model <model> --thinking <effort>` |
 | command-code | `command-code --trust --yolo --model <model> --effort <effort>` |
+| antigravity | `agy --model <model> --effort <effort> --dangerously-skip-permissions` |
 
 - `<model>` は候補の model をそのまま渡す (例: `openai-codex/gpt-6-luna`、`deepseek/deepseek-v4.1-flash`)
 - effort の `none` は pi と command-code では `off` と書く。command-code の deepseek に無い `medium` / `xhigh` は近い値 (`high` / `max`) に読み替える
+- antigravity の model は effort を除いた名前 (例: `gemini-4-neon`) を渡す。使える model と effort は `agy models` の一覧 (`<model>-<effort>`。localhost を listen するので sandbox の外で実行する) で確かめ、無い effort は近い値に読み替える (無い値はエラーで起動しない)
 
 ## 手順
 
@@ -33,7 +35,7 @@ orca terminal wait --terminal <T> --for tui-idle --timeout-ms 60000 --json
 orca orchestration worker-start --terminal <T> --worktree path:<dir> --spec "<spec>" --json
 # 4. バックグラウンドで待つ (長く待つので、待ちをバックグラウンドで実行できるならそうする)
 orca orchestration check --wait --types worker_done,question,escalation --timeout-ms 900000 --json
-# 5. 受け取ったメッセージを ack し、terminal を閉じる
+# 5. 応答に deliveryId があれば ack し (無ければ受け取った時点で処理済み)、terminal を閉じる
 orca orchestration check --ack <deliveryId> --json
 orca terminal close --terminal <T> --json
 ```

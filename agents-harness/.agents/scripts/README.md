@@ -13,8 +13,8 @@ node_modules/.bin/tsc -p . --noEmit
 `models list [<kind>] [--json]` は `config/models.json` の候補を、`providers.json` で絞って出す。
 
 - `config/models.json`: 作業の種類ごとの候補 (`<runtime>:<model>:<effort>`、優先順)。コミットする。`verify` が必須にする
-- `providers.json`: このマシンで使える provider。マシン固有のローカルファイルで、コミットしない。`{ "providers": ["claude-code", "openai-codex"] }` の形で、値は `claude-code | opencode-go | openai-codex | command-code`。`models list` と同じく `--root` の harness dir 直下 (`<root>/.agents/providers.json`) を読む
-- 候補の provider は `agent-core/providers.ts` の `providerOfCandidate` が決める。runtime が `claude-code` / `command-code` ならそのまま、`pi` なら model の最初の `/` より前 (`opencode-go` → `opencode-go`、`openai-codex` → `openai-codex`)。決まらない候補は `verify` がエラーにする
+- `providers.json`: このマシンで使える provider。マシン固有のローカルファイルで、コミットしない。`{ "providers": ["claude-code", "openai-codex"] }` の形で、値は `claude-code | opencode-go | openai-codex | command-code | antigravity`。`models list` と同じく `--root` の harness dir 直下 (`<root>/.agents/providers.json`) を読む
+- 候補の provider は `agent-core/providers.ts` の `providerOfCandidate` が決める。runtime が `claude-code` / `command-code` / `antigravity` ならそのまま、`pi` なら model の最初の `/` より前 (`opencode-go` → `opencode-go`、`openai-codex` → `openai-codex`)。決まらない候補は `verify` がエラーにする
 - 許可された provider の候補だけを優先順のまま残し、番号は残った候補で振り直す。候補がすべて外れた種類も残し、text は「候補なし」、JSON は `candidates: []` になる (呼び出し側は親と同じモデルで代替する)
 - `providers.json` がなければ exit 1。期待するパスと `playbooks use 'configure-providers'` を stderr に出す。不正なら exit 1 でパースエラーを出す
 

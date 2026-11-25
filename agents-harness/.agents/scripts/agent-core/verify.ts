@@ -251,7 +251,7 @@ function verifyModels(root: string): EntryReport[] {
         code: 'unknown-candidate-provider',
         message:
           `${kind.name}: 候補 "${candidate.spec}" の provider が決まりません ` +
-          `(runtime は claude-code / command-code / pi。pi の model は ${PI_PROVIDER_PREFIXES.map((prefix) => `${prefix}/`).join(' | ')} のいずれかで始める必要があります)`,
+          `(runtime は claude-code / command-code / antigravity / pi。pi の model は ${PI_PROVIDER_PREFIXES.map((prefix) => `${prefix}/`).join(' | ')} のいずれかで始める必要があります)`,
       })),
   )
   const issues: VerifyIssue[] = [

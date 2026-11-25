@@ -18,8 +18,8 @@ function candidateOf(spec: string) {
   return parsed.candidate
 }
 
-test('provider は 4 種類で、順序を保って読める', () => {
-  assert.deepEqual([...PROVIDERS], ['claude-code', 'opencode-go', 'openai-codex', 'command-code'])
+test('provider は 5 種類で、順序を保って読める', () => {
+  assert.deepEqual([...PROVIDERS], ['claude-code', 'opencode-go', 'openai-codex', 'command-code', 'antigravity'])
 
   const result = parseProvidersConfig('{ "providers": ["openai-codex", "claude-code"] }')
 
@@ -85,9 +85,10 @@ test('未知のキーは typo を防ぐため unknown-key', () => {
   assert.ok(result.issues.some((issue) => issue.code === 'unknown-key'))
 })
 
-test('runtime が claude-code / command-code なら、そのまま provider になる', () => {
+test('runtime が claude-code / command-code / antigravity なら、そのまま provider になる', () => {
   assert.equal(providerOfCandidate(candidateOf('claude-code:claude-opus-5-5:high')), 'claude-code')
   assert.equal(providerOfCandidate(candidateOf('command-code:deepseek/deepseek-v4.1-flash:high')), 'command-code')
+  assert.equal(providerOfCandidate(candidateOf('antigravity:gemini-4-neon:high')), 'antigravity')
 })
 
 test('runtime が pi なら、model の最初の / より前の接頭辞で provider が決まる', () => {
