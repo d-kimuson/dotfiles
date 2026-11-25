@@ -15,7 +15,7 @@
 | --- | --- |
 | claude-code | `claude --model <model> --effort <effort> --dangerously-skip-permissions` |
 | pi | `pi --model <model> --thinking <effort>` |
-| command-code | `command-code --trust --yolo --model <model> --effort <effort>` |
+| command-code | `command-code --trust --yolo --skip-onboarding --model <model> --effort <effort>` |
 | antigravity | `agy --model <model> --effort <effort> --dangerously-skip-permissions` |
 
 - `<model>` は候補の model をそのまま渡す (例: `openai-codex/gpt-6-luna`、`deepseek/deepseek-v4.1-flash`)
@@ -40,7 +40,6 @@ orca orchestration check --ack <deliveryId> --json
 orca terminal close --terminal <T> --json
 ```
 
-- 3 の後に `orca terminal read --terminal <T> --json` で spec が入力されたかを見る。command-code は Taste の画面 (`Press Enter to continue`) が割り込み、spec が消えることがある。その場合は `orca terminal send --terminal <T> --enter --json` で閉じ、`worker-abandon` してから 3 をやり直す
 - 4 の結果ごとの対応
   - `timedOut: true`: 同じコマンドで待ち直す
   - `question`: `orca orchestration reply --id <message_id> --body "<回答>" --json` で答えて待ち直す
