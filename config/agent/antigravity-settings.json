@@ -1,0 +1,7 @@
+{
+  "statusLine": {
+    "command": "~/.gemini/antigravity-cli/statusline.sh",
+    "padding": 0,
+    "type": "command"
+  }
+}

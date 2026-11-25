@@ -93,6 +93,8 @@ export type MergeConfigEntry = {
   readonly source: string
   readonly target: string
   readonly format?: Format
+  /** 新規作成時に適用するファイルパーミッション (例: 0o600) */
+  readonly mode?: number
   /** 前回配布した hooks の記録先。指定すると、外部ツールが target に登録した hook を残す (./hooks.ts) */
   readonly hooksState?: string
   /**
@@ -201,7 +203,11 @@ const mergeOne = async (
     console.log(formatDryRunReport(entry.target, diffKeyPaths(target, merged)))
   } else {
     await mkdir(dirname(entry.target), { recursive: true })
-    await writeFile(entry.target, output, "utf-8")
+    await writeFile(
+      entry.target,
+      output,
+      entry.mode === undefined ? "utf-8" : { encoding: "utf-8", mode: entry.mode }
+    )
     console.log(`  ${target === null ? "Created" : "Updated"}: ${entry.target}`)
     await recordDeliveredHooks(entry, source)
   }

@@ -126,11 +126,12 @@ MCP は `mcp deliver` の `command-code` target が `~/.commandcode/mcp.json` �
 
 ## Antigravity CLI
 
-`chezmoi/dot_gemini/` (→ `~/.gemini/`) が global rules と skills の探索先を持つ。
+`chezmoi/dot_gemini/` (→ `~/.gemini/`) が global rules、skills の探索先、statusline スクリプトを持つ。
 `~/.gemini/AGENTS.md` は `agents-harness/.agents/AGENTS.md` への symlink である。
 `~/.gemini/config/skills.json` は `~/.agents/skills` を探索先に足す。agy は manifest の `~` を展開しないため、テンプレートで絶対パスにする。
 agy には commands に相当する仕組みが無いため、`~/.agents/prompts` は共有しない。
 MCP は `mcp deliver` の `antigravity` target が `~/.gemini/config/mcp_config.json` を全置換し、キーバインドは `keybindings deliver` が `~/.gemini/antigravity-cli/keybindings.json` へ配る。
+`config/agent/antigravity-settings.json` の管理キーは `merge-config` が `~/.gemini/antigravity-cli/settings.json` へマージする。statusline スクリプト本体は `chezmoi/dot_gemini/antigravity-cli/executable_statusline.sh` (→ `~/.gemini/antigravity-cli/statusline.sh`) に置く。
 
 ## Pi
 

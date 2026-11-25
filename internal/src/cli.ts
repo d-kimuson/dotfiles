@@ -45,6 +45,11 @@ const CONFIG_ENTRIES = [
     source: path.join(DOTFILES_ROOT, "config/agent/commandcode-config.json"),
     target: path.join(homedir(), ".commandcode/config.json"),
   },
+  {
+    source: path.join(DOTFILES_ROOT, "config/agent/antigravity-settings.json"),
+    target: path.join(homedir(), ".gemini/antigravity-cli/settings.json"),
+    mode: 0o600,
+  },
 ] as const
 
 const ALL_TARGETS: readonly Target[] = VALID_TARGETS

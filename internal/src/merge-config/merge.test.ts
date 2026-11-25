@@ -1,4 +1,4 @@
-import { readFile, rm, writeFile, mkdir } from "node:fs/promises"
+import { readFile, rm, stat, writeFile, mkdir } from "node:fs/promises"
 import path from "node:path"
 import { tmpdir } from "node:os"
 import { describe, it, expect, beforeEach, afterEach } from "vitest"
@@ -46,6 +46,21 @@ describe("mergeConfigs", () => {
       language: "日本語",
       statusLine: { type: "command" },
     })
+  })
+
+  it("applies the configured file mode when creating target", async () => {
+    const source = await writeTempJson("source-mode.json", {
+      statusLine: { type: "command" },
+    })
+    const target = path.join(testDir, "target-mode.json")
+
+    await mergeConfigs({
+      entries: [{ source, target, mode: 0o600 }],
+      dryRun: false,
+    })
+
+    const fileStat = await stat(target)
+    expect(fileStat.mode & 0o777).toBe(0o600)
   })
 
   it("merges source into existing target, source wins on overlap", async () => {
