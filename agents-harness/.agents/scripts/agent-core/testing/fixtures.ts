@@ -32,7 +32,7 @@ export const DEFAULT_MODELS_CONFIG = JSON.stringify({
 export type FixtureOptions = {
   /** `.agents/config/models.json` の内容。未指定なら正しい既定の設定 (`DEFAULT_MODELS_CONFIG`)、`null` ならファイルを作らない。 */
   modelsConfig?: string | null
-  /** `.agents/providers.json` の内容。未指定ならファイルを作らない (マシン固有のローカルファイルなので)。 */
+  /** `.agents/state/providers.json` の内容。未指定ならファイルを作らない (マシン固有のローカルファイルなので)。 */
   providersConfig?: string
 }
 
@@ -87,7 +87,8 @@ export function createHarnessFixture(
   }
 
   if (options.providersConfig !== undefined) {
-    writeFileSync(join(root, '.agents', 'providers.json'), options.providersConfig)
+    mkdirSync(join(root, '.agents', 'state'), { recursive: true })
+    writeFileSync(join(root, '.agents', 'state', 'providers.json'), options.providersConfig)
   }
 
   return {

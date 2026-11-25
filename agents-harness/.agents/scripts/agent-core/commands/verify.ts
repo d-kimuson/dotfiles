@@ -13,7 +13,7 @@ export function createVerifyCommand(): CommandSpec {
       '各エントリが必須ファイル（PLAYBOOK.md / ROLE.md / PRINCIPLE.md と README.md）を持ち、' +
       'frontmatter に name と description を持つか、role の principles が実在する principle だけを指すか、prompts の末尾が $ARGUMENTS のブロックか、config/models.json（必須）の書式（候補の形式、空の候補リストなど）と、' +
       '候補の effort が efforts の一覧に含まれるか、候補の provider が決まるかを検証する。' +
-      'providers.json はマシン固有のローカルファイルなので必須ではなく、あれば書式だけを検証する（なくても警告しない）。' +
+      'state/providers.json はマシン固有のローカルファイルなので必須ではなく、あれば書式だけを検証する（なくても警告しない）。' +
       '一覧が未定義のモデルは警告。エラーがあれば exit 1、警告のみなら exit 0。',
     usageArgs: '[options]',
     options: [{ flags: '--json', description: '検証結果を JSON で出力する' }],

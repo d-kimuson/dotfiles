@@ -804,9 +804,27 @@ test('models list は providers.json がなければ exit 1 で、playbook の�
 
     assert.equal(code, 1)
     assert.equal(io.outText(), '')
-    assert.match(io.errText(), /providers\.json/)
-    assert.ok(io.errText().includes(join(fixture.root, '.agents', 'providers.json')))
+    assert.match(io.errText(), /state\/providers\.json/)
+    assert.ok(io.errText().includes(join(fixture.root, '.agents', 'state', 'providers.json')))
     assert.ok(io.errText().includes("~/.agents/scripts/agent-core.ts playbooks use 'configure-providers'"))
+  } finally {
+    fixture.cleanup()
+  }
+})
+
+test('models list は旧パス (.agents/providers.json) だけがある場合、exit 1 で移動コマンドを案内する', async () => {
+  const fixture = createHarnessFixture([], [], { modelsConfig: MODELS_CONFIG })
+  try {
+    const legacy = join(fixture.root, '.agents', 'providers.json')
+    writeFileSync(legacy, ALL_PROVIDERS)
+    const io = createIo(fixture.root)
+    const code = await run(['models', 'list'], io)
+
+    assert.equal(code, 1)
+    assert.equal(io.outText(), '')
+    assert.ok(io.errText().includes(legacy))
+    assert.ok(io.errText().includes(join(fixture.root, '.agents', 'state', 'providers.json')))
+    assert.match(io.errText(), /mv /)
   } finally {
     fixture.cleanup()
   }
@@ -832,7 +850,7 @@ test('models list は providers.json が不正なら exit 1 でパースエラ�
     const code = await run(['models', 'list'], io)
 
     assert.equal(code, 1)
-    assert.match(io.errText(), /providers\.json/)
+    assert.match(io.errText(), /state\/providers\.json/)
     assert.match(io.errText(), /gemini/)
     assert.match(io.errText(), /openai-codex/)
     assert.doesNotMatch(io.errText(), /playbooks use/)

@@ -5,12 +5,15 @@ import type { ModelCandidate, ModelKind } from './models.ts'
 import { harnessDir, isFile } from './paths.ts'
 
 /** harness root からの設定ファイルの相対パス。マシン固有のローカルファイルで、コミットしない。 */
-export const PROVIDERS_CONFIG_PATH = 'providers.json'
+export const PROVIDERS_CONFIG_PATH = 'state/providers.json'
 
-/** この設定を作る playbook。`providers.json` がないときに案内する。 */
+/** 移行前の旧パス。新パスがなく旧パスだけがあるときに移動を案内する。 */
+export const LEGACY_PROVIDERS_CONFIG_PATH = 'providers.json'
+
+/** この設定を作る playbook。`state/providers.json` がないときに案内する。 */
 export const CONFIGURE_PROVIDERS_PLAYBOOK = 'configure-providers'
 
-/** モデルを提供する契約・認証の単位。ここに挙げたものだけを providers.json に書ける。 */
+/** モデルを提供する契約・認証の単位。ここに挙げたものだけを state/providers.json に書ける。 */
 export const PROVIDERS = ['claude-code', 'opencode-go', 'openai-codex', 'command-code', 'antigravity'] as const
 
 export type Provider = (typeof PROVIDERS)[number]
@@ -35,6 +38,8 @@ export type LoadedProvidersConfig = ParseProvidersConfigResult & {
   exists: boolean
   /** 読もうとしたファイルの絶対パス。なかったときの案内に使う。 */
   file: string
+  /** 新パスになく旧パスだけにファイルがあるときの絶対パス。それ以外は null。 */
+  legacyFile: string | null
 }
 
 const CONFIG_KEYS = ['providers']
@@ -131,13 +136,18 @@ export function providersConfigFile(root: string): string {
   return join(harnessDir(root), PROVIDERS_CONFIG_PATH)
 }
 
+export function legacyProvidersConfigFile(root: string): string {
+  return join(harnessDir(root), LEGACY_PROVIDERS_CONFIG_PATH)
+}
+
 /** 設定ファイルを読む。ファイルがなければ exists: false。必須かどうかは呼び出し側が決める。 */
 export function loadProvidersConfig(root: string): LoadedProvidersConfig {
   const file = providersConfigFile(root)
   if (!isFile(file)) {
-    return { exists: false, file, config: null, issues: [] }
+    const legacy = legacyProvidersConfigFile(root)
+    return { exists: false, file, legacyFile: isFile(legacy) ? legacy : null, config: null, issues: [] }
   }
-  return { exists: true, file, ...parseProvidersConfig(readFileSync(file, 'utf8')) }
+  return { exists: true, file, legacyFile: null, ...parseProvidersConfig(readFileSync(file, 'utf8')) }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

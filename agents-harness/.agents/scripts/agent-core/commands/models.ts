@@ -1,3 +1,5 @@
+import { dirname } from 'node:path'
+
 import { readBoolean } from '../args.ts'
 import { CliError, UsageError } from '../errors.ts'
 import type { ModelKind, ModelsConfig, ModelsIssue } from '../models.ts'
@@ -76,6 +78,13 @@ function requireConfig(root: string): { config: ModelsConfig; warnings: ModelsIs
 function requireProviders(root: string): ProvidersConfig {
   const loaded = loadProvidersConfig(root)
   if (!loaded.exists) {
+    if (loaded.legacyFile !== null) {
+      throw new CliError(
+        `${PROVIDERS_CONFIG_PATH} が見つかりませんが、旧パス (${loaded.legacyFile}) にファイルがあります。\n` +
+          '次のコマンドで新しいパスへ移動してください:\n' +
+          `  mkdir -p "${dirname(loaded.file)}" && mv "${loaded.legacyFile}" "${loaded.file}"`,
+      )
+    }
     throw new CliError(
       `${PROVIDERS_CONFIG_PATH} が見つかりません (期待するパス: ${loaded.file})。\n` +
         'この環境で使える provider の設定が必要です。次のコマンドで playbook を取得し、手順に従って設定してください:\n' +

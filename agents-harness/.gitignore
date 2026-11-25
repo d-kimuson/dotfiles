@@ -1,5 +1,6 @@
 node_modules
 tmp
+# 旧パス (全マシン移行後に削除)
 .agents/providers.json
 .agents/skills/.system/
 .agents/skills/.trash/

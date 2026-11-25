@@ -1,11 +1,11 @@
 ---
 name: configure-providers
-description: `agent-core models list` が providers.json がないと失敗したとき、またはこのマシンで使えるモデル提供元が変わったときに使う
+description: `agent-core models list` が state/providers.json がないと失敗したとき、またはこのマシンで使えるモデル提供元が変わったときに使う
 ---
 
 # Configure providers
 
-このマシンで実際に使える provider を確かめ、`~/.agents/providers.json` に書く。書いた provider の候補だけが `models list` に出る。
+このマシンで実際に使える provider を確かめ、`~/.agents/state/providers.json` に書く。書いた provider の候補だけが `models list` に出る。
 
 provider は次の 5 つ。
 
@@ -43,10 +43,11 @@ provider は次の 5 つ。
 3. 使える provider を書く。
 
    ```bash
-   cat > ~/.agents/providers.json <<'JSON'
+   mkdir -p ~/.agents/state
+   cat > ~/.agents/state/providers.json <<'JSON'
    { "providers": ["claude-code", "openai-codex"] }
    JSON
    ```
 
-   `providers.json` はマシン固有なのでコミットしない。
+   `state/providers.json` はマシン固有なのでコミットしない。
 4. `~/.agents/scripts/agent-core.ts models list` を実行し、成功して、使える provider の候補だけが出ることを確かめる。候補がすべて外れた種類は「候補なし」と出る。それは正常で、その種類は親と同じモデルの SubAgent で動かす。

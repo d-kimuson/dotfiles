@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import { writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { test } from 'node:test'
 
 import type { ModelKind } from './models.ts'
@@ -151,7 +153,25 @@ test('providers.json がなければ exists: false', () => {
     assert.equal(loaded.exists, false)
     assert.equal(loaded.config, null)
     assert.deepEqual(loaded.issues, [])
-    assert.match(loaded.file, /\.agents[\\/]providers\.json$/)
+    assert.equal(loaded.legacyFile, null)
+    assert.match(loaded.file, /\.agents[\\/]state[\\/]providers\.json$/)
+  } finally {
+    fixture.cleanup()
+  }
+})
+
+test('新パスがなく旧パス (.agents/providers.json) だけあれば legacyFile に旧パスを返す', () => {
+  const fixture = createHarnessFixture()
+
+  try {
+    const legacy = join(fixture.root, '.agents', 'providers.json')
+    writeFileSync(legacy, '{ "providers": ["claude-code"] }')
+
+    const loaded = loadProvidersConfig(fixture.root)
+
+    assert.equal(loaded.exists, false)
+    assert.equal(loaded.config, null)
+    assert.equal(loaded.legacyFile, legacy)
   } finally {
     fixture.cleanup()
   }

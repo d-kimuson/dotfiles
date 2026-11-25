@@ -46,4 +46,4 @@ project scope の symlink 同期は `kimuson-harness` skill の sync playbook �
 
 - 正本を 1 つにし、コピーを作らない。
 - CLI 固有の場所に独自 skill を置かない。必要な追加は Git 管理外のローカル層に置く。
-- `agents-harness/.gitignore` は、CLI が書き込む `skills/.system/` (Codex)・`skills/synced/` (Claude Code)・`skills/.trash/` と、マシン固有の `providers.json` を除外している。`~/.agents` の仕組みは `docs/overview.md` を参照する。
+- `~/.agents` のうち Git 管理外にする対象は `agents-harness/.gitignore` を参照する。`~/.agents` の仕組みは `docs/overview.md` を参照する。

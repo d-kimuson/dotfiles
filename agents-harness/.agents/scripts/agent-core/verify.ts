@@ -262,7 +262,7 @@ function verifyModels(root: string): EntryReport[] {
   return [{ kind: 'models', name: 'models', path: fileName, files: [{ fileName, exists: true }], issues }]
 }
 
-/** providers.json の書式を検証する。マシン固有のローカルファイルなので、なくてもエラーにも警告にもしない。 */
+/** state/providers.json の書式を検証する。マシン固有のローカルファイルなので、なくてもエラーにも警告にもしない。 */
 function verifyProviders(root: string): EntryReport[] {
   const loaded = loadProvidersConfig(root)
   if (!loaded.exists) {

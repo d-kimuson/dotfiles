@@ -261,7 +261,7 @@ test('providers.json があれば検証し、正しければ検証対象に数�
     const report = verifyHarness(fixture.root)
 
     assert.equal(report.ok, true)
-    assert.ok(report.entries.some((entry) => entry.kind === 'providers' && entry.path === 'providers.json'))
+    assert.ok(report.entries.some((entry) => entry.kind === 'providers' && entry.path === 'state/providers.json'))
   } finally {
     fixture.cleanup()
   }

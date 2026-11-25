@@ -40,7 +40,7 @@ npx skills add <owner>/<repo> -g -a codex -s <skill> -y
 `~/.agents/.skill-lock.json` も Git 管理しているため、別マシンでも `npx skills update -g` と `npx skills list -g` が機能する。
 更新後は Git diff を確認する。
 
-CLI が書き込む `skills/.system/` (Codex)・`skills/synced/` (Claude Code が claude.ai から同期)・`skills/.trash/`、マシン固有の `providers.json` は `agents-harness/.gitignore` で除外している。
+外部 CLI の自動生成物やマシン固有ファイルなど、Git 管理外にする対象は `agents-harness/.gitignore` で除外している。
 
 ### 設定のマージ
 
