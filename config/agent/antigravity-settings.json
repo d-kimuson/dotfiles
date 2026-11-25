@@ -1,4 +1,5 @@
 {
+  "model": "Gemini 4 Neon (Medium)",
   "statusLine": {
     "command": "~/.gemini/antigravity-cli/statusline.sh",
     "padding": 0,
