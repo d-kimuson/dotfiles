@@ -172,25 +172,41 @@ if [ -n "$input" ]; then
 
     def classify_bucket:
       ascii_downcase as $low |
-      if ($low | test("^(5h|5hour|five-hour)$")) then
-        { rank: 1, window: 18000, long: 0, label: "5h" }
-      elif ($low | test("-(5h|5hour|five-hour)$")) then
-        { rank: 1, window: 18000, long: 0, label: (sub("-(5h|5hour|five-hour)$"; " 5h"; "i")) }
-      elif ($low | test("^(daily|1d|24h)$")) then
-        { rank: 2, window: 86400, long: 0, label: "1d" }
-      elif ($low | test("-(daily|1d|24h)$")) then
-        { rank: 2, window: 86400, long: 0, label: (sub("-(daily|1d|24h)$"; " 1d"; "i")) }
-      elif ($low | test("^(weekly|7d)$")) then
-        { rank: 3, window: 604800, long: 1, label: "7d" }
-      elif ($low | test("-(weekly|7d)$")) then
-        { rank: 3, window: 604800, long: 1, label: (sub("-(weekly|7d)$"; " 7d"; "i")) }
-      elif ($low | test("^(monthly|30d)$")) then
-        { rank: 4, window: 2592000, long: 1, label: "30d" }
-      elif ($low | test("-(monthly|30d)$")) then
-        { rank: 4, window: 2592000, long: 1, label: (sub("-(monthly|30d)$"; " 30d"; "i")) }
+      (if ($low | startswith("gemini-")) then
+        { group_rank: 1, group: "gemini", rest: (sub("^gemini-"; ""; "i")) }
+      elif ($low | startswith("3p-")) then
+        { group_rank: 2, group: "3p", rest: (sub("^3p-"; ""; "i")) }
       else
-        { rank: 5, window: 0, long: -1, label: . }
-      end;
+        { group_rank: 3, group: "_other", rest: . }
+      end) as $grp |
+      ($grp.rest | ascii_downcase) as $rlow |
+      (if ($rlow | test("^(5h|5hour|five-hour)$")) then
+        { rank: 1, window: 18000, long: 0, label: "5h" }
+      elif ($rlow | test("-(5h|5hour|five-hour)$")) then
+        { rank: 1, window: 18000, long: 0, label: ($grp.rest | sub("-(5h|5hour|five-hour)$"; " 5h"; "i")) }
+      elif ($rlow | test("^(daily|1d|24h)$")) then
+        { rank: 2, window: 86400, long: 0, label: "1d" }
+      elif ($rlow | test("-(daily|1d|24h)$")) then
+        { rank: 2, window: 86400, long: 0, label: ($grp.rest | sub("-(daily|1d|24h)$"; " 1d"; "i")) }
+      elif ($rlow | test("^(weekly|7d)$")) then
+        { rank: 3, window: 604800, long: 1, label: "7d" }
+      elif ($rlow | test("-(weekly|7d)$")) then
+        { rank: 3, window: 604800, long: 1, label: ($grp.rest | sub("-(weekly|7d)$"; " 7d"; "i")) }
+      elif ($rlow | test("^(monthly|30d)$")) then
+        { rank: 4, window: 2592000, long: 1, label: "30d" }
+      elif ($rlow | test("-(monthly|30d)$")) then
+        { rank: 4, window: 2592000, long: 1, label: ($grp.rest | sub("-(monthly|30d)$"; " 30d"; "i")) }
+      else
+        { rank: 5, window: 0, long: -1, label: $grp.rest }
+      end) as $win |
+      {
+        group_rank: $grp.group_rank,
+        group: $grp.group,
+        rank: $win.rank,
+        window: $win.window,
+        long: $win.long,
+        label: $win.label
+      };
 
     if type == "object" and (.quota | type == "object") then
       [
@@ -200,6 +216,8 @@ if [ -n "$input" ]; then
         ((.key | non_empty) | classify_bucket) as $meta |
         if (.value.remaining_fraction | type == "number") then
           {
+            group_rank: $meta.group_rank,
+            group: $meta.group,
             rank: $meta.rank,
             key: (.key | non_empty),
             label: (($meta.label | non_empty) // "-"),
@@ -212,6 +230,8 @@ if [ -n "$input" ]; then
           }
         elif (.value.remaining_amount | type == "number") then
           {
+            group_rank: $meta.group_rank,
+            group: $meta.group,
             rank: $meta.rank,
             key: (.key | non_empty),
             label: (($meta.label | non_empty) // "-"),
@@ -226,9 +246,9 @@ if [ -n "$input" ]; then
           empty
         end
       ]
-      | sort_by(.rank, .key)
+      | sort_by(.group_rank, .group, .rank, .key)
       | .[]
-      | [.label, .kind, .val, (.window | tostring), (.long | tostring), .reset_in, .reset_time]
+      | [.group, .label, .kind, .val, (.window | tostring), (.long | tostring), .reset_in, .reset_time]
       | join("\t")
     else
       empty
@@ -238,11 +258,25 @@ fi
 
 if [ -n "$quota_rows" ]; then
   now_epoch=$(date +%s)
-  usage_line="💰"
+  current_group=""
+  usage_line=""
   first=1
 
-  while IFS=$'\t' read -r q_label q_kind q_val q_window q_long q_reset_in q_reset_time; do
+  while IFS=$'\t' read -r q_group q_label q_kind q_val q_window q_long q_reset_in q_reset_time; do
     [ -z "$q_label" ] && continue
+
+    if [ "$q_group" != "$current_group" ]; then
+      if [ -n "$usage_line" ]; then
+        echo "$usage_line"
+      fi
+      current_group="$q_group"
+      if [ "$q_group" = "_other" ]; then
+        usage_line="💰"
+      else
+        usage_line="💰 ${q_group}:"
+      fi
+      first=1
+    fi
 
     reset_epoch=""
     remaining_secs=""
@@ -297,7 +331,7 @@ if [ -n "$quota_rows" ]; then
     fi
   done <<< "$quota_rows"
 
-  if [ "$first" -eq 0 ]; then
+  if [ -n "$usage_line" ]; then
     echo "$usage_line"
   fi
 fi

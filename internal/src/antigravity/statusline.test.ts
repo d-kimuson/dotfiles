@@ -59,7 +59,7 @@ const runStatusline = (
 }
 
 describe("antigravity statusline.sh", () => {
-  it("renders version, directory, git info, context bar, deduplicated effort, and sorted quota buckets", () => {
+  it("renders version, directory, git info, context bar, deduplicated effort, and splits gemini and 3p quotas into separate lines", () => {
     const home = createTempDir()
     const repoDir = path.join(home, "work", "sample-repo")
     const init = spawnSync("git", ["init", "-b", "feat/statusline", repoDir], {
@@ -78,10 +78,18 @@ describe("antigravity statusline.sh", () => {
         },
         context_window: { used_percentage: 24.8 },
         quota: {
+          "3p-weekly": {
+            remaining_fraction: 1.0,
+            reset_in_seconds: 604800,
+          },
           "gemini-weekly": {
             remaining_fraction: 0.9378,
             reset_time: "2026-07-06T07:50:32Z",
             reset_in_seconds: 544320, // 10% elapsed of 604800s -> 6% used < 10% -> GREEN
+          },
+          "3p-5h": {
+            remaining_fraction: 0.9,
+            reset_in_seconds: 14400, // 20% elapsed -> 10% used < 20% -> GREEN
           },
           "gemini-5h": {
             remaining_fraction: 0.4,
@@ -96,14 +104,16 @@ describe("antigravity statusline.sh", () => {
     expect(stderr).toBe("")
     expect(status).toBe(0)
     const lines = stdout.trimEnd().split("\n")
-    expect(lines).toHaveLength(4)
+    expect(lines).toHaveLength(5)
     expect(lines[0]).toBe("agy@1.5.16 at ~/work/sample-repo")
     expect(lines[1]).toBe("⎇ feat/statusline | 🐙 sample-repo")
     expect(lines[2]).toBe("🧠 ██░░░░░░░░ 24% | Gemini 4 Neon | high")
-    expect(lines[3]).toContain(`💰 gemini 5h ${RED}60%${RESET} (🔄 `)
-    expect(lines[3]).toContain(", 40%) | ")
-    expect(lines[3]).toContain(`gemini 7d ${GREEN}6%${RESET} (🔄 `)
+    expect(lines[3]).toContain(`💰 gemini: 5h ${RED}60%${RESET} (🔄 `)
+    expect(lines[3]).toContain(`, 40%) | 7d ${GREEN}6%${RESET} (🔄 `)
     expect(lines[3]).toContain(", 10%)")
+    expect(lines[4]).toContain(`💰 3p: 5h ${GREEN}10%${RESET} (🔄 `)
+    expect(lines[4]).toContain(`, 20%) | 7d ${GREEN}0%${RESET} (🔄 `)
+    expect(lines[4]).toContain(", 0%)")
   })
 
   it("colors pace yellow when usage is within 0..9 points ahead of elapsed and green at 0% usage", () => {
@@ -127,9 +137,10 @@ describe("antigravity statusline.sh", () => {
 
     expect(status).toBe(0)
     const lines = stdout.trimEnd().split("\n")
+    expect(lines).toHaveLength(3)
     expect(lines[1]).toBe("🧠 ░░░░░░░░░░ 0% | Gemini 4 Flash")
-    expect(lines[2]).toContain(`gemini 5h ${YELLOW}45%${RESET}`)
-    expect(lines[2]).toContain(`gemini 7d ${GREEN}0%${RESET}`)
+    expect(lines[2]).toContain(`💰 gemini: 5h ${YELLOW}45%${RESET}`)
+    expect(lines[2]).toContain(`| 7d ${GREEN}0%${RESET}`)
   })
 
   it("skips disabled buckets, handles remaining_amount and unknown bucket ids, and falls back to fractional-second reset_time", () => {
@@ -162,14 +173,16 @@ describe("antigravity statusline.sh", () => {
 
     expect(status).toBe(0)
     const lines = stdout.trimEnd().split("\n")
-    const usageLine = lines[lines.length - 1] ?? ""
-    expect(usageLine).not.toContain("disabled-bucket")
-    expect(usageLine).toMatch(
-      new RegExp(`3p 5h \\x1b\\[92m20%\\x1b\\[0m \\(🔄 [^,]+, (39|40|41)%\\)`)
+    expect(lines).toHaveLength(4)
+    const thirdPartyLine = lines[2] ?? ""
+    const otherLine = lines[3] ?? ""
+    expect(stdout).not.toContain("disabled-bucket")
+    expect(thirdPartyLine).toMatch(
+      new RegExp(`^💰 3p: 5h \\x1b\\[92m20%\\x1b\\[0m \\(🔄 [^,]+, (39|40|41)%\\)$`)
     )
-    expect(usageLine).toContain("credits-pool rem 420")
-    expect(usageLine).toContain(`custom-pool ${RED}95%${RESET} (🔄 `)
-    expect(usageLine).not.toMatch(/custom-pool.*,\s*\d+%/)
+    expect(otherLine).toContain("💰 credits-pool rem 420 | ")
+    expect(otherLine).toContain(`custom-pool ${RED}95%${RESET} (🔄 `)
+    expect(otherLine).not.toMatch(/custom-pool.*,\s*\d+%/)
   })
 
   it("handles empty string fields, missing model, empty quota, and invalid stdin without column shift or failure", () => {
