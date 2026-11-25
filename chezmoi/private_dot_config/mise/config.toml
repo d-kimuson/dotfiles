@@ -10,6 +10,7 @@
 "npm:@anthropic-ai/claude-code" = { version = "2.1.312", allow_builds = ["@anthropic-ai/claude-code"] }
 "npm:@kimuson/npm-fw" = { version = "0.0.4", allow_low_downloads = true }
 "npm:cf" = "1.0.0-beta.20"
+agy = "1.5.15"
 node = "26.12.1"
 
 [settings]

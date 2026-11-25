@@ -23,6 +23,7 @@ BSD 形式の `sed -i '' ...` や `stat -f '%Lp' ...` は GNU 版では引数の
 
 Node.js と npm で配布される CLI は `chezmoi/private_dot_config/mise/config.toml` で管理する。
 Codex、Pi、OpenCode、Command Code、Playwright、agent-browser などが対象である。
+npm で配布されない Agent CLI のうち、更新が速く nixpkgs が追従しきれないものも mise の registry (aqua バックエンド) で入れる。Antigravity CLI (`agy`) が対象である。
 
 新しい npm CLI はこのファイルへ追加する。
 反映後は `mise install && mise reshim` を実行する。
