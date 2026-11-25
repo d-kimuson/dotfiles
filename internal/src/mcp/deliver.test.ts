@@ -250,6 +250,43 @@ describe("deliverMcpConfig", () => {
     })
   })
 
+  it("writes Antigravity config with serverUrl and replaces stale servers", async () => {
+    await writeFile(
+      path.join(homeDir, ".local/share/chezmoi/config/agent/mcp.template.json"),
+      JSON.stringify(
+        {
+          mcpServers: {
+            local: { type: "stdio", command: "local-cmd", args: [], env: { A: "1" } },
+            remote: {
+              type: "http",
+              url: "https://example.com/mcp",
+              remote: true,
+            },
+          },
+        },
+        null,
+        2
+      ),
+      "utf-8"
+    )
+    const targetFile = path.join(homeDir, ".gemini/config/mcp_config.json")
+    await mkdir(path.join(homeDir, ".gemini/config"), { recursive: true })
+    await writeFile(
+      targetFile,
+      JSON.stringify({ mcpServers: { stale: { command: "stale-cmd" } } }),
+      "utf-8"
+    )
+
+    await deliverMcpConfig({ targets: ["antigravity"], dryRun: false })
+
+    expect(await readJson(targetFile)).toEqual({
+      mcpServers: {
+        local: { command: "local-cmd", args: [], env: { A: "1" } },
+        remote: { serverUrl: "https://example.com/mcp" },
+      },
+    })
+  })
+
   it("selects layers with MCP_LAYERS", async () => {
     await writeFile(
       path.join(homeDir, ".local/share/chezmoi/config/agent/mcp.template.json"),

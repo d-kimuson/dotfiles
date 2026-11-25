@@ -44,7 +44,7 @@ export MCP_LAYERS=core,personal
 
 - `layer`: `core` または `personal`。省略時は `core`。
 - `remote: true`: Claude Code / Claude Desktop / Codex 側の cloud connector で代替できるサーバ。
-  これらの target には配布せず、Pi / Command Code / OpenCode にだけ配布する。
+  これらの target には配布せず、Pi / Command Code / OpenCode / Antigravity CLI にだけ配布する。
 - `excludeTargets: ["target"]`: 特定の target だけ明示的に除外する。
 - `${VAR}` が未定義のサーバは警告して配布対象から外す。
 - `DISABLE_MCPS` にカンマ区切りで指定したサーバも配布しない。
@@ -59,6 +59,7 @@ export MCP_LAYERS=core,personal
 | `pi-agent` | `~/.pi/agent/mcp.json` | JSON の `mcpServers` | 配る |
 | `command-code` | `~/.commandcode/mcp.json` | JSON の `mcpServers` (`transport` 形式) | 配る |
 | `opencode` | `~/.config/opencode/opencode.json` | JSON の `mcp.servers` (`local` / `remote`) | 配る |
+| `antigravity` | `~/.gemini/config/mcp_config.json` | JSON の `mcpServers` (remote は `serverUrl`) | 配る |
 
 Claude Code / Claude Desktop / Codex は既存の `mcpServers` / `mcp_servers` にマージする。
 アプリや別ツールが登録した local MCP (Codex の `node_repl` など) を消さないためである。
@@ -67,7 +68,7 @@ Claude Code / Claude Desktop / Codex は既存の `mcpServers` / `mcp_servers` �
 OpenCode では local サーバを `{ "type": "local", "command": ["cmd", ...args], "environment": {...} }`、
 remote サーバを `{ "type": "remote", "url": "...", "headers": {...} }` に変換する。
 
-`mcp deliver` は Pi / Command Code / OpenCode 用の親ディレクトリを作成する。
+`mcp deliver` は Pi / Command Code / OpenCode / Antigravity CLI 用の親ディレクトリを作成する。
 他のクライアントの設定ディレクトリは、対象アプリケーションを一度起動するなどして先に用意する。
 
 ## 更新手順

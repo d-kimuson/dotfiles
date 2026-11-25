@@ -1,6 +1,6 @@
 # Coding Agent 設定の配布
 
-Claude Code、Codex、Pi、Command Code の設定は、chezmoi によるファイル配布と `internal-cli` によるマージ・生成配布を組み合わせて管理する。
+Claude Code、Codex、Pi、Command Code、Antigravity CLI の設定は、chezmoi によるファイル配布と `internal-cli` によるマージ・生成配布を組み合わせて管理する。
 ローカル固有の設定は `.local.json` と `settings.local.json` に置き、Git 管理しない。
 
 ## Claude Code、Codex、Command Code
@@ -123,6 +123,14 @@ MCP は `mcp deliver` の `command-code` target が `~/.commandcode/mcp.json` �
 自己更新は `shell/envrc.sh` で止めている ([ツール管理](tool-management.md))。
 
 `~/.commandcode/` に import された skills、commands、AGENTS.md の複製は `chezmoi/run_once_before_migrate-commandcode.sh` で削除する。
+
+## Antigravity CLI
+
+`chezmoi/dot_gemini/` (→ `~/.gemini/`) が global rules と skills の探索先を持つ。
+`~/.gemini/AGENTS.md` は `agents-harness/.agents/AGENTS.md` への symlink である。
+`~/.gemini/config/skills.json` は `~/.agents/skills` を探索先に足す。agy は manifest の `~` を展開しないため、テンプレートで絶対パスにする。
+agy には commands に相当する仕組みが無いため、`~/.agents/prompts` は共有しない。
+MCP は `mcp deliver` の `antigravity` target が `~/.gemini/config/mcp_config.json` を全置換し、キーバインドは `keybindings deliver` が `~/.gemini/antigravity-cli/keybindings.json` へ配る。
 
 ## Pi
 

@@ -19,7 +19,7 @@ import {
   resolveSearchRoots,
 } from "./npm-shadowing/check.ts"
 
-const VALID_TARGETS = ["claude-code", "claude-desktop", "codex", "pi-agent", "command-code", "opencode"] as const
+const VALID_TARGETS = ["claude-code", "claude-desktop", "codex", "pi-agent", "command-code", "opencode", "antigravity"] as const
 type Target = (typeof VALID_TARGETS)[number]
 
 const DOTFILES_ROOT = path.join(homedir(), ".local/share/chezmoi")
@@ -191,7 +191,7 @@ mcp
   .description("Deliver MCP configuration from template to target platforms")
   .option(
     "--target <targets>",
-    "Target platforms separated by | (all|claude-code|claude-desktop|codex|pi-agent|command-code|opencode)",
+    "Target platforms separated by | (all|claude-code|claude-desktop|codex|pi-agent|command-code|opencode|antigravity)",
     parseTargets,
     ALL_TARGETS
   )
@@ -234,7 +234,7 @@ keybindings
   .description("Deliver the shared keymap to each coding agent")
   .option(
     "--target <targets>",
-    "Targets separated by | (all|claude-code|codex|pi-agent|command-code|opencode)",
+    "Targets separated by | (all|claude-code|codex|pi-agent|command-code|opencode|antigravity)",
     parseKeybindingTargets,
     KEYBINDING_TARGETS
   )

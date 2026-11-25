@@ -60,6 +60,18 @@ describe("deliverKeybindings", () => {
     })
   })
 
+  it("writes only the newline binding for Antigravity", async () => {
+    const target = path.join(homeDir, ".gemini/antigravity-cli/keybindings.json")
+    await writeJson(target, { "cli.clear_screen": ["ctrl+l"] })
+
+    await deliverKeybindings({ targets: ["antigravity"], dryRun: false })
+
+    expect(await readJson(target)).toEqual({
+      "cli.clear_screen": ["ctrl+l"],
+      "prompt.insert_newline": ["shift+enter", "ctrl+enter", "ctrl+j"],
+    })
+  })
+
   it("converts bindings to OpenCode cli.json keybinds", async () => {
     const target = path.join(homeDir, ".config/opencode/cli.json")
     await writeJson(target, {

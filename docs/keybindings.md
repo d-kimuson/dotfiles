@@ -33,6 +33,7 @@
 | `pi-agent` | `~/.pi/agent/keybindings.json` | action → キー配列 | `editor.*`、`model.*` |
 | `command-code` | `~/.commandcode/keybindings.json` | action → キー配列 | `editor.*` |
 | `opencode` | `~/.config/opencode/cli.json` | `keybinds` (カンマ区切り) | `editor.*`、`model.*`、`command.palette`、`history.*` |
+| `antigravity` | `~/.gemini/antigravity-cli/keybindings.json` | action → キー配列 | `editor.newline` |
 
 対応する action がない target では、その action をスキップする。
 既存ファイルの管理外キーは保持する。
@@ -42,6 +43,8 @@
 Claude Code の入力欄のカーソル移動は vim mode 側で扱うため、`editor.*` のうち `editor.newline` だけを `chat:newline` に変換する。
 `ctrl+enter` は Claude Code の既定の「今すぐ送信」と衝突するため、この target では配布しない。
 Codex の `keybindings.json` は音声入力などのアプリコマンド用で、エディタのカーソル移動は持たない。
+Antigravity CLI は入力欄のカーソル移動・行頭行末・履歴・モデル切替に action を持たないため、`editor.newline` だけを `prompt.insert_newline` に変換する。
+音声入力の `ctrl+m` は端末では Enter と同じ入力になるため、Antigravity CLI には配らない。
 
 ## 更新手順
 

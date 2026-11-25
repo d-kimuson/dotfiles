@@ -12,6 +12,7 @@ type Target =
   | "pi-agent"
   | "command-code"
   | "opencode"
+  | "antigravity"
 
 type McpServerEntry = Readonly<Record<string, unknown>>
 
@@ -38,6 +39,7 @@ const REPLACE_TARGETS: ReadonlySet<Target> = new Set([
   "pi-agent",
   "command-code",
   "opencode",
+  "antigravity",
 ])
 
 const getTemplatePath = (): string => {
@@ -55,6 +57,7 @@ const getTargetConfigPaths = (): Readonly<Record<Target, string>> => {
     "pi-agent": path.join(homedir(), ".pi/agent/mcp.json"),
     "command-code": path.join(homedir(), ".commandcode/mcp.json"),
     opencode: path.join(homedir(), ".config/opencode/opencode.json"),
+    antigravity: path.join(homedir(), ".gemini/config/mcp_config.json"),
   }
 }
 
@@ -323,6 +326,23 @@ const toOpenCodeEntry = (entry: McpServerEntry): McpServerEntry => {
   return result
 }
 
+/** Convert a Claude Code style entry to Antigravity's schema (`url` → `serverUrl`) */
+const toAntigravityEntry = (entry: McpServerEntry): McpServerEntry => {
+  if (entry["type"] === "http") {
+    const result: Record<string, unknown> = { serverUrl: entry["url"] }
+    for (const key of ["headers", "oauth"] as const) {
+      if (key in entry) result[key] = entry[key]
+    }
+    return result
+  }
+
+  const result: Record<string, unknown> = {}
+  for (const key of ["command", "args", "env", "cwd"] as const) {
+    if (key in entry) result[key] = entry[key]
+  }
+  return result
+}
+
 /**
  * Generated MCP files are replaced, not merged, so servers from other agents
  * or previous delivery do not linger.
@@ -491,7 +511,8 @@ const ensureTargetParentDir = async (target: Target, filePath: string): Promise<
   if (
     target !== "pi-agent" &&
     target !== "command-code" &&
-    target !== "opencode"
+    target !== "opencode" &&
+    target !== "antigravity"
   ) {
     return
   }
@@ -586,6 +607,16 @@ const generateForTarget = async (
         ])
       )
       await replaceOpenCodeMcpServers(configPath, openCodeServers, dryRun)
+      break
+    }
+    case "antigravity": {
+      const antigravityServers = Object.fromEntries(
+        Object.entries(targetServers).map(([name, entry]) => [
+          name,
+          toAntigravityEntry(entry),
+        ])
+      )
+      await replaceJsonMcpServers(configPath, antigravityServers, dryRun)
       break
     }
   }

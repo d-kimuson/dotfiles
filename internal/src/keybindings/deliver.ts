@@ -10,6 +10,7 @@ export const KEYBINDING_TARGETS = [
   "pi-agent",
   "command-code",
   "opencode",
+  "antigravity",
 ] as const
 
 export type KeybindingTarget = (typeof KEYBINDING_TARGETS)[number]
@@ -73,6 +74,9 @@ const ACTION_MAPPINGS: Readonly<
   codex: {
     "voice.dictationSingleTap": "globalDictationSingleTap",
   },
+  antigravity: {
+    "editor.newline": "prompt.insert_newline",
+  },
 }
 
 const CLAUDE_ACTION_CONTEXTS: Readonly<Record<string, string>> = {
@@ -100,6 +104,7 @@ const getTargetPaths = (): Readonly<Record<KeybindingTarget, string>> => ({
   "pi-agent": path.join(homedir(), ".pi/agent/keybindings.json"),
   "command-code": path.join(homedir(), ".commandcode/keybindings.json"),
   opencode: path.join(homedir(), ".config/opencode/cli.json"),
+  antigravity: path.join(homedir(), ".gemini/antigravity-cli/keybindings.json"),
 })
 
 const parseKeys = (action: string, value: unknown): readonly string[] => {
@@ -259,7 +264,7 @@ const report = (
 }
 
 const deliverFlat = async (
-  target: "pi-agent" | "command-code",
+  target: "pi-agent" | "command-code" | "antigravity",
   filePath: string,
   keymap: Keymap,
   previousIds: readonly string[],
@@ -479,6 +484,7 @@ export const deliverKeybindings = async (
     switch (target) {
       case "pi-agent":
       case "command-code":
+      case "antigravity":
         currentIds = await deliverFlat(
           target,
           targetPaths[target],
