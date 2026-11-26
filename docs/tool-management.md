@@ -35,6 +35,7 @@ postinstall でバイナリを配置するパッケージ (`@opencode/cli` な�
 `allow_builds` を後から足した場合は `mise install -f npm:<package>@<version>` で入れ直す。
 
 `scripts/update.sh` は指定された npm CLI を `mise upgrade --bump -y` で更新し、更新後の `~/.config/mise/config.toml` を source state へ同期する。
+mise は既定で prerelease を更新の候補にしない (`prereleases = false`)。prerelease を追う CLI (`npm:cf`) は、`scripts/update.sh` が `MISE_PRERELEASES=1` を付けて個別に更新する。
 このスクリプトを実行した後は Git diff を確認して、更新されたバージョンをコミット対象として扱う。
 
 ## nix profile

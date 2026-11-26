@@ -89,9 +89,11 @@ export PATH="$(dirname "$MISE_BIN"):$PATH"
   npm:@playwright/cli \
   npm:portless \
   npm:agent-browser \
-  npm:cf \
   agy || \
   echo "Warning: some mise upgrades failed (newer version may be within min-release-age window)" >&2
+# cf は安定版 1.0.0 の公開前で prerelease だけが更新されるため、このツールに限って prerelease を候補に含める。
+MISE_PRERELEASES=1 "$MISE_BIN" upgrade --bump -y npm:cf || \
+  echo "Warning: mise upgrade of npm:cf failed" >&2
 cp "${HOME}/.config/mise/config.toml" "$MISE_CONFIG_PATH"
 
 echo ""
