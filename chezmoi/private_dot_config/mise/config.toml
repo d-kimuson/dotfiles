@@ -1,16 +1,16 @@
 [tools]
-"npm:@openai/codex" = "0.163.0"
-"npm:@earendil-works/pi-coding-agent" = "1.4.0"
-"npm:@opencode/cli" = { version = "2.1.4", allow_builds = ["@opencode/cli"] }
-"npm:command-code" = "1.88.2"
-"npm:@playwright/cli" = "0.1.22"
-"npm:portless" = "0.15.8"
+"npm:@openai/codex" = "0.172.0"
+"npm:@earendil-works/pi-coding-agent" = "1.6.1"
+"npm:@opencode/cli" = { version = "2.4.1", allow_builds = ["@opencode/cli"] }
+"npm:command-code" = "1.93.3"
+"npm:@playwright/cli" = "0.1.25"
+"npm:portless" = "0.18.1"
 "npm:@anthropic-ai/sandbox-runtime" = "0.0.49"
-"npm:agent-browser" = "0.39.1"
-"npm:@anthropic-ai/claude-code" = { version = "2.1.312", allow_builds = ["@anthropic-ai/claude-code"] }
+"npm:agent-browser" = "0.44.0"
+"npm:@anthropic-ai/claude-code" = { version = "2.1.332", allow_builds = ["@anthropic-ai/claude-code"] }
 "npm:@kimuson/npm-fw" = { version = "0.0.4", allow_low_downloads = true }
-"npm:cf" = "1.0.0-beta.20"
-agy = "1.5.15"
+"npm:cf" = "1.0.0-rc.5"
+agy = "1.5.17"
 node = "26.12.1"
 
 [settings]
