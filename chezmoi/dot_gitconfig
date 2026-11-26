@@ -24,8 +24,6 @@
   status = always
 [includeIf "gitdir:~/sms/"]
   path = .gitconfig-sms
-[include]
-  path = .gitconfig-local
 [gpg]
   format = ssh
 [gpg "ssh"]
@@ -36,3 +34,5 @@
   gpgSign = true
 [commit]
   gpgsign = true
+[include]
+  path = .gitconfig-local
