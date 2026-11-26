@@ -38,6 +38,13 @@
         "pi:openai-codex/gpt-6-luna:low",
         "claude-code:claude-haiku-5-5:low"
       ]
+    },
+    {
+      "name": "writer",
+      "description": "文書の執筆と推敲。人間が読む文章を自然に書く作業",
+      "candidates": [
+        "antigravity:gemini-4-neon:high"
+      ]
     }
   ],
   "efforts": {
@@ -47,6 +54,7 @@
     "gpt-6-astra": ["low", "medium", "high", "xhigh", "max"],
     "gpt-6.1-terra": ["none", "low", "medium", "high", "xhigh", "max"],
     "gpt-6-luna": ["none", "low", "medium", "high", "xhigh", "max"],
-    "deepseek-v4.1-flash": ["none", "low", "high", "max"]
+    "deepseek-v4.1-flash": ["none", "low", "high", "max"],
+    "gemini-4-neon": ["low", "medium", "high", "xhigh"]
   }
 }

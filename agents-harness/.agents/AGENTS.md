@@ -62,7 +62,7 @@ agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Role/Playbook のプロ�
   - やらないことの明示
   - (Optional) 実施してほしい Playbook
 - 使うモデルは、作業の種類を 1 つ選び、次の手順で決める
-  1. `~/.agents/scripts/agent-core.ts models list worker|judge|arbiter|scout` で利用すべきモデルのリストを取得
+  1. `~/.agents/scripts/agent-core.ts models list worker|judge|arbiter|scout|writer` で利用すべきモデルのリストを取得
   2. 上から有効なものを選択し、失敗した場合に下位のモデルにフォールバックする。このセッションと同一の harness の場合は組み込まれたサブエージェント呼び出しを行う。別ハーネスの場合は `~/.agents/references/orca-delegation.md` を参考に Orca CLI を用いる。いずれも利用できない場合は自信と同一モデルの SubAgent で代用する
 - 別系統のセカンドオピニオンがほしいときは、1 番目とは runtime やモデル系統の違う候補を使う
 
