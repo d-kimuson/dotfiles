@@ -1,0 +1,91 @@
+<title>Personal Task Board</title>
+<style>
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
+  dpk-app {
+    display: block;
+    height: 100%;
+  }
+</style>
+
+<dpk-app lang="ja" storage-key="personal-task-board">
+  <script type="application/json">{ "title": "Personal Task Board" }</script>
+  <dpk-page name="board" label="Personal Task Board">
+    <dpk-board-kanban id="personal-task-board" heading="Personal Task Board">
+      <script type="application/json">
+        {
+          "columns": [
+            { "id": "todo", "label": "ToDo", "color": "gray", "cards": [] },
+            { "id": "doing", "label": "作業中", "color": "blue", "cards": [] },
+            { "id": "blocked", "label": "ブロック中", "color": "red", "cards": [] },
+            { "id": "done", "label": "完了", "color": "green", "cards": [] },
+            { "id": "learning-backlog", "label": "学習バックログ", "color": "violet", "cards": [] }
+          ]
+        }
+      </script>
+    </dpk-board-kanban>
+  </dpk-page>
+</dpk-app>
+
+<script type="module">
+  import { serveDraftSync } from "https://cdn.jsdelivr.net/npm/dev-process-kit@0.4.2/dist/sync.js";
+
+  const KIT = "https://cdn.jsdelivr.net/npm/dev-process-kit@0.4.2/dist/boards.js";
+  const ACTIONS = "actions";
+
+  const order = (a, b) => (a.createdAt === b.createdAt ? (a.id < b.id ? -1 : 1) : a.createdAt < b.createdAt ? -1 : 1);
+
+  const localWriter = () => {
+    try {
+      const saved = localStorage.getItem("personal-task-board:writer");
+      if (saved) return saved;
+      const id = `browser-${crypto.randomUUID()}`;
+      localStorage.setItem("personal-task-board:writer", id);
+      return id;
+    } catch {
+      return `browser-${crypto.randomUUID()}`;
+    }
+  };
+
+  // 消してよいのは、このページを開いてから自分で足した action とコメントだけ。Clear all と古い action の Delete・Undo は db に反映せず、盤面を db の内容に戻す。
+  const dbTransport = (db, self) => {
+    const collection = db.collection(ACTIONS);
+    const mine = new Set();
+    let latest = [];
+    let emit = () => {};
+    let seq = 0;
+    return {
+      listen(_cursor, onUpdate, onError) {
+        emit = () => onUpdate({ kind: "snapshot", cursor: String(++seq), actions: latest });
+        return collection.onSnapshot((snap) => {
+          latest = snap.docs.map((doc) => ({ ...doc.data() })).sort(order);
+          emit();
+        }, onError);
+      },
+      async push(ops) {
+        let ignored = false;
+        for (const op of ops) {
+          if (op.kind === "append") {
+            await collection.doc(op.action.id).set({ ...op.action, author: self });
+            mine.add(op.action.id);
+          } else if (op.kind === "remove" && (mine.has(op.id) || latest.some((a) => a.id === op.id && a.type === "comment"))) {
+            await collection.doc(op.id).delete();
+            mine.delete(op.id);
+          } else ignored = true;
+        }
+        if (ignored) setTimeout(emit, 0);
+      },
+    };
+  };
+
+  const db = (await window.claude?.use("db")) ?? null;
+  if (db !== null) {
+    const user = await window.claude.use("user");
+    const self = { id: (await user?.id()) ?? localWriter() };
+    serveDraftSync({ self, transport: () => dbTransport(db, self) });
+  }
+  await import(KIT);
+</script>

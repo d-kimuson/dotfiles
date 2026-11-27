@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Claude Code・Codex・Pi・Command Code のセッションログから、期間内に本人が書いたメッセージだけを Markdown で出力する。
-// --mark は今回の実行時刻を記録し、次回の既定の開始時刻にする。
+// --mark は今回の実行時刻を記録し、次回の既定の開始時刻にする。--agent (複数可: claude, codex, pi, commandcode) で読むログを絞る。
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { dirname, join } from "node:path"
@@ -100,7 +100,12 @@ const main = (): void => {
   const home = homedir()
   const lastRunPath = join(home, ".agents", "state", "retro", "last-run")
   const { values } = parseArgs({
-    options: { since: { type: "string" }, "max-chars": { type: "string", default: "800" }, mark: { type: "boolean" } },
+    options: {
+      since: { type: "string" },
+      "max-chars": { type: "string", default: "800" },
+      mark: { type: "boolean" },
+      agent: { type: "string", multiple: true },
+    },
   })
   if (values.mark === true) {
     mkdirSync(dirname(lastRunPath), { recursive: true })
@@ -120,7 +125,9 @@ const main = (): void => {
     ["pi", join(home, ".pi", "agent", "sessions")],
     ["commandcode", join(home, ".commandcode", "projects")],
   ]
+  const agents = values.agent
   const sessions = roots
+    .filter(([agent]) => agents === undefined || agents.includes(agent))
     .flatMap(([agent, root]) =>
       walk(root)
         .filter((path) => statSync(path).mtimeMs >= sinceMs)
