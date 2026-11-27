@@ -19,7 +19,7 @@ export type ExportProfile = {
   readonly exclude: readonly string[]
 }
 
-/** 使い捨て環境 (Claude Code on the web) 向け。他の Agent CLI でしか動かないものと、そのロックを配らない。 */
+/** Claude Code on the web 向け。他の Agent CLI でしか動かないものと、そのロックを配らない。 */
 export const EXPORT_PROFILES = [
   {
     name: 'claude-code-web',
@@ -92,8 +92,8 @@ export function listTrackedFiles(sourceDir: string): string[] {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     })
-  } catch {
-    throw new CliError(`配布元が Git の作業ツリーではありません: ${sourceDir}`)
+  } catch (error) {
+    throw new CliError(`配布元が Git の作業ツリーではありません: ${sourceDir} (${failureDetail(error)})`)
   }
 
   const files = stdout.split('\0').filter((file) => file !== '')
@@ -130,8 +130,12 @@ export function exportHarness({ sourceRoot, targetRoot, profile }: ExportInput):
       mkdirSync(dirname(to), { recursive: true })
       try {
         cpSync(join(sourceDir, file), to, { verbatimSymlinks: true })
-      } catch {
-        throw new CliError(`追跡ファイルが配布元にありません: ${join(sourceDir, file)}`)
+      } catch (error) {
+        const source = join(sourceDir, file)
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          throw new CliError(`追跡ファイルが配布元にありません: ${source}`)
+        }
+        throw new CliError(`追跡ファイルをコピーできません: ${source}: ${failureDetail(error)}`)
       }
     }
     if (profile !== null) {
@@ -152,4 +156,23 @@ export function exportHarness({ sourceRoot, targetRoot, profile }: ExportInput):
     unmatchedExcludes: plan.unmatchedExcludes,
     providers: profile?.providers ?? null,
   }
+}
+
+/** 外部コマンドや fs の失敗から、原因の 1 行目を取り出す。 */
+function failureDetail(error: unknown): string {
+  const stderr: unknown = (error as { stderr?: unknown }).stderr
+  let text = ''
+  if (typeof stderr === 'string') {
+    text = stderr
+  } else if (Buffer.isBuffer(stderr)) {
+    text = stderr.toString('utf8')
+  }
+  const first = text
+    .split('\n')
+    .map((item) => item.trim())
+    .find((item) => item !== '')
+  if (first !== undefined) {
+    return first
+  }
+  return error instanceof Error ? error.message : String(error)
 }

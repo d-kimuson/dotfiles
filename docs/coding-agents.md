@@ -10,7 +10,7 @@ Claude Code、Codex、Pi、Command Code、Antigravity CLI の設定は、chezmoi
 | `chezmoi/dot_claude/` | `~/.claude/` | chezmoi |
 | `chezmoi/dot_codex/` | `~/.codex/` | chezmoi |
 | `chezmoi/dot_commandcode/` | `~/.commandcode/` | chezmoi |
-| `agents-harness/.agents/` | `~/.agents/` | chezmoi (`chezmoi/symlink_dot_agents.tmpl` による symlink)。使い捨て環境では `agent-core export` によるコピー |
+| `agents-harness/.agents/` | `~/.agents/` | chezmoi (`chezmoi/symlink_dot_agents.tmpl` による symlink)。Claude Code on the web では `agent-core export` によるコピー |
 | `config/agent/claude-settings.json` | `~/.claude/settings.json` | `internal-cli merge-config` |
 | `config/agent/codex-config.toml` | `~/.codex/config.toml` | `internal-cli merge-config` |
 | `config/agent/commandcode-config.json` | `~/.commandcode/config.json` | `internal-cli merge-config` |
@@ -27,17 +27,17 @@ OpenCode の `~/.config/opencode/skills` も `chezmoi/private_dot_config/opencod
 
 prompt の本体では、資料のディレクトリを配布先の絶対パス (`~/.agents/deps/<name>/`) で示す。本体は `~/.claude/commands`・`~/.codex/prompts`・`~/.pi/prompts`・`~/.commandcode/commands` の symlink を通して読まれる。
 
-### 使い捨て環境へのコピー配布
+### Claude Code on the web へのコピー配布
 
-セッションごとに環境が捨てられる Claude Code on the web では、`~/.agents` を symlink にできない (working tree がセッションと一緒に消える)。その環境には `agent-core export` が Git 追跡ファイルをコピーで配る。
+Claude Code on the web では、環境ごとに配る集合を正本から変える必要がある (使えない Agent CLI 向けのファイルを外し、provider を絞る)。そのため `agent-core export` が Git 追跡ファイルをコピーで配る。通常マシンの symlink 配布は変えない。
 
 ```bash
 agent-core --root <dotfiles>/agents-harness export --to ~ --profile claude-code-web
 ```
 
-配る集合は profile (`agent-core/export.ts` の `EXPORT_PROFILES`) で決める。`claude-code-web` は、動かない他 CLI 向けのファイル (`skills/orca-cli`、`skills/orca-computer-use`、`references/agent-call-over-cli.md`) と、そのロック (`.skill-lock.json`) を外し、`state/providers.json` を `{ "providers": ["claude-code"] }` に書く。正本の中身は書き換えないので、環境ごとの文面を二重管理しない。
+配る集合と `state/providers.json` に書く provider は profile (`agents-harness/.agents/scripts/agent-core/export.ts` の `EXPORT_PROFILES`) で決める。`claude-code-web` は他の Agent CLI でしか動かないファイルと `.skill-lock.json` を外し、`providers` を `claude-code` に絞る。正本の中身は書き換えないので、環境ごとの文面を二重管理しない。
 
-セットアップ手順の正本は `d-kimuson/claude-code-generic-env` の README にある。`~/.agents` の更新は、`rm -rf ~/.agents` のあとに同じ export を実行する (export は既存の `~/.agents` を削除も上書きもしない)。
+セットアップと更新の手順は `d-kimuson/claude-code-generic-env` の README を正本とする。
 
 ### 外部 skill (skills CLI)
 
@@ -51,7 +51,7 @@ npx skills add <owner>/<repo> -g -a codex -s <skill> -y
 
 `~/.agents/.skill-lock.json` も Git 管理しているため、別マシンでも `npx skills update -g` と `npx skills list -g` が機能する。
 更新後は Git diff を確認する。
-コピー配布する使い捨て環境には、このロックを配らない (`--profile claude-code-web`)。配布先で skill を追加・更新せず、正本を更新してから配り直す。
+コピー配布する Claude Code on the web には、このロックを配らない (`--profile claude-code-web`)。配布先で skill を追加・更新せず、正本を更新してから配り直す。
 
 外部 CLI の自動生成物やマシン固有ファイルなど、Git 管理外にする対象は `agents-harness/.gitignore` で除外している。
 

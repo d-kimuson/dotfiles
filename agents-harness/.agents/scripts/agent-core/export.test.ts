@@ -269,3 +269,73 @@ function readTree(dir: string): string[] {
 function relative(from: string, file: string): string {
   return file.slice(from.length + 1).split('\\').join('/')
 }
+
+test('exportHarness は配布先の .agents が実ディレクトリなら、中身を変えずに失敗する', () => {
+  const fixture = createSourceFixture({})
+  try {
+    const existing = join(fixture.target, '.agents')
+    mkdirSync(existing)
+    writeFileSync(join(existing, 'keep.md'), 'keep\n')
+
+    assert.throws(
+      () => exportHarness({ sourceRoot: fixture.source, targetRoot: fixture.target, profile: null }),
+      CliError,
+    )
+    assert.deepEqual(readdirSync(existing), ['keep.md'])
+    assert.equal(readFileSync(join(existing, 'keep.md'), 'utf8'), 'keep\n')
+  } finally {
+    fixture.cleanup()
+  }
+})
+
+test('exportHarness は配布先が配布元の中にあるなら失敗する', () => {
+  const fixture = createSourceFixture({})
+  try {
+    const inside = join(fixture.agents, 'sub')
+    mkdirSync(inside)
+
+    assert.throws(
+      () => exportHarness({ sourceRoot: fixture.source, targetRoot: inside, profile: null }),
+      /配布元の中にあります/,
+    )
+    assert.equal(existsSync(join(inside, '.agents')), false)
+  } finally {
+    fixture.cleanup()
+  }
+})
+
+test('exportHarness は追跡ファイルが 0 件なら失敗する', () => {
+  const base = mkdtempSync(join(tmpdir(), 'agent-core-export-empty-'))
+  try {
+    const source = join(base, 'source')
+    mkdirSync(join(source, '.agents'), { recursive: true })
+    writeFileSync(join(source, '.agents', 'AGENTS.md'), '# Agents\n')
+    execFileSync('git', ['-C', source, 'init', '-q'], { stdio: 'ignore' })
+    const target = join(base, 'target')
+    mkdirSync(target)
+
+    assert.throws(
+      () => exportHarness({ sourceRoot: source, targetRoot: target, profile: null }),
+      /追跡ファイルがありません/,
+    )
+    assert.equal(existsSync(join(target, '.agents')), false)
+  } finally {
+    rmSync(base, { recursive: true, force: true })
+  }
+})
+
+test('exportHarness は追跡ファイルが作業ツリーでディレクトリなら、コピーできませんと報告する', () => {
+  const fixture = createSourceFixture({ 'file.md': 'x\n' })
+  try {
+    rmSync(join(fixture.agents, 'file.md'))
+    mkdirSync(join(fixture.agents, 'file.md'))
+
+    assert.throws(
+      () => exportHarness({ sourceRoot: fixture.source, targetRoot: fixture.target, profile: null }),
+      /コピーできません/,
+    )
+    assert.deepEqual(readdirSync(fixture.target), [])
+  } finally {
+    fixture.cleanup()
+  }
+})

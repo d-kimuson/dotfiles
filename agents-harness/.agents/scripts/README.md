@@ -35,10 +35,10 @@ node_modules/.bin/tsc -p . --noEmit
 
 ## export
 
-`export --to <dir> [--profile <name>]` は、配布元 (`--root` で解決した `.agents`) の Git 追跡ファイルを `<dir>/.agents` へコピーする。通常マシンは chezmoi の symlink で配布するので、コピーが要る使い捨て環境 (Claude Code on the web) でだけ使う。
+`export --to <dir> [--profile <name>]` は、配布元 (`--root` で解決した `.agents`) の Git 追跡ファイルを `<dir>/.agents` へコピーする。通常マシンは chezmoi の symlink で配布するので、コピーが要る環境 (Claude Code on the web など) でだけ使う。
 
 - 配る集合は `git -C <配布元> ls-files` の追跡ファイル。`.gitignore` の対象 (マシン固有ファイル、`skills/synced` など) は自動的に外れる。実行時に Git を呼ぶので、除外リストを `.gitignore` と二重管理しない
-- `--profile <name>` は `agent-core/export.ts` の `EXPORT_PROFILES` の定数。`claude-code-web` は `skills/orca-cli`、`skills/orca-computer-use`、`references/agent-call-over-cli.md`、`.skill-lock.json` を除外し、`state/providers.json` に `{ "providers": ["claude-code"] }` を書く。正本は 1 つのままで、中身は書き換えない
+- `--profile <name>` は `agent-core/export.ts` の `EXPORT_PROFILES` から選ぶ。profile は、その環境で動かないファイルの除外と、`state/providers.json` に書く provider を持つ。正本は 1 つのままで、中身は書き換えない
 - 除外パスが追跡ファイルに 1 件も一致しなければ stderr に警告を出して続ける。正本から skill を外しただけでセットアップが止まらないようにするため
 - `<dir>/.agents` が既にある (symlink を含む) ときは、削除も上書きもせずに exit 1。更新するときは呼び出し側が先に削除する
 - 一時ディレクトリにコピーしてから rename するので、途中で失敗しても配布先の親に `.agents` や残骸を残さない

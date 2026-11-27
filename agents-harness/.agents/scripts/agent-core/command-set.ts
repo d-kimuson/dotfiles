@@ -34,7 +34,7 @@ export function createRootCommand(): CommandSpec {
       'agent-core models list arbiter',
       'agent-core prompt initialize-project',
       'agent-core verify',
-      'agent-core export --to /tmp/harness-copy --profile claude-code-web',
+      'agent-core export --to "$(mktemp -d)" --profile claude-code-web',
     ],
   }
 }

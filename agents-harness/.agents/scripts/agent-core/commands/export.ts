@@ -9,10 +9,10 @@ import type { CommandContext, CommandSpec } from '../registry.ts'
 export function createExportCommand(): CommandSpec {
   return {
     name: 'export',
-    summary: 'harness をコピーして別のディレクトリへ配布する (使い捨て環境向け)',
+    summary: 'harness をコピーして別のディレクトリへ配布する',
     description:
       '配布元の harness (--root で解決した .agents) の Git 追跡ファイルを、--to の下の .agents へコピーする。' +
-      '通常マシンは chezmoi の symlink で配布するので、このコマンドはコピーが必要な環境 (使い捨てのクラウド環境など) で使う。' +
+      '通常マシンは chezmoi の symlink で配布するので、このコマンドはコピーが必要な環境 (Claude Code on the web など) で使う。' +
       '--profile を指定すると、その環境で動かないファイルを除外し、state/providers.json を profile の provider で書く。' +
       '配布先に .agents があるとき (symlink を含む) は、削除も上書きもせずに失敗する。',
     usageArgs: '--to <dir> [options]',
@@ -25,7 +25,7 @@ export function createExportCommand(): CommandSpec {
     ],
     examples: [
       'agent-core --root <dotfiles>/agents-harness export --to ~ --profile claude-code-web',
-      'agent-core export --to /tmp/harness-copy',
+      'agent-core export --to "$(mktemp -d)"',
     ],
     run: (context) => runExport(context),
   }

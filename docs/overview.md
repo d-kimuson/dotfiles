@@ -25,7 +25,7 @@
 `chezmoi/dot_claude/`、`chezmoi/dot_codex/`、`chezmoi/private_dot_pi/`、`chezmoi/private_dot_config/` などは、chezmoi が `$HOME` 以下へ配布するファイルのソースである。
 
 `~/.agents` は source state ではなく、`chezmoi/symlink_dot_agents.tmpl` が working tree の `agents-harness/.agents/` を指す symlink にする。`~/.agents` 内の変更はそのまま working tree に現れ、`chezmoi apply` を介さない。
-セッションごとに捨てられる環境 (Claude Code on the web) では working tree が残らないので、`agent-core export` で `~/.agents` にコピーを配る ([Coding Agent 設定の配布](coding-agents.md))。
+セッションごとに環境を捨てる Claude Code on the web では、配る集合を正本から変えるので、`agent-core export` で `~/.agents` にコピーを配る (`docs/coding-agents.md`)。
 
 `config/`、`internal/`、`shell/`、`scripts/`、`local-llm/` は source state そのものではない。
 ただし、`shell/`、`internal/`、`local-llm/` はターゲット環境で実行されるため、設定変更時には内容と実行経路を合わせて確認する。
@@ -44,6 +44,6 @@
 | `config/agent/claude-settings.json`、`config/agent/codex-config.toml`、`config/agent/commandcode-config.json`、または `config/agent/antigravity-settings.json` | `internal-cli merge-config` |
 | `config/agent/pi-agent/` または Pi のモデルプロファイル | `internal-cli pi-agent deliver` |
 | `config/agent/keybindings.json` | `internal-cli keybindings deliver` |
-| `agents-harness/.agents/` | 不要 (`~/.agents` が symlink なので即座に反映される)。使い捨て環境では `agent-core export` で配り直す。検証は [AGENTS.md](../AGENTS.md) の Feedback Loop |
+| `agents-harness/.agents/` | 不要 (`~/.agents` が symlink なので即座に反映される)。Claude Code on the web では `agent-core export` で配り直す。検証は [AGENTS.md](../AGENTS.md) の Feedback Loop |
 
 各コマンドの詳細は [コマンド](commands.md) を参照する。
