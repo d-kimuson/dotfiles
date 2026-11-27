@@ -7,8 +7,8 @@
 - 「同じ指摘を 2 回したら仕組み化する」を、いつ動くかの判断基準にしている
 - この harness 自体の方針 (静的に判定できるルールは linter や ast-grep で表す) と同じ考え方
 
-## 推奨する Role
+## 推奨する Playbook
 
-product-engineer、coordinator
+worker-advisor
 
 本文: [PRINCIPLE.md](./PRINCIPLE.md)

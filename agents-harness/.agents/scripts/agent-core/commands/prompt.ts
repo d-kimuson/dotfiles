@@ -3,25 +3,25 @@ import type { ContentKind, Entry } from '../content.ts'
 import { CONTENT_KINDS, CONTENT_SPECS, displayPath, findEntry } from '../content.ts'
 import { CliError, UsageError } from '../errors.ts'
 import { toJson } from '../output.ts'
-import { loadRolePrinciples, renderRoleWithPrinciples } from '../principles.ts'
+import { loadPlaybookPrinciples, renderPlaybookWithPrinciples } from '../principles.ts'
 import type { CommandSpec, CommandContext } from '../registry.ts'
 
 const TYPE_VALUES: ContentKind[] = CONTENT_KINDS
 
 /**
- * playbook / role / principle の本文を stdout に出力する。
+ * playbook / principle の本文を stdout に出力する。
  * SubAgent へ指示を注入する用途を想定し、既定では frontmatter を除いた本文だけを出す。
  */
 export function createPromptCommand(): CommandSpec {
   return {
     name: 'prompt',
-    summary: 'playbook / role / principle の本文を出力する',
+    summary: 'playbook / principle の本文を出力する',
     description:
-      '名前から playbook / role / principle を解決し、本文を stdout に出力する。既定の解決順は playbooks → roles → principles。' +
-      'role は frontmatter の principles で推奨する principle の全文を本文の後ろに続ける。' +
+      '名前から playbook / principle を解決し、本文を stdout に出力する。既定の解決順は playbooks → principles。' +
+      'playbook は frontmatter の principles で推奨する principle の全文を本文の後ろに続ける。' +
       'frontmatter は既定で出力しない（--with-frontmatter で元ファイル全体を出力。この場合 principle は続けない）。',
     usageArgs: '<name> [options]',
-    arguments: [{ name: '<name>', description: 'playbook / role / principle のディレクトリ名' }],
+    arguments: [{ name: '<name>', description: 'playbook / principle のディレクトリ名' }],
     options: [
       { flags: '--type <kind>', description: `探索する種類を限定する (${TYPE_VALUES.join(' | ')})` },
       { flags: '--with-frontmatter', description: 'frontmatter を含む元ファイル全体を出力する' },
@@ -29,8 +29,8 @@ export function createPromptCommand(): CommandSpec {
     ],
     examples: [
       'agent-core prompt initialize-project',
-      'agent-core prompt coordinator --type role',
-      'agent-core prompt qae --with-frontmatter',
+      'agent-core prompt worker-advisor --type playbook',
+      'agent-core prompt prove-it-works --with-frontmatter',
     ],
     run: (context) => runPrompt(context),
   }
@@ -44,7 +44,7 @@ function runPrompt(context: CommandContext): number {
 }
 
 /**
- * 種類を固定して本文だけを出力する。`roles use <name>` / `playbooks use <name>` から使う。
+ * 種類を固定して本文だけを出力する。`playbooks use <name>` / `principles use <name>` から使う。
  * frontmatter を除くのは、SubAgent へプロンプトとして注入する用途を想定しているため。
  */
 export function runUsePrompt(kind: ContentKind, context: CommandContext): number {
@@ -66,11 +66,11 @@ function readPromptName(context: CommandContext, usage: string, subject: string)
 }
 
 /**
- * role は推奨する principle の全文を本文の後ろに続けて出す (--with-frontmatter は元ファイルだけ)。
+ * playbook は推奨する principle の全文を本文の後ろに続けて出す (--with-frontmatter は元ファイルだけ)。
  * 参照の解決に失敗したら、何も出力せずに CliError にする。
  */
 function outputEntry(context: CommandContext, entry: Entry, withFrontmatter: boolean): number {
-  const principles = entry.kind === 'role' && !withFrontmatter ? loadRolePrinciples(context.root, entry) : []
+  const principles = entry.kind === 'playbook' && !withFrontmatter ? loadPlaybookPrinciples(context.root, entry) : []
 
   if (readBoolean(context.options, 'json')) {
     context.out(
@@ -81,7 +81,7 @@ function outputEntry(context: CommandContext, entry: Entry, withFrontmatter: boo
         file: entry.file,
         frontmatter: entry.frontmatter,
         body: entry.body,
-        ...(entry.kind === 'role'
+        ...(entry.kind === 'playbook'
           ? {
               principles: principles.map((principle) => ({
                 name: principle.name,
@@ -95,7 +95,7 @@ function outputEntry(context: CommandContext, entry: Entry, withFrontmatter: boo
     return 0
   }
 
-  const text = withFrontmatter ? entry.raw : entry.kind === 'role' ? renderRoleWithPrinciples(entry, principles) : entry.body
+  const text = withFrontmatter ? entry.raw : entry.kind === 'playbook' ? renderPlaybookWithPrinciples(entry, principles) : entry.body
   context.out(text.endsWith('\n') ? text : `${text}\n`)
   return 0
 }

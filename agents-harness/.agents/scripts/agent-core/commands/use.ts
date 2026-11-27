@@ -14,7 +14,7 @@ export function createUseCommand(kind: ContentKind): CommandSpec {
     summary: `${spec.dirName} の本文を frontmatter なしで出力する`,
     description:
       `${spec.dirName}/<name>/${spec.fileName} を読み、frontmatter を除いた本文だけを stdout に出力する。` +
-      (kind === 'role' ? 'frontmatter の principles で推奨する principle の全文を、本文の後ろに列挙順で続ける。' : ''),
+      (kind === 'playbook' ? 'frontmatter の principles で推奨する principle の全文を、本文の後ろに列挙順で続ける。' : ''),
     usageArgs: '<name> [options]',
     arguments: [{ name: '<name>', description: `${spec.label} のディレクトリ名` }],
     options: [{ flags: '--json', description: '解決結果とメタデータを JSON で出力する' }],

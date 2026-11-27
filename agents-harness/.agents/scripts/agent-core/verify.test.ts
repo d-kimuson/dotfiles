@@ -7,7 +7,6 @@ import { verifyHarness } from './verify.ts'
 test('正しい構造なら ok', () => {
   const fixture = createHarnessFixture([
     { kind: 'playbook', name: 'sample' },
-    { kind: 'role', name: 'coordinator' },
     { kind: 'principle', name: 'sample-principle' },
   ])
 
@@ -15,8 +14,8 @@ test('正しい構造なら ok', () => {
     const report = verifyHarness(fixture.root)
 
     assert.equal(report.ok, true)
-    // playbook と role と principle に、必須の models.json を加えた数
-    assert.equal(report.checked, 4)
+    // playbook と principle に、必須の models.json を加えた数
+    assert.equal(report.checked, 3)
     assert.equal(report.errorCount, 0)
     assert.equal(report.warningCount, 0)
   } finally {
@@ -40,13 +39,13 @@ test('README.md 欠如は error', () => {
 })
 
 test('本文ファイル欠如は error', () => {
-  const fixture = createHarnessFixture([{ kind: 'role', name: 'sample', omitFile: true }])
+  const fixture = createHarnessFixture([{ kind: 'playbook', name: 'sample', omitFile: true }])
 
   try {
     const report = verifyHarness(fixture.root)
 
     assert.equal(report.ok, false)
-    assert.ok(report.issues.some((issue) => issue.file === 'ROLE.md' && issue.code === 'missing-file'))
+    assert.ok(report.issues.some((issue) => issue.file === 'PLAYBOOK.md' && issue.code === 'missing-file'))
   } finally {
     fixture.cleanup()
   }
@@ -83,7 +82,6 @@ test('description 欠如は error', () => {
 test('name がディレクトリ名と違う場合は warning（exit 0 相当）', () => {
   const fixture = createHarnessFixture([
     { kind: 'playbook', name: 'sample', frontmatter: { name: 'other', description: '説明' } },
-    { kind: 'role', name: 'coordinator' },
     { kind: 'principle', name: 'sample-principle' },
   ])
 
@@ -99,7 +97,7 @@ test('name がディレクトリ名と違う場合は warning（exit 0 相当）
 })
 
 test('本文が空なら warning', () => {
-  const fixture = createHarnessFixture([{ kind: 'role', name: 'sample', body: '' }])
+  const fixture = createHarnessFixture([{ kind: 'playbook', name: 'sample', body: '' }])
 
   try {
     const report = verifyHarness(fixture.root)
@@ -111,7 +109,7 @@ test('本文が空なら warning', () => {
   }
 })
 
-test('playbooks/roles/principles ディレクトリがない場合は warning のみ', () => {
+test('playbooks/principles ディレクトリがない場合は warning のみ', () => {
   const fixture = createHarnessFixture([])
 
   try {
@@ -120,7 +118,7 @@ test('playbooks/roles/principles ディレクトリがない場合は warning �
     assert.equal(report.ok, true)
     // 数えるのは必須の models.json だけ
     assert.equal(report.checked, 1)
-    assert.equal(report.warningCount, 3)
+    assert.equal(report.warningCount, 2)
   } finally {
     fixture.cleanup()
   }
@@ -239,7 +237,6 @@ test('provider が決まらない候補は error で、種類名と候補を示�
 test('providers.json がなくても verify は通り、警告も出さない (ローカルファイルなので)', () => {
   const fixture = createHarnessFixture([
     { kind: 'playbook', name: 'sample' },
-    { kind: 'role', name: 'coordinator' },
     { kind: 'principle', name: 'sample-principle' },
   ])
 
@@ -357,10 +354,10 @@ test('models 設定が JSON として不正なら error', () => {
   }
 })
 
-function principleFixture(roleFrontmatter: Record<string, string>) {
+function principleFixture(playbookFrontmatter: Record<string, string>) {
   return createHarnessFixture([
     { kind: 'playbook', name: 'sample' },
-    { kind: 'role', name: 'dev', frontmatter: { name: 'dev', description: 'dev の説明', ...roleFrontmatter } },
+    { kind: 'playbook', name: 'dev', frontmatter: { name: 'dev', description: 'dev の説明', ...playbookFrontmatter } },
     { kind: 'principle', name: 'alpha' },
     { kind: 'principle', name: 'beta' },
   ])
@@ -369,7 +366,6 @@ function principleFixture(roleFrontmatter: Record<string, string>) {
 test('principle も README.md と frontmatter を検証する', () => {
   const fixture = createHarnessFixture([
     { kind: 'playbook', name: 'sample' },
-    { kind: 'role', name: 'coordinator' },
     { kind: 'principle', name: 'broken', readme: false, frontmatter: { name: 'broken' } },
   ])
 
@@ -384,7 +380,7 @@ test('principle も README.md と frontmatter を検証する', () => {
   }
 })
 
-test('role が実在する principle だけを参照していれば ok', () => {
+test('playbook が実在する principle だけを参照していれば ok', () => {
   const fixture = principleFixture({ principles: '[alpha, beta]' })
 
   try {
@@ -397,7 +393,7 @@ test('role が実在する principle だけを参照していれば ok', () => {
   }
 })
 
-test('role が存在しない principle を参照していれば error で、名前を示す', () => {
+test('playbook が存在しない principle を参照していれば error で、名前を示す', () => {
   const fixture = principleFixture({ principles: '[alpha, missing]' })
 
   try {
@@ -406,7 +402,7 @@ test('role が存在しない principle を参照していれば error で、名
 
     assert.equal(report.ok, false)
     assert.equal(issue?.severity, 'error')
-    assert.equal(issue?.kind, 'role')
+    assert.equal(issue?.kind, 'playbook')
     assert.equal(issue?.entry, 'dev')
     assert.match(issue?.message ?? '', /missing/)
   } finally {
@@ -416,7 +412,7 @@ test('role が存在しない principle を参照していれば error で、名
 
 test('principle のディレクトリはあっても PRINCIPLE.md がなければ参照は unknown-principle', () => {
   const fixture = createHarnessFixture([
-    { kind: 'role', name: 'dev', frontmatter: { name: 'dev', description: 'd', principles: '[alpha]' } },
+    { kind: 'playbook', name: 'dev', frontmatter: { name: 'dev', description: 'd', principles: '[alpha]' } },
     { kind: 'principle', name: 'alpha', omitFile: true },
   ])
 
@@ -438,7 +434,7 @@ test('principles が不正な書式なら invalid-principles', () => {
 
       assert.equal(report.ok, false, principles)
       assert.ok(
-        report.issues.some((issue) => issue.kind === 'role' && issue.code === 'invalid-principles'),
+        report.issues.some((issue) => issue.kind === 'playbook' && issue.code === 'invalid-principles'),
         principles,
       )
     } finally {

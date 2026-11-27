@@ -5,7 +5,7 @@ import type { Frontmatter } from './frontmatter.ts'
 import { parseFrontmatter, readString } from './frontmatter.ts'
 import { harnessDir, isDirectory, isFile } from './paths.ts'
 
-export type ContentKind = 'playbook' | 'role' | 'principle'
+export type ContentKind = 'playbook' | 'principle'
 
 export type ContentSpec = {
   kind: ContentKind
@@ -19,13 +19,12 @@ export type ContentSpec = {
 
 export const CONTENT_SPECS: Record<ContentKind, ContentSpec> = {
   playbook: { kind: 'playbook', dirName: 'playbooks', fileName: 'PLAYBOOK.md', label: 'playbook' },
-  role: { kind: 'role', dirName: 'roles', fileName: 'ROLE.md', label: 'role' },
   principle: { kind: 'principle', dirName: 'principles', fileName: 'PRINCIPLE.md', label: 'principle' },
 }
 
-export const CONTENT_KINDS: ContentKind[] = ['playbook', 'role', 'principle']
+export const CONTENT_KINDS: ContentKind[] = ['playbook', 'principle']
 
-/** エントリ（playbook / role / principle の 1 ディレクトリ）。 */
+/** エントリ（playbook / principle の 1 ディレクトリ）。 */
 export type Entry = {
   kind: ContentKind
   /** ディレクトリ名。識別子として使う。 */

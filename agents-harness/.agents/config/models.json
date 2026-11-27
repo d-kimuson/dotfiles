@@ -5,14 +5,15 @@
       "description": "主力の実装担当。指示がはっきりしていて、長く自律的に進める作業",
       "candidates": [
         "command-code:deepseek/deepseek-v4.1-flash:high",
-        "pi:opencode-go/deepseek-v4.1-flash:high"
+        "pi:opencode-go/deepseek-v4.1-flash:high",
+        "claude-code:claude-opus-5-5:medium"
       ]
     },
     {
       "name": "judge",
       "description": "判断とレビューのメイン",
       "candidates": [
-        "claude-code:claude-opus-5-5:high",
+        "claude-code:claude-opus-5-5:xhigh",
         "pi:openai-codex/gpt-6.1-terra:high"
       ]
     },
@@ -25,8 +26,9 @@
         "一段メタな Agent の Goal を検討するとき。例: 決定論的に判定できる goal を設計し、worker に達成までループさせる戦略を取る場合の、その goal の設計"
       ],
       "candidates": [
-        "claude-code:claude-fable-5-1:xhigh",
-        "pi:openai-codex/gpt-6-astra:xhigh"
+        "claude-code:claude-fable-5-2:xhigh",
+        "pi:openai-codex/gpt-6-astra:xhigh",
+        "claude-code:claude-opus-5-5:max"
       ]
     },
     {
@@ -49,7 +51,7 @@
   ],
   "efforts": {
     "claude-opus-5-5": ["low", "medium", "high", "xhigh", "max"],
-    "claude-fable-5-1": ["low", "medium", "high", "xhigh", "max"],
+    "claude-fable-5-2": ["low", "medium", "high", "xhigh", "max"],
     "claude-haiku-5-5": ["low", "medium", "high", "xhigh", "max"],
     "gpt-6-astra": ["low", "medium", "high", "xhigh", "max"],
     "gpt-6.1-terra": ["none", "low", "medium", "high", "xhigh", "max"],

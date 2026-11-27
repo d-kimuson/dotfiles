@@ -16,7 +16,7 @@ const PAGE_OPTIONS: OptionSpec[] = [
 
 const DESCRIPTION_MAX = 60
 
-/** `playbooks` / `roles` のコマンドを組み立てる。list / search / use を持つ。 */
+/** `playbooks` / `principles` のコマンドを組み立てる。list / search / use を持つ。 */
 export function createCollectionCommand(kind: ContentKind): CommandSpec {
   const spec = CONTENT_SPECS[kind]
   return {

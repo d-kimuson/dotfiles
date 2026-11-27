@@ -32,20 +32,14 @@
 ## Harness
 
 構成されたユーザー定義ハーネスに従う。
-agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Role/Playbook のプロンプトを活用し、タスクを実施する。
-
-### Role
-
-- Role は ~/.agents/roles/${name}/ROLE.md として定義される
-- セッションごとに事前定義された単一の Role を適用し、その原則にしたがって行動する
-- 指定されていない場合は `~/.agents/scripts/agent-core.ts roles list` で Role の一覧を取得し、description から今回のユーザー要求を満たすのに最も適した Role をただ1つ選択して `~/.agents/scripts/agent-core.ts roles use 'product-engineer'` のように取得し、原則を遵守する
-- `roles use` は Role 本文の後ろに、その Role が推奨する principle (`~/.agents/principles/${name}/PRINCIPLE.md`) の全文も返す。状況に応じて他の原則が必要なときは `~/.agents/scripts/agent-core.ts principles search <query>` で探し、`principles use '<name>'` で取得する
+agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Playbook のプロンプトを活用し、タスクを実施する。
 
 ### Playbook
 
 - Playbook は ~/.agents/playbooks/${name}/PLAYBOOK.md として定義された、再現性のある一連の手順
 - `~/.agents/scripts/agent-core.ts playbooks list` で一覧を取得する (`playbooks search <query>` で全文検索も可)。description から今回のユーザー要求に合うものがあれば、`~/.agents/scripts/agent-core.ts playbooks use 'initialize-project'` のように本文を取得し、手順に従う
 - 合う Playbook が無ければ使わずに進めてよい
+- `playbooks use` は本文の後ろに、その Playbook が推奨する principle (`~/.agents/principles/${name}/PRINCIPLE.md`) の全文も返す。他の原則が必要なときは `~/.agents/scripts/agent-core.ts principles search <query>` で探し、`principles use '<name>'` で取得する
 
 ### Handoff
 
@@ -57,7 +51,6 @@ agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Role/Playbook のプロ�
 - 依頼の中核と全体の調整は自分で持ち、委譲しない
 - Agent (あなた) の Context は限られたリソースであり、Yak-shaving 的作業を SubAgent に適切に移譲することで本筋の作業に集中する
 - SubAgent 呼び出し時は下記の情報を提示して呼び出す:
-  - 期待する Role
   - SubAgent に実施させたい作業の完了条件
   - やらないことの明示
   - (Optional) 実施してほしい Playbook

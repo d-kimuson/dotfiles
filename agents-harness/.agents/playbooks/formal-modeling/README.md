@@ -1,6 +1,6 @@
 # Formal modeling
 
-一時的な形式モデルで反例を見つけ、example test で再現して直す playbook。
+対象に合う形式検証のパターンを選び、モデルで検証して実装と突き合わせる playbook。worker-advisor の Advisor が検証手法を設計するときにも読む。
 
 ## 設計メモ
 
@@ -15,6 +15,12 @@ Quint の GitHub リポジトリ (`informalsystems/quint` から `quint-co/quint
 - `docs/content/docs/quint.md` (CLI リファレンス): `run` / `test` / `verify` / `typecheck` の各オプションと既定値 (`run` の `--max-steps` は 20、`verify` は 10)、`verify` が Apalache (既定) か TLC (`--backend tlc`) を使うこと、JDK が要ること、`--mbt`、`quint test` が名前が `Test` で終わる定義を実行すること
 - `docs/content/docs/getting-started.mdx`: インストール (`npm i @informalsystems/quint -g`)、`quint run ... --invariant=` で違反を見つけ、`quint verify` で `[ok]` を確かめる流れ、JDK 21 以上の要件
 - `docs/content/docs/lang.md`: `run` の定義、`.then(...)`、`.expect(...)`
+
+## パターンの根拠
+
+- MBT のフラグ (`--mbt`、`--out-itf`、`--n-traces`) は `quint run --help` で確かめた。ITF の値の形 (`#bigint`、`#set`、`#map`) と `mbt::actionTaken`、`mbt::nondetPicks` は Quint の ITF と MBT の docs に従う
+- Lean は、証明だけでは実装の正しさを保証しないので、差分の property-based test で実装と突き合わせる形にした
+- 複数コンポーネントの連携は手元で実システムを動かせないので、MBT ではなく反例を単体テストに写す形にした
 
 ## 意図的に省いたもの
 

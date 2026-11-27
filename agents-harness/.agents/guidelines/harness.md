@@ -14,41 +14,35 @@ Agent 用の Prompt を書く場合のガイドライン
 
 - 常に必要になる原則に絞って記載
 
-## skills/playbooks/roles/principles
+## skills/playbooks/principles
 
-- 標準化された Skill と同様の内部構造を採用した playbooks/roles を利用する
+- 標準化された Skill と同様の内部構造を採用した playbooks/principles を利用する
 
 ```
-~/.agents/{skills,playbooks,roles,principles}/
+~/.agents/{skills,playbooks,principles}/
   ${name}/
     references/
     scripts/
-    {SKILL.md,ROLE.md,PLAYBOOK.md,PRINCIPLE.md}
+    {SKILL.md,PLAYBOOK.md,PRINCIPLE.md}
     README.md
 ```
 
-- SKILL.md, ROLE.md, PLAYBOOK.md, PRINCIPLE.md:
+- SKILL.md, PLAYBOOK.md, PRINCIPLE.md:
   - 個別に必要になる情報は references に分離し、最小限に保つ
   - 読み手向けの指示のみを記載。管理上必要になる情報・背景などは本文ではなく README.md に記載する
 - description frontmatter は最小限に保ち「いつ有効にすべきか」の判断を目的として記載。内容をサマライズして肥大化させない。
 
-### Role
-
-- 前提: Agent は常に単一の Role を選択・適用して振る舞う
-- Role には coordinator/product-engineer/qae...etc など責務に応じた原則を定義する
-- 踏み込まない: 具体的な作業の手順など
-
-- Role の frontmatter `principles: [<name>, ...]` で、推奨する Principle を列挙する。`roles use` が本文の後ろに全文を続ける。`agent-core verify` が存在しない参照を検出する
-
 ### Principle
 
 - 小さく単一目的の行動原則。何か・いつ適用するか・すること/しないことを短く書く。description は「〜のときに適用する」の形にする
-- 件数が増える前提で、見つける主な手段は `principles search`。Role は常に必要なものだけを推奨する
+- 件数が増える前提で、見つける主な手段は `principles search`。Playbook は常に必要なものだけを推奨する
 - 手順が主体のものは Principle でなく Playbook にする
 
 ### Playbook
 
 - 再現性のある実績のある一連の手順を Playbook として用意する
+- タスク進行パターン (worker-advisor、coordinate-task など) も Playbook にする
+- frontmatter `principles: [<name>, ...]` で、推奨する Principle を列挙する。`playbooks use` が本文の後ろに全文を続ける。`agent-core verify` が存在しない参照を検出する
 
 ## prompts
 

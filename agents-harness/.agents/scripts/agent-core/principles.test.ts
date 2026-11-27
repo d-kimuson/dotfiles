@@ -3,7 +3,7 @@ import { test } from 'node:test'
 
 import { loadEntry } from './content.ts'
 import { CliError } from './errors.ts'
-import { loadRolePrinciples, readPrincipleRefs, renderRoleWithPrinciples } from './principles.ts'
+import { loadPlaybookPrinciples, readPrincipleRefs, renderPlaybookWithPrinciples } from './principles.ts'
 import { createHarnessFixture } from './testing/fixtures.ts'
 
 test('readPrincipleRefs: principles がなければ空', () => {
@@ -37,22 +37,22 @@ test('readPrincipleRefs: 重複はエラー', () => {
   assert.match(result.ok ? '' : result.reason, /重複/)
 })
 
-function createRoleFixture(roleFrontmatter: Record<string, string>) {
+function createPlaybookFixture(playbookFrontmatter: Record<string, string>) {
   return createHarnessFixture([
-    { kind: 'role', name: 'dev', frontmatter: { name: 'dev', description: 'dev の説明', ...roleFrontmatter }, body: '# Dev\n\n本文\n' },
+    { kind: 'playbook', name: 'dev', frontmatter: { name: 'dev', description: 'dev の説明', ...playbookFrontmatter }, body: '# Dev\n\n本文\n' },
     { kind: 'principle', name: 'alpha', body: '# Alpha\n\nA の本文\n' },
     { kind: 'principle', name: 'beta', body: '# Beta\n\nB の本文\n' },
   ])
 }
 
-test('loadRolePrinciples: 参照を書いた順に解決する', () => {
-  const fixture = createRoleFixture({ principles: '[beta, alpha]' })
+test('loadPlaybookPrinciples: 参照を書いた順に解決する', () => {
+  const fixture = createPlaybookFixture({ principles: '[beta, alpha]' })
 
   try {
-    const role = loadEntry(fixture.root, 'role', 'dev')
+    const playbook = loadEntry(fixture.root, 'playbook', 'dev')
 
     assert.deepEqual(
-      loadRolePrinciples(fixture.root, role).map((entry) => entry.name),
+      loadPlaybookPrinciples(fixture.root, playbook).map((entry) => entry.name),
       ['beta', 'alpha'],
     )
   } finally {
@@ -60,14 +60,14 @@ test('loadRolePrinciples: 参照を書いた順に解決する', () => {
   }
 })
 
-test('loadRolePrinciples: 存在しない principle は role 名と共に CliError', () => {
-  const fixture = createRoleFixture({ principles: '[alpha, missing]' })
+test('loadPlaybookPrinciples: 存在しない principle は playbook 名と共に CliError', () => {
+  const fixture = createPlaybookFixture({ principles: '[alpha, missing]' })
 
   try {
-    const role = loadEntry(fixture.root, 'role', 'dev')
+    const playbook = loadEntry(fixture.root, 'playbook', 'dev')
 
     assert.throws(
-      () => loadRolePrinciples(fixture.root, role),
+      () => loadPlaybookPrinciples(fixture.root, playbook),
       (error) => error instanceof CliError && /dev/.test(error.message) && /principles\/missing/.test(error.message),
     )
   } finally {
@@ -75,36 +75,36 @@ test('loadRolePrinciples: 存在しない principle は role 名と共に CliErr
   }
 })
 
-test('loadRolePrinciples: principles の書式が不正なら CliError', () => {
-  const fixture = createRoleFixture({ principles: 'alpha' })
+test('loadPlaybookPrinciples: principles の書式が不正なら CliError', () => {
+  const fixture = createPlaybookFixture({ principles: 'alpha' })
 
   try {
-    const role = loadEntry(fixture.root, 'role', 'dev')
+    const playbook = loadEntry(fixture.root, 'playbook', 'dev')
 
-    assert.throws(() => loadRolePrinciples(fixture.root, role), CliError)
+    assert.throws(() => loadPlaybookPrinciples(fixture.root, playbook), CliError)
   } finally {
     fixture.cleanup()
   }
 })
 
-test('renderRoleWithPrinciples: principle がなければ role 本文のまま', () => {
-  const fixture = createRoleFixture({})
+test('renderPlaybookWithPrinciples: principle がなければ playbook 本文のまま', () => {
+  const fixture = createPlaybookFixture({})
 
   try {
-    const role = loadEntry(fixture.root, 'role', 'dev')
+    const playbook = loadEntry(fixture.root, 'playbook', 'dev')
 
-    assert.equal(renderRoleWithPrinciples(role, []), '# Dev\n\n本文\n')
+    assert.equal(renderPlaybookWithPrinciples(playbook, []), '# Dev\n\n本文\n')
   } finally {
     fixture.cleanup()
   }
 })
 
-test('renderRoleWithPrinciples: role 本文の後ろに principle の全文を、名前付きの区切りで列挙順に続ける', () => {
-  const fixture = createRoleFixture({ principles: '[beta, alpha]' })
+test('renderPlaybookWithPrinciples: playbook 本文の後ろに principle の全文を、名前付きの区切りで列挙順に続ける', () => {
+  const fixture = createPlaybookFixture({ principles: '[beta, alpha]' })
 
   try {
-    const role = loadEntry(fixture.root, 'role', 'dev')
-    const text = renderRoleWithPrinciples(role, loadRolePrinciples(fixture.root, role))
+    const playbook = loadEntry(fixture.root, 'playbook', 'dev')
+    const text = renderPlaybookWithPrinciples(playbook, loadPlaybookPrinciples(fixture.root, playbook))
 
     assert.ok(text.startsWith('# Dev\n\n本文\n'))
     assert.ok(text.endsWith('</principle>\n'))

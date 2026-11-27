@@ -6,8 +6,8 @@
 
 - 「最小実装 (KISS)」とは別。KISS は作る量、tracer bullet は作る順序を扱う
 
-## 推奨する Role
+## 推奨する Playbook
 
-product-engineer
+worker-advisor
 
 本文: [PRINCIPLE.md](./PRINCIPLE.md)

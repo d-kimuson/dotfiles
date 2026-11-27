@@ -35,7 +35,6 @@ function createFixture(): ReturnType<typeof createHarnessFixture> {
   return createHarnessFixture([
     { kind: 'playbook', name: 'alpha', body: '# Alpha\nnpm publish\n' },
     { kind: 'playbook', name: 'beta', body: '# Beta\n' },
-    { kind: 'role', name: 'gamma', body: '# Gamma\n' },
     { kind: 'principle', name: 'delta', body: '# Delta\n\n検証してから完了と言う\n' },
   ])
 }
@@ -140,10 +139,10 @@ test('prompt は本文だけを出力する', async () => {
   const fixture = createFixture()
   try {
     const io = createIo(fixture.root)
-    const code = await run(['prompt', 'gamma'], io)
+    const code = await run(['prompt', 'beta'], io)
 
     assert.equal(code, 0)
-    assert.equal(io.outText(), '# Gamma\n')
+    assert.equal(io.outText(), '# Beta\n')
   } finally {
     fixture.cleanup()
   }
@@ -153,10 +152,10 @@ test('prompt --with-frontmatter は元ファイルを出力する', async () => 
   const fixture = createFixture()
   try {
     const io = createIo(fixture.root)
-    const code = await run(['prompt', 'gamma', '--with-frontmatter'], io)
+    const code = await run(['prompt', 'beta', '--with-frontmatter'], io)
 
     assert.equal(code, 0)
-    assert.match(io.outText(), /^---\nname: gamma/)
+    assert.match(io.outText(), /^---\nname: beta/)
   } finally {
     fixture.cleanup()
   }
@@ -175,19 +174,6 @@ test('prompt --type で探索対象を限定する', async () => {
   }
 })
 
-test('roles use は本文だけを出力する', async () => {
-  const fixture = createFixture()
-  try {
-    const io = createIo(fixture.root)
-    const code = await run(['roles', 'use', 'gamma'], io)
-
-    assert.equal(code, 0)
-    assert.equal(io.outText(), '# Gamma\n')
-  } finally {
-    fixture.cleanup()
-  }
-})
-
 test('playbooks use も本文だけを出力する', async () => {
   const fixture = createFixture()
   try {
@@ -201,44 +187,44 @@ test('playbooks use も本文だけを出力する', async () => {
   }
 })
 
-test('roles use は名前必須', async () => {
+test('playbooks use は名前必須', async () => {
   const fixture = createFixture()
   try {
     const io = createIo(fixture.root)
-    const code = await run(['roles', 'use'], io)
+    const code = await run(['playbooks', 'use'], io)
 
     assert.equal(code, 2)
-    assert.match(io.errText(), /role名を指定してください: agent-core roles use <name>/)
+    assert.match(io.errText(), /playbook名を指定してください: agent-core playbooks use <name>/)
   } finally {
     fixture.cleanup()
   }
 })
 
-test('roles use は playbook を解決しない', async () => {
+test('principles use は playbook を解決しない', async () => {
   const fixture = createFixture()
   try {
     const io = createIo(fixture.root)
-    const code = await run(['roles', 'use', 'alpha'], io)
+    const code = await run(['principles', 'use', 'alpha'], io)
 
     assert.equal(code, 1)
-    assert.match(io.errText(), /roleが見つかりません: alpha \(探索: roles\)/)
+    assert.match(io.errText(), /principleが見つかりません: alpha \(探索: principles\)/)
   } finally {
     fixture.cleanup()
   }
 })
 
-test('roles use --json はメタデータ付きで出力する', async () => {
+test('playbooks use --json はメタデータ付きで出力する', async () => {
   const fixture = createFixture()
   try {
     const io = createIo(fixture.root)
-    const code = await run(['roles', 'use', 'gamma', '--json'], io)
+    const code = await run(['playbooks', 'use', 'beta', '--json'], io)
     const parsed = JSON.parse(io.outText()) as { kind: string; name: string; body: string; frontmatter: Record<string, string> }
 
     assert.equal(code, 0)
-    assert.equal(parsed.kind, 'role')
-    assert.equal(parsed.name, 'gamma')
-    assert.equal(parsed.body, '# Gamma\n')
-    assert.equal(parsed.frontmatter.name, 'gamma')
+    assert.equal(parsed.kind, 'playbook')
+    assert.equal(parsed.name, 'beta')
+    assert.equal(parsed.body, '# Beta\n')
+    assert.equal(parsed.frontmatter.name, 'beta')
   } finally {
     fixture.cleanup()
   }
@@ -277,7 +263,7 @@ test('verify は正常系で exit 0', async () => {
     const code = await run(['verify'], io)
 
     assert.equal(code, 0)
-    assert.match(io.outText(), /5 entries · 0 errors · 0 warnings/)
+    assert.match(io.outText(), /4 entries · 0 errors · 0 warnings/)
   } finally {
     fixture.cleanup()
   }
@@ -305,7 +291,7 @@ test('verify --json は機械可読な結果を出す', async () => {
 
     assert.equal(code, 0)
     assert.equal(parsed.ok, true)
-    assert.equal(parsed.checked, 5)
+    assert.equal(parsed.checked, 4)
   } finally {
     fixture.cleanup()
   }
@@ -315,10 +301,10 @@ test('--root で harness root を明示できる', async () => {
   const fixture = createFixture()
   try {
     const io = createIo(process.cwd(), {})
-    const code = await run(['--root', fixture.root, 'roles', 'list'], io)
+    const code = await run(['--root', fixture.root, 'principles', 'list'], io)
 
     assert.equal(code, 0)
-    assert.match(io.outText(), /gamma/)
+    assert.match(io.outText(), /delta/)
   } finally {
     fixture.cleanup()
   }
@@ -337,17 +323,17 @@ test('既定の per-page は 10', async () => {
   }
 })
 
-function createPrinciplesFixture(rolePrinciples: string | undefined): ReturnType<typeof createHarnessFixture> {
+function createPrinciplesFixture(playbookPrinciples: string | undefined): ReturnType<typeof createHarnessFixture> {
   return createHarnessFixture([
     {
-      kind: 'role',
+      kind: 'playbook',
       name: 'dev',
       frontmatter: {
         name: 'dev',
         description: 'dev の説明',
-        ...(rolePrinciples === undefined ? {} : { principles: rolePrinciples }),
+        ...(playbookPrinciples === undefined ? {} : { principles: playbookPrinciples }),
       },
-      body: '# Dev\n\n役割の本文\n',
+      body: '# Dev\n\n手順の本文\n',
     },
     { kind: 'principle', name: 'alpha', body: '# Alpha\n\nA の本文\n' },
     { kind: 'principle', name: 'beta', body: '# Beta\n\nB の本文\n' },
@@ -409,15 +395,15 @@ test('principles use は存在しない principle を exit 1 にする', async (
   }
 })
 
-test('roles use は role 本文の後ろに推奨する principle の全文を、書いた順に続ける', async () => {
+test('playbooks use は playbook 本文の後ろに推奨する principle の全文を、書いた順に続ける', async () => {
   const fixture = createPrinciplesFixture('[beta, alpha]')
   try {
     const io = createIo(fixture.root)
-    const code = await run(['roles', 'use', 'dev'], io)
+    const code = await run(['playbooks', 'use', 'dev'], io)
     const text = io.outText()
 
     assert.equal(code, 0)
-    assert.ok(text.startsWith('# Dev\n\n役割の本文\n'))
+    assert.ok(text.startsWith('# Dev\n\n手順の本文\n'))
     const beta = text.indexOf('<principle name="beta">')
     const alpha = text.indexOf('<principle name="alpha">')
     assert.ok(beta > 0 && alpha > beta, text)
@@ -429,18 +415,18 @@ test('roles use は role 本文の後ろに推奨する principle の全文を�
   }
 })
 
-test('roles use は block 形式の principles も読む', async () => {
+test('playbooks use は block 形式の principles も読む', async () => {
   const fixture = createHarnessFixture([
-    { kind: 'role', name: 'dev', frontmatter: null, body: '# Dev\n' },
+    { kind: 'playbook', name: 'dev', frontmatter: null, body: '# Dev\n' },
     { kind: 'principle', name: 'alpha', body: '# Alpha\n' },
   ])
   try {
     writeFileSync(
-      join(fixture.root, '.agents', 'roles', 'dev', 'ROLE.md'),
+      join(fixture.root, '.agents', 'playbooks', 'dev', 'PLAYBOOK.md'),
       '---\nname: dev\ndescription: d\nprinciples:\n  - alpha\n---\n\n# Dev\n',
     )
     const io = createIo(fixture.root)
-    const code = await run(['roles', 'use', 'dev'], io)
+    const code = await run(['playbooks', 'use', 'dev'], io)
 
     assert.equal(code, 0)
     assert.match(io.outText(), /<principle name="alpha">\n# Alpha\n<\/principle>/)
@@ -449,24 +435,24 @@ test('roles use は block 形式の principles も読む', async () => {
   }
 })
 
-test('roles use は principles のない role を本文のまま出す', async () => {
+test('playbooks use は principles のない playbook を本文のまま出す', async () => {
   const fixture = createPrinciplesFixture(undefined)
   try {
     const io = createIo(fixture.root)
-    const code = await run(['roles', 'use', 'dev'], io)
+    const code = await run(['playbooks', 'use', 'dev'], io)
 
     assert.equal(code, 0)
-    assert.equal(io.outText(), '# Dev\n\n役割の本文\n')
+    assert.equal(io.outText(), '# Dev\n\n手順の本文\n')
   } finally {
     fixture.cleanup()
   }
 })
 
-test('roles use は存在しない principle の参照を exit 1 にし、何も出力しない', async () => {
+test('playbooks use は存在しない principle の参照を exit 1 にし、何も出力しない', async () => {
   const fixture = createPrinciplesFixture('[alpha, missing]')
   try {
     const io = createIo(fixture.root)
-    const code = await run(['roles', 'use', 'dev'], io)
+    const code = await run(['playbooks', 'use', 'dev'], io)
 
     assert.equal(code, 1)
     assert.equal(io.outText(), '')
@@ -476,22 +462,22 @@ test('roles use は存在しない principle の参照を exit 1 にし、何も
   }
 })
 
-test('roles use --json は body を role のものに保ち、principles を別に持つ', async () => {
+test('playbooks use --json は body を playbook のものに保ち、principles を別に持つ', async () => {
   const fixture = createPrinciplesFixture('[alpha]')
   try {
     const io = createIo(fixture.root)
-    const code = await run(['roles', 'use', 'dev', '--json'], io)
+    const code = await run(['playbooks', 'use', 'dev', '--json'], io)
     const parsed = JSON.parse(io.outText()) as { body: string; principles: { name: string; path: string; body: string }[] }
 
     assert.equal(code, 0)
-    assert.equal(parsed.body, '# Dev\n\n役割の本文\n')
+    assert.equal(parsed.body, '# Dev\n\n手順の本文\n')
     assert.deepEqual(parsed.principles, [{ name: 'alpha', path: 'principles/alpha', body: '# Alpha\n\nA の本文\n' }])
   } finally {
     fixture.cleanup()
   }
 })
 
-test('prompt <role> も推奨する principle を続け、--with-frontmatter は元ファイルだけを出す', async () => {
+test('prompt <playbook> も推奨する principle を続け、--with-frontmatter は元ファイルだけを出す', async () => {
   const fixture = createPrinciplesFixture('[alpha]')
   try {
     const expanded = createIo(fixture.root)

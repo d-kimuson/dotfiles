@@ -10,7 +10,7 @@ export function createRootCommand(): CommandSpec {
     name: 'agent-core',
     summary: 'Project Scope Harness のコア CLI',
     description:
-      'playbooks / roles / principles を一覧・検索し、本文をプロンプトとして出力する。SubAgent のモデル候補も一覧する。' +
+      'playbooks / principles を一覧・検索し、本文をプロンプトとして出力する。SubAgent のモデル候補も一覧する。' +
       'コマンドは宣言的に登録され、help は自動生成される。',
     options: [
       {
@@ -20,7 +20,6 @@ export function createRootCommand(): CommandSpec {
     ],
     subcommands: [
       createCollectionCommand('playbook'),
-      createCollectionCommand('role'),
       createCollectionCommand('principle'),
       createModelsCommand(),
       createPromptCommand(),
@@ -28,7 +27,7 @@ export function createRootCommand(): CommandSpec {
     ],
     examples: [
       'agent-core playbooks list --page 1 --per-page 10',
-      'agent-core roles search reviewer --page 1',
+      'agent-core playbooks search bug --page 1',
       'agent-core principles search 検証',
       'agent-core models list arbiter',
       'agent-core prompt initialize-project',

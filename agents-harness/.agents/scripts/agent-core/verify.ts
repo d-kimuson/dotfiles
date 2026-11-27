@@ -13,7 +13,7 @@ import { loadProvidersConfig, PI_PROVIDER_PREFIXES, providerOfCandidate, PROVIDE
 
 export type VerifySeverity = 'error' | 'warning'
 
-/** 検証対象の種類。models と providers は設定ファイル 1 つ。prompts は playbook / role と違い 1 ファイル 1 エントリ。 */
+/** 検証対象の種類。models と providers は設定ファイル 1 つ。prompts は playbook と違い 1 ファイル 1 エントリ。 */
 export type VerifyKind = ContentKind | 'prompt' | 'models' | 'providers'
 
 export type VerifyIssue = {
@@ -161,7 +161,7 @@ function verifyEntry(root: string, kind: ContentKind, name: string): EntryReport
       add('warning', 'empty-body', '本文が空です', spec.fileName)
     }
 
-    if (kind === 'role') {
+    if (kind === 'playbook') {
       verifyPrincipleRefs(root, entry.frontmatter, add, spec.fileName)
     }
   }
@@ -169,7 +169,7 @@ function verifyEntry(root: string, kind: ContentKind, name: string): EntryReport
   return { kind, name, path: `${spec.dirName}/${name}`, files, issues }
 }
 
-/** role の `principles` が、書式として正しく、実在する principle だけを指すことを検証する。 */
+/** playbook の `principles` が、書式として正しく、実在する principle だけを指すことを検証する。 */
 function verifyPrincipleRefs(
   root: string,
   frontmatter: Frontmatter,
