@@ -206,7 +206,10 @@ test('exportHarness は配布元が Git 管理外なら失敗する', () => {
     const target = join(base, 'target')
     mkdirSync(target)
 
-    assert.throws(() => exportHarness({ sourceRoot: source, targetRoot: target, profile: null }), CliError)
+    assert.throws(
+      () => exportHarness({ sourceRoot: source, targetRoot: target, profile: null }),
+      /Git の作業ツリーではありません: .+ \(.+\)$/,
+    )
     assert.equal(existsSync(join(target, '.agents')), false)
   } finally {
     rmSync(base, { recursive: true, force: true })
@@ -220,7 +223,7 @@ test('exportHarness は途中で失敗したら配布先の親に何も残さな
 
     assert.throws(
       () => exportHarness({ sourceRoot: fixture.source, targetRoot: fixture.target, profile: null }),
-      CliError,
+      /追跡ファイルが配布元にありません: .+missing\.md$/,
     )
     assert.deepEqual(readdirSync(fixture.target), [])
   } finally {
@@ -332,7 +335,7 @@ test('exportHarness は追跡ファイルが作業ツリーでディレクトリ
 
     assert.throws(
       () => exportHarness({ sourceRoot: fixture.source, targetRoot: fixture.target, profile: null }),
-      /コピーできません/,
+      /コピーできません: .+file\.md: .+/,
     )
     assert.deepEqual(readdirSync(fixture.target), [])
   } finally {

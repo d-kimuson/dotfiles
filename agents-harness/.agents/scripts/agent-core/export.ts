@@ -19,7 +19,10 @@ export type ExportProfile = {
   readonly exclude: readonly string[]
 }
 
-/** Claude Code on the web 向け。他の Agent CLI でしか動かないものと、そのロックを配らない。 */
+/**
+ * Claude Code on the web 向け。他の Agent CLI でしか動かない skill と reference を配らない。
+ * 配布先では skill を追加・更新しないので、skills CLI のロックも配らない。
+ */
 export const EXPORT_PROFILES = [
   {
     name: 'claude-code-web',

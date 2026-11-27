@@ -888,7 +888,6 @@ function createEmptyDir(): string {
 
 test('export は --to が空文字でも exit 2', async () => {
   const fixture = createExportSource()
-  const target = createEmptyDir()
   try {
     const io = createIo(fixture.root)
     const code = await run(['export', '--to', '', '--profile', 'claude-code-web'], io)
@@ -896,7 +895,6 @@ test('export は --to が空文字でも exit 2', async () => {
     assert.equal(code, 2)
     assert.match(io.errText(), /--to/)
   } finally {
-    rmSync(target, { recursive: true, force: true })
     fixture.cleanup()
   }
 })
