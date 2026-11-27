@@ -27,7 +27,7 @@ OS や配布版の分岐には `.chezmoi.os`、`.chezmoi.osRelease` などの ch
 ## 秘密情報
 
 秘密情報、トークン、秘密鍵、マシン固有の値を平文でコミットしない。
-`config/*.local.json`、`shell/localrc.sh`、`shell/env-secrets.sh` は Git 管理外のローカル上書きである。
+`config/*.local.json`、`shell/localrc.sh`、`shell/env-secrets.sh`、`~/.ssh/config.local`、`~/.gitconfig-local` は Git 管理外のローカル上書きである。
 
 `shell/env-secrets.sh.tpl` は 1Password 参照を持つテンプレートである。
 生成物をコミットしない。
