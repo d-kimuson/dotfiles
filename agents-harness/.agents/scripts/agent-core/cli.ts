@@ -107,6 +107,7 @@ export async function run(argv: string[], io: CliIo = defaultIo()): Promise<numb
 
     const context: CommandContext = {
       root,
+      cwd: io.cwd,
       options: resolved.options,
       positionals: resolved.positionals,
       out: io.out,

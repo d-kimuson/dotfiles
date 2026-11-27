@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
-import { writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { test } from 'node:test'
@@ -854,4 +855,95 @@ test('models は help に載る', async () => {
   assert.equal(sub, 0)
   assert.match(io.outText(), /models/)
   assert.match(io.outText(), /agent-core models list \[kind\] \[options\]/)
+})
+
+const EXPORT_MODELS_CONFIG = JSON.stringify({
+  kinds: [
+    {
+      name: 'worker',
+      description: '実装担当',
+      candidates: ['command-code:deepseek-v4.1-flash:high', 'claude-code:claude-opus-5-5:medium'],
+    },
+  ],
+  efforts: { 'deepseek-v4.1-flash': ['low', 'high'], 'claude-opus-5-5': ['low', 'medium'] },
+})
+
+/** export の配布元は Git の追跡ファイルを読むので、fixture を index に載せる。 */
+function trackWithGit(root: string): void {
+  execFileSync('git', ['-C', root, 'init', '-q'], { stdio: 'ignore' })
+  execFileSync('git', ['-C', join(root, '.agents'), 'add', '-A'], { stdio: 'ignore' })
+}
+
+function createExportSource(): ReturnType<typeof createHarnessFixture> {
+  const fixture = createHarnessFixture([{ kind: 'playbook', name: 'alpha', body: '# Alpha\n' }], [], {
+    modelsConfig: EXPORT_MODELS_CONFIG,
+  })
+  trackWithGit(fixture.root)
+  return fixture
+}
+
+function createEmptyDir(): string {
+  return mkdtempSync(join(tmpdir(), 'agent-core-export-target-'))
+}
+
+test('export は --to がなければ exit 2', async () => {
+  const fixture = createExportSource()
+  try {
+    const io = createIo(fixture.root)
+    const code = await run(['export'], io)
+
+    assert.equal(code, 2)
+    assert.match(io.errText(), /--to/)
+  } finally {
+    fixture.cleanup()
+  }
+})
+
+test('export は未知の profile を exit 2 にし、使える profile を示す', async () => {
+  const fixture = createExportSource()
+  const target = createEmptyDir()
+  try {
+    const io = createIo(fixture.root)
+    const code = await run(['export', '--to', target, '--profile', 'nope'], io)
+
+    assert.equal(code, 2)
+    assert.match(io.errText(), /nope/)
+    assert.match(io.errText(), /claude-code-web/)
+  } finally {
+    rmSync(target, { recursive: true, force: true })
+    fixture.cleanup()
+  }
+})
+
+test('export --profile は配布先で verify と models list が通るコピーを作る', async () => {
+  const fixture = createExportSource()
+  const target = createEmptyDir()
+  try {
+    const io = createIo(fixture.root)
+    const code = await run(['--root', fixture.root, 'export', '--to', target, '--profile', 'claude-code-web'], io)
+
+    assert.equal(code, 0)
+    assert.match(io.outText(), /claude-code/)
+
+    const verify = createIo(target, { HOME: target })
+    assert.equal(await run(['--root', target, 'verify'], verify), 0)
+
+    const models = createIo(target, { HOME: target })
+    assert.equal(await run(['--root', target, 'models', 'list', '--json'], models), 0)
+    const payload = JSON.parse(models.outText()) as { kinds: { candidates: { runtime: string }[] }[] }
+    const runtimes = payload.kinds.flatMap((kind) => kind.candidates.map((candidate) => candidate.runtime))
+    assert.deepEqual(runtimes, ['claude-code'])
+  } finally {
+    rmSync(target, { recursive: true, force: true })
+    fixture.cleanup()
+  }
+})
+
+test('export は help に載る', async () => {
+  const io = createIo(process.cwd())
+  const code = await run(['export', '--help'], io)
+
+  assert.equal(code, 0)
+  assert.match(io.outText(), /agent-core export --to <dir> \[options\]/)
+  assert.match(io.outText(), /--profile/)
 })

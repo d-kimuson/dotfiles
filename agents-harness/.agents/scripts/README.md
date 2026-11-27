@@ -32,3 +32,13 @@ node_modules/.bin/tsc -p . --noEmit
 `verify` は `config/models.json` を必須にする (なければエラー)。`state/providers.json` は必須にせず、なくてもエラーにも警告にもしない。あれば書式だけを検証してエラーを報告する。
 
 `verify` は `principles/` も playbooks と同じ基準 (`PRINCIPLE.md`・`README.md`・frontmatter) で検証し、さらに Playbook の `principles` を静的に検査する。書式が不正なら `invalid-principles`、存在しない principle (`principles/<name>/PRINCIPLE.md` がない) を指していれば `unknown-principle` で、どちらもエラー。
+
+## export
+
+`export --to <dir> [--profile <name>]` は、配布元 (`--root` で解決した `.agents`) の Git 追跡ファイルを `<dir>/.agents` へコピーする。通常マシンは chezmoi の symlink で配布するので、コピーが要る使い捨て環境 (Claude Code on the web) でだけ使う。
+
+- 配る集合は `git -C <配布元> ls-files` の追跡ファイル。`.gitignore` の対象 (マシン固有ファイル、`skills/synced` など) は自動的に外れる。実行時に Git を呼ぶので、除外リストを `.gitignore` と二重管理しない
+- `--profile <name>` は `agent-core/export.ts` の `EXPORT_PROFILES` の定数。`claude-code-web` は `skills/orca-cli`、`skills/orca-computer-use`、`references/agent-call-over-cli.md`、`.skill-lock.json` を除外し、`state/providers.json` に `{ "providers": ["claude-code"] }` を書く。正本は 1 つのままで、中身は書き換えない
+- 除外パスが追跡ファイルに 1 件も一致しなければ stderr に警告を出して続ける。正本から skill を外しただけでセットアップが止まらないようにするため
+- `<dir>/.agents` が既にある (symlink を含む) ときは、削除も上書きもせずに exit 1。更新するときは呼び出し側が先に削除する
+- 一時ディレクトリにコピーしてから rename するので、途中で失敗しても配布先の親に `.agents` や残骸を残さない

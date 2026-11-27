@@ -1,5 +1,6 @@
 import type { CommandSpec } from './registry.ts'
 import { createCollectionCommand } from './commands/collection.ts'
+import { createExportCommand } from './commands/export.ts'
 import { createModelsCommand } from './commands/models.ts'
 import { createPromptCommand } from './commands/prompt.ts'
 import { createVerifyCommand } from './commands/verify.ts'
@@ -24,6 +25,7 @@ export function createRootCommand(): CommandSpec {
       createModelsCommand(),
       createPromptCommand(),
       createVerifyCommand(),
+      createExportCommand(),
     ],
     examples: [
       'agent-core playbooks list --page 1 --per-page 10',
@@ -32,6 +34,7 @@ export function createRootCommand(): CommandSpec {
       'agent-core models list arbiter',
       'agent-core prompt initialize-project',
       'agent-core verify',
+      'agent-core export --to /tmp/harness-copy --profile claude-code-web',
     ],
   }
 }

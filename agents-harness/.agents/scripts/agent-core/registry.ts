@@ -4,6 +4,8 @@ import type { OptionSpec } from './args.ts'
 export type CommandContext = {
   /** harness root（`.agents` を内包するディレクトリ） */
   root: string
+  /** CLI を起動したディレクトリ。相対パスの解決に使う。 */
+  cwd: string
   options: Map<string, string | boolean>
   positionals: string[]
   /** 改行を付けずに stdout へ書く。 */
