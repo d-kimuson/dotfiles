@@ -20,7 +20,7 @@ description: ユーザーの要求を正確に理解し、worker が理解でき
    - 完了条件: 観測できる振る舞いで書く
    - やらないこと
    - 仮定: 2 で自分で決めた点
-4. `worker` のモデルに、指示と「`~/.agents/scripts/agent-core.ts playbooks use worker-advisor` の手順に従う」旨を渡して依頼する。モデルの選び方と呼び出し方は AGENTS.md の SubAgent Delegation に従う。
+4. `worker` のモデルに、指示と「`~/.agents/scripts/agent-core.ts playbooks use worker-advisor` の手順に従う」旨を渡して依頼する。モデルの選び方と呼び出し方は AGENTS.md の「Agent の呼び出し」に従う。
 5. 報告を受け取り、ユーザーの意図に沿っているかを確かめる。ずれていれば、ずれを指示に書き足して差し戻す。
 
 ## 報告

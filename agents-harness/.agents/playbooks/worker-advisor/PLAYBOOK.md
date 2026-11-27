@@ -8,7 +8,7 @@ principles: [prove-it-works, tracer-bullet, strongest-verification, deterministi
 
 Advisor (Frontier モデル) の知識で方針を決め、Worker (自分) が実装を進める。Advise と Review は省略しない。
 
-Advisor には `arbiter` のモデルを使い、AGENTS.md の SubAgent Delegation に従って呼ぶ。Advisor にはファイルを変更させない。
+Advisor には `arbiter` のモデルを使い、AGENTS.md の「Agent の呼び出し」に従って呼ぶ。Advisor にはファイルを変更させない。
 
 ## 手順
 

@@ -1,12 +1,12 @@
-# Orca で別 harness の worker に委譲する
+# CLI を介して別の Agent を呼ぶ
 
-候補 `<runtime>:<model>:<effort>` の runtime が親と違うときに使う。
+モデルの候補 `<runtime>:<model>:<effort>` の runtime がこのセッションと違う Agent を呼ぶときに使う。呼び出しには Orca CLI を使う。
 
 ## 前提
 
 - `orca` はパイプ・リダイレクト・`cd`・`$'...'` を付けずに単独で実行する (付けると sandbox の除外から外れて失敗する)
 - `--worktree path:<dir>` の `<dir>` は Orca に登録済みの repo に限る
-- 親が Orca の terminal 内で動いている (`ORCA_TERMINAL_HANDLE` がある)。無ければ Orca は使えない
+- このセッションが Orca の terminal 内で動いている (`ORCA_TERMINAL_HANDLE` がある)。無ければ Orca は使えない
 - ここにないコマンドやフラグが要るとき、またはコマンドが想定外に失敗したときは、`orca skills get orchestration` でインストール済みの Orca に合った手順書を読む
 
 ## 起動コマンド
@@ -44,7 +44,7 @@ orca terminal close --terminal <T> --json
   - `timedOut: true`: 同じコマンドで待ち直す
   - `question`: `orca orchestration reply --id <message_id> --body "<回答>" --json` で答えて待ち直す
   - `worker_done`: `payload.outcome` が `succeeded` かを見たうえで、成果物 (ファイル・diff) を自分で確かめる
-- spec には対象・変更・制約・完了条件を書く。完了の報告方法は Orca が worker に伝えるので書かない。報告の本文にバッククォートを使わせない (送信時に欠ける)
-- 複数の worker は全員を `worker-start` してから、1 つの `check --wait` ループで受ける。書き込む worker どうしは worktree か編集範囲を分ける
+- spec には対象・変更・制約・完了条件を書く。完了の報告方法は、呼び出した Agent へ Orca が伝えるので書かない。報告の本文にバッククォートを使わせない (送信時に欠ける)
+- 複数の Agent を呼ぶときは、全員を `worker-start` してから、1 つの `check --wait` ループで受ける。書き込む Agent どうしは worktree か編集範囲を分ける
 - `tui-idle` にならないときは `orca terminal read --terminal <T> --json` で画面を見る。`blockedReason` が `agent-trust-workspace` なら claude のフォルダ信頼ダイアログで、既定は `No, exit`。`--text 'j'` を送って `Yes, I trust this folder` に移し、別の `send` で `--enter` を送る (番号キーは効かず、先に Enter を送ると claude が終了する)
-- worker が止まらなくなったら `orca orchestration worker-abandon --dispatch <dispatchId> --json` の後に `terminal close` する
+- 呼び出した Agent が止まらなくなったら `orca orchestration worker-abandon --dispatch <dispatchId> --json` の後に `terminal close` する

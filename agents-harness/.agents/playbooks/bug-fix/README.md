@@ -13,6 +13,6 @@ pstack の `poteto-mode/playbooks/bug-fix.md` を下敷きにした。
 - 一般的な進め方（調査から修正、検証までの流れ）。本文は、甘くなりやすい合格基準と証拠、委譲先、返答の形に絞った
 - Cursor 専用の要素: control skill、`/loop`、モデルの slug 指定、PR の作成と運用（Opening a PR）
 - このハーネスに無い skill への参照: how、why、architect、tdd、interrogate
-- 「自分は計画とレビューに徹し、調査と修正を委譲する」という体制の指定。委譲は AGENTS.md の SubAgent Delegation に従う
+- 「自分は計画とレビューに徹し、調査と修正を委譲する」という体制の指定。委譲は AGENTS.md の行動原則と「Agent の呼び出し」に従う
 
 本文: [PLAYBOOK.md](./PLAYBOOK.md)

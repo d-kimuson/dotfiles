@@ -17,6 +17,10 @@
   - 懸念は「可能性があります」で済ませずに、可能な範囲で確かめて確度のある報告を行う
   - ユーザーの作業が必要となる場合、手順が最小限になるように指示する
     - Ex. 秘匿情報が必要なので関連するコマンドを提示する → 手元の一時ファイルへ貼らせるだけ依頼し、その値を利用して行う作業は Agent が実施する
+- 別の Agent を呼んで本筋に集中する
+  - 依頼の中核と全体の調整は自分で持ち、別の Agent に渡さない
+  - 自分の Context は限られたリソースであり、Yak-shaving 的作業は別の Agent に渡す
+  - 作業を渡すときは、完了条件、やらないこと、(Optional) 実施してほしい Playbook を提示する
 - 成果物への言い訳としての文書の禁止
   - 成果物はコードベース、UI、レポート文書など様々
   - 良くないコードベースを成果物とするための言い訳としてコメントを書かない。コメントを消して言い訳の不要な実装を行う
@@ -45,19 +49,15 @@ agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Playbook のプロンプ�
 
 - 作業 (ファイルの変更、調査、複数ステップのタスクなど) を伴うセッションでは、作業を始める前に `~/.agents/scripts/agent-core.ts playbooks use handoff` で手順を取得し、カレントディレクトリに handoff ファイル (`.agents/handoff/${identifier}/index.md`) を作る
 
-### SubAgent Delegation
+### Agent の呼び出し
 
-- SubAgent をタスクの本筋に集中するために利用する
-- 依頼の中核と全体の調整は自分で持ち、委譲しない
-- Agent (あなた) の Context は限られたリソースであり、Yak-shaving 的作業を SubAgent に適切に移譲することで本筋の作業に集中する
-- SubAgent 呼び出し時は下記の情報を提示して呼び出す:
-  - SubAgent に実施させたい作業の完了条件
-  - やらないことの明示
-  - (Optional) 実施してほしい Playbook
 - 使うモデルは、作業の種類を 1 つ選び、次の手順で決める
   1. `~/.agents/scripts/agent-core.ts models list worker|judge|arbiter|scout|writer` で利用すべきモデルのリストを取得
-  2. 上から有効なものを選択し、失敗した場合に下位のモデルにフォールバックする。このセッションと同一の harness の場合は組み込まれたサブエージェント呼び出しを行う。別ハーネスの場合は `~/.agents/references/orca-delegation.md` を参考に Orca CLI を用いる。いずれも利用できない場合は自信と同一モデルの SubAgent で代用する
+  2. 上から有効なものを選択し、失敗した場合に下位のモデルにフォールバックする
 - 別系統のセカンドオピニオンがほしいときは、1 番目とは runtime やモデル系統の違う候補を使う
+- 選んだ候補の runtime がこのセッションと同じ場合は、組み込みの手段 (サブエージェント呼び出しなど) で呼ぶ
+- 選んだ候補の runtime がこのセッションと違う場合は、`~/.agents/references/agent-call-over-cli.md` の手順で CLI を介して呼ぶ
+- どの候補も呼べない場合は、自分と同一モデルの Agent で代用する
 
 ### Other CLI Usage
 
