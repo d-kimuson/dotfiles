@@ -33,6 +33,8 @@
 `dotfiles-apply` は MCP 設定を配布しない。
 MCP 定義を変えた場合は `internal-cli mcp deliver` を追加で実行する。
 
+`dotfiles-apply` が chezmoi の conflict やエラーで止まり、解消までエージェントに任せる場合は `/dotfiles-apply` (`docs/agents/prompts/dotfiles-apply.md`) を使う。
+
 ## 初期セットアップ
 
 新しいマシンでは次を実行する。

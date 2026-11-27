@@ -8,6 +8,7 @@
 | ---- | ------ | ---- |
 | source state | `chezmoi/` (`.chezmoiroot`) | chezmoi が `$HOME` 以下へ配布するファイルの元。`~/.agents` の正本 (harness root) は含まない (`docs/overview.md`) |
 | target state | `$HOME` 以下 | source state を apply した結果 |
+| conflict | `chezmoi status` | chezmoi が書いた内容と異なる target state を、apply が上書きしようとする状態 |
 | harness root | `agents-harness/.agents` | グローバルの memory、skills、prompts の正本。配布先の `~/.agents` はここへの symlink (`docs/overview.md`) |
 | 管理層 | — | chezmoi・home-manager・mise・internal CLI・nix profile の区分。ツールや設定はどれか 1 つで管理する (`docs/overview.md`) |
 | 反映 | — | 変更を対象マシンに適用すること (apply、switch、install、deliver) |
