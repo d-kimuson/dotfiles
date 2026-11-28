@@ -8,9 +8,9 @@ principles: [prove-it-works, tracer-bullet, strongest-verification, deterministi
 
 Advisor (Frontier モデル) の知識で方針を決め、Worker (自分) が実装を進める。Advise と Review は省略しない。
 
-Advisor には `arbiter` のモデルを使い、AGENTS.md の「Agent の呼び出し」に従って呼ぶ。Advisor にはファイルを変更させない。
+Advisor には `judge` のモデルを使い、AGENTS.md の「Agent の呼び出し」に従って呼ぶ。Advisor にはファイルを変更させない。
 
-`arbiter` の候補をどれも呼べないとき (`models list arbiter` が「候補なし」を返したときを含む) は、作業を止めて依頼元 (coordinator、いなければユーザー) にエスカレーションする。自分と同じモデルの Agent や、`arbiter` 以外の種類の候補で Advisor を代用しない。AGENTS.md の「どの候補も呼べない場合は、自分と同一モデルの Agent で代用する」は Advisor に適用しない。
+`judge` の候補をどれも呼べないとき (`models list judge` が「候補なし」を返したときを含む) は、作業を止めて依頼元 (coordinator、いなければユーザー) にエスカレーションする。自分と同じモデルの Agent や、`judge` 以外の種類の候補で Advisor を代用しない。AGENTS.md の「どの候補も呼べない場合は、自分と同一モデルの Agent で代用する」は Advisor に適用しない。
 
 ## 手順
 
