@@ -25,15 +25,19 @@
   .ptb-deferred[hidden] {
     display: none;
   }
+  .ptb-office {
+    height: 100%;
+    min-height: 480px;
+  }
 </style>
 </head>
 <body>
 
-<dpk-app lang="ja" storage-key="personal-task-board">
+<dpk-app lang="ja" storage-key="personal-task-board" page-nav="sidebar">
   <script type="application/json">{ "title": "パーソナルダッシュボード" }</script>
   <label slot="header" class="ptb-deferred" hidden><input type="checkbox" id="ptb-show-deferred" /><span></span></label>
   <dpk-page name="board" label="タスク">
-    <dpk-board-kanban id="personal-task-board" heading="タスク">
+    <dpk-board-kanban id="personal-task-board">
       <script type="application/json">
         {
           "columns": [
@@ -49,7 +53,7 @@
     </dpk-board-kanban>
   </dpk-page>
   <dpk-page name="learning" label="学習バックログ">
-    <dpk-board-kanban id="personal-learning" heading="学習バックログ">
+    <dpk-board-kanban id="personal-learning">
       <script type="application/json">
         {
           "columns": [
@@ -61,21 +65,33 @@
       </script>
     </dpk-board-kanban>
   </dpk-page>
+  <dpk-page name="office" label="Agent Office">
+    <dpk-view-plain>
+      <script type="application/json">{ "title": "Agent Office" }</script>
+      <div slot="main" id="ptb-office" class="ptb-office"></div>
+    </dpk-view-plain>
+  </dpk-page>
 </dpk-app>
 
+<script type="text/plain" id="ptb-agent-office" data-src="agent-office.js"></script>
+
 <script type="module">
-  const KIT = "https://cdn.jsdelivr.net/npm/dev-process-kit@0.4.2/dist/boards.js";
+  const KIT_VERSION = "0.4.4";
+  const KIT = `https://cdn.jsdelivr.net/npm/dev-process-kit@${KIT_VERSION}/dist/boards.js`;
+  const PLAIN = `https://cdn.jsdelivr.net/npm/dev-process-kit@${KIT_VERSION}/dist/views/plain.js`;
   const ARCHIVED = "archived";
   const DONE = "done";
-  // 担い手は assignee。進行中の列は担い手で分け、Agent のカードを下に置く。
+  // Agent に任せているカードは Agent のタグを持つ。進行中の列はこのタグだけで分け、Agent のカードを下に置く。
   const SPLIT = "doing";
-  const AGENT = "Agent";
+  const AGENT_TAG = "Agent";
   // 着手可能日の前に隠すのは、まだ手を付けていない列のカードだけである。
   const DEFERRABLE = ["todo", "backlog"];
   const CHECK_TAG = "確認が必要";
   const START_PREFIX = "着手可能 ";
   const DUE_PREFIX = "期日 ";
   const RECORDS_HEADING = "## 記録";
+  const ASSIGNMENTS_HEADING = "## 担当";
+  const STATUSES = ["In Progress", "Done"];
   const DEFERRED_KEY = "ptb.showDeferred";
   const kanbans = [...document.querySelectorAll("dpk-page > dpk-board-kanban")];
 
@@ -105,20 +121,48 @@
   // 同じ接頭辞の日付タグが複数あれば、末尾 (最後に足したもの) を採る。draft の ADD_CARD_TAG は末尾に積まれる。
   const dateTags = (tags, prefix) => tags.filter((tag) => tag.startsWith(prefix) && isDate(tag.slice(prefix.length)));
   const tagDate = (tags, prefix) => dateTags(tags, prefix).at(-1)?.slice(prefix.length);
-  // 予約タグは属性の欄で操作する。カードの表面と詳細のタグの行では、汎用のタグとして出さない。
+  // 確認が必要と日付は属性の欄で操作する。カードの表面と詳細のタグの行では、汎用のタグとして出さない。
   const isReserved = (tag) =>
     tag === CHECK_TAG ||
     (tag.startsWith(START_PREFIX) && isDate(tag.slice(START_PREFIX.length))) ||
     (tag.startsWith(DUE_PREFIX) && isDate(tag.slice(DUE_PREFIX.length)));
   const shortDate = (date) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
+  const SECTION_START = /^\s*## (Pending の理由|担当|記録)[ \t]*(\n|$)/;
   const viewOf = (card) => {
     const tags = card.tags ?? [];
     return {
       start: tagDate(tags, START_PREFIX),
       due: tagDate(tags, DUE_PREFIX),
-      agent: (card.assignee ?? "").trim() === AGENT,
+      agent: tags.includes(AGENT_TAG),
     };
   };
+
+  // 担当は description の `## 担当` 節の 1 行 1 件: `- <状態> | <役割> | <runtime> | <モデル> | <セッションの参照>`。
+  // CLI (card.ts) が読める行だけを担当として読む。
+  const RUNTIME = /^[a-z][a-z0-9-]*$/;
+  const SESSION = /^(https:\/\/claude\.ai\/code\/session_[A-Za-z0-9_-]+|[A-Za-z0-9][A-Za-z0-9._:/-]*)$/;
+  const assignmentsOf = (card) => {
+    const out = [];
+    let inside = false;
+    for (const line of (card.description ?? "").split("\n")) {
+      const heading = line.trim();
+      if (/^#{1,6} /.test(heading)) {
+        inside = heading === ASSIGNMENTS_HEADING;
+        continue;
+      }
+      if (!inside) continue;
+      const m = /^- (.*)$/.exec(line.trimEnd());
+      const fields = m?.[1].split("|").map((f) => f.trim());
+      if (fields === undefined || fields.length !== 5 || !STATUSES.includes(fields[0]) || fields.some((f) => f === "")) continue;
+      const [status, role, runtime, model, session] = fields;
+      if (!RUNTIME.test(runtime) || (session !== "-" && !SESSION.test(session))) continue;
+      // 分からない項目は - と書いてある。Office には null で渡す。
+      const known = (v) => (v === "-" ? null : v);
+      out.push({ status, role: role.replace(/\s+/g, " "), runtime, model: known(model), session: known(session) });
+    }
+    return out;
+  };
+
   let today = tokyoStamp(new Date()).slice(0, 10);
 
   const readShowDeferred = () => {
@@ -136,6 +180,7 @@
   const cardSel = (id) => `.kanban-card[data-card="${CSS.escape(id)}"]`;
   const slotSel = (column, id) => `.kanban-column[data-column="${CSS.escape(column)}"] .kanban-card-slot:has(> ${cardSel(id)})`;
   const isDeferred = (column, view) => DEFERRABLE.includes(column) && view.start !== undefined && view.start > today;
+  const reservedAt = (tags) => tags.flatMap((tag, index) => (isReserved(tag) ? [`:nth-child(${index + 1})`] : []));
 
   // 期日の色は Done とアーカイブ以外のカードに付ける。過ぎていれば超過、当日なら今日である。
   const TONE_SUFFIX = { overdue: " 超過", today: " 今日" };
@@ -170,11 +215,10 @@
         rules.push(`${sel}${KIT_IDLE} { box-shadow: inset 3px 0 0 var(--ptb-${tone}); }`);
       }
       // 予約タグを汎用のタグとして出さない。位置は card.tags の並びと同じなので :nth-child で指せる。
-      const at = tags.flatMap((tag, index) => (isReserved(tag) ? [`:nth-child(${index + 1})`] : []));
-      if (at.length > 0) {
-        rules.push(`${sel} > .kanban-card-meta > .dpk-pill:is(${at.join(", ")}) { display: none; }`);
-        rules.push(`aside.kanban-detail[data-card="${CSS.escape(card.id)}"] .kanban-tag-row > .dpk-pill:is(${at.join(", ")}) { display: none; }`);
-      }
+      const at = reservedAt(tags);
+      if (at.length > 0) rules.push(`${sel} > .kanban-card-meta > .dpk-pill:is(${at.join(", ")}) { display: none; }`);
+      // 本文が無く節だけのカードは、表面の説明の先頭に節の見出しと担当の行が出る。本文が無いときは説明を出さない。
+      if (SECTION_START.test(card.description ?? "")) rules.push(`${sel} > .dpk-card-text { display: none; }`);
       if (column === SPLIT && view.agent) rules.push(`${slotSel(SPLIT, card.id)} { order: 2; }`);
       if (isDeferred(column, view)) {
         perColumn.set(column, (perColumn.get(column) ?? 0) + 1);
@@ -253,20 +297,13 @@
     return [...lines.slice(0, at2), ...add, ...lines.slice(at2)].join("\n");
   };
 
-  // 記録欄は kit の詳細の説明の入力欄 (dpk-inline-edit multiline) の値を読む。kit は詳細に必ずこの欄を描く。
-  const currentDescription = (root, card) => {
-    const field = root.querySelector(`aside.kanban-detail[data-card="${CSS.escape(card)}"] dpk-inline-edit[multiline]`);
-    if (typeof field?.value !== "string") throw new Error("カードの詳細に説明の入力欄が無い");
-    return field.value;
-  };
-
-  // 属性 (確認が必要・着手可能日・期日・担い手) は、詳細の専用の欄で変える。操作は kit の draft に積まれ、レビューで base に反映される。
+  // 属性 (確認が必要・着手可能日・期日・Agent) は、詳細の専用の欄で変える。操作は kit の draft に積まれ、レビューで base に反映される。
   const cardOf = (el, id) => cardsOf(el).find((entry) => entry.card.id === id)?.card;
-  const setCheck = (el, card, on) => {
+  const setTag = (el, card, tag, on) => {
     const current = cardOf(el, card);
     if (current === undefined) return false;
-    if ((current.tags ?? []).includes(CHECK_TAG) === on) return true;
-    return el.dispatchElementAction(on ? "ADD_CARD_TAG" : "REMOVE_CARD_TAG", ["card", card], { tag: CHECK_TAG });
+    if ((current.tags ?? []).includes(tag) === on) return true;
+    return el.dispatchElementAction(on ? "ADD_CARD_TAG" : "REMOVE_CARD_TAG", ["card", card], { tag });
   };
   const setDate = (el, card, prefix, value) => {
     const current = cardOf(el, card);
@@ -279,11 +316,19 @@
     if (next !== undefined && !el.dispatchElementAction("ADD_CARD_TAG", ["card", card], { tag: next })) ok = false;
     return ok;
   };
-  const setOwner = (el, card, who) => {
-    // 自分は assignee を外す。kit は空の assignee を「無し」として扱う。
-    const assignee = who === "agent" ? AGENT : "";
-    if ((cardOf(el, card)?.assignee ?? "").trim() === assignee) return true;
-    return el.dispatchElementAction("SET_CARD_ASSIGNEE", ["card", card], { assignee });
+
+  const toggle = (className, onClick) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `ptb-toggle ${className}`;
+    button.setAttribute("aria-pressed", "false");
+    button.addEventListener("click", onClick);
+    return button;
+  };
+  const setPressed = (button, on, text) => {
+    const pressed = on ? "true" : "false";
+    if (button.getAttribute("aria-pressed") !== pressed) button.setAttribute("aria-pressed", pressed);
+    if (button.textContent !== text) button.textContent = text;
   };
 
   const buildAttrs = (el) => {
@@ -295,13 +340,9 @@
       error.textContent = "";
       if (!write(section.dataset.ptbCard)) error.textContent = "変えられなかった。詳細を開き直す";
     };
-    const check = document.createElement("button");
-    check.type = "button";
-    check.className = "ptb-check";
-    check.setAttribute("aria-pressed", "false");
-    check.textContent = CHECK_TAG;
-    check.addEventListener("click", () => run((card) => setCheck(el, card, check.getAttribute("aria-pressed") !== "true")));
-    section.append(check);
+    const check = toggle("ptb-check", () => run((card) => setTag(el, card, CHECK_TAG, check.getAttribute("aria-pressed") !== "true")));
+    const agent = toggle("ptb-agent", () => run((card) => setTag(el, card, AGENT_TAG, agent.getAttribute("aria-pressed") !== "true")));
+    section.append(check, agent);
     for (const [attr, name, prefix] of [["start", "着手可能日", START_PREFIX], ["due", "期日", DUE_PREFIX]]) {
       const row = document.createElement("div");
       row.className = "ptb-date";
@@ -351,28 +392,55 @@
       row.append(label, clear);
       section.append(row);
     }
-    const owner = document.createElement("label");
-    const who = document.createElement("select");
-    who.dataset.attr = "owner";
-    for (const [value, name] of [["self", "自分"], ["agent", AGENT]]) who.append(new Option(name, value));
-    owner.append("担い手", who);
-    who.addEventListener("change", () => run((card) => setOwner(el, card, who.value)));
-    section.append(owner, error);
+    const assignments = document.createElement("ul");
+    assignments.className = "ptb-assignments";
+    assignments.setAttribute("aria-label", "担当");
+    section.append(assignments, error);
     // 入力中のキーを kit のショートカットへ渡さない。
     for (const type of ["keydown", "keyup", "keypress"]) section.addEventListener(type, (event) => event.stopPropagation());
     return section;
   };
 
-  const ensureAttrs = (el, root) => {
-    const detail = root.querySelector("aside.kanban-detail[data-card]");
-    const body = detail?.querySelector(".kanban-detail-body");
-    if (!body) return;
-    const card = detail.dataset.card;
-    let section = body.querySelector(":scope > .ptb-attrs");
+  const renderAssignments = (list, card) => {
+    const items = assignmentsOf(card).map((a) => {
+      const li = document.createElement("li");
+      li.dataset.status = a.status;
+      const status = document.createElement("span");
+      status.className = "ptb-status";
+      status.textContent = a.status;
+      const role = document.createElement("strong");
+      role.textContent = a.role;
+      const who = document.createElement("span");
+      who.textContent = `${a.runtime} / ${a.model ?? "-"}`;
+      const session = document.createElement("code");
+      session.textContent = a.session ?? "-";
+      li.append(status, role, who, session);
+      return li;
+    });
+    const key = JSON.stringify(assignmentsOf(card));
+    if (list.dataset.key === key) return;
+    list.dataset.key = key;
+    list.replaceChildren(...items);
+  };
+
+  // カードの詳細は、盤面を持つページの side panel の Detail に kit が描く。
+  const detailOf = (el) => {
+    const panel = el.closest("dpk-page")?.shadowRoot?.querySelector("dpk-internal-layout-panel")?.shadowRoot;
+    const detail = panel?.querySelector("dpk-internal-kanban-card-detail");
+    return detail?.shadowRoot && typeof detail.card?.id === "string" ? detail : null;
+  };
+
+  // ShadowRoot は要素ではないので、querySelector の :scope で直下を指せない。
+  const childOf = (root, className) => [...root.children].find((child) => child.classList.contains(className)) ?? null;
+
+  const ensureAttrs = (el, detail) => {
+    const root = detail.shadowRoot;
+    const card = detail.card.id;
+    let section = childOf(root, "ptb-attrs");
     if (section === null) {
       section = buildAttrs(el);
-      const title = body.querySelector(":scope > .kanban-detail-title");
-      if (title === null) body.append(section);
+      const title = childOf(root, "kanban-detail-title");
+      if (title === null) root.prepend(section);
       else title.after(section);
     }
     const switched = section.dataset.ptbCard !== card;
@@ -381,29 +449,25 @@
       for (const input of section.querySelectorAll("input[type='date']")) input.blur();
       section.dataset.ptbCard = card;
       section.querySelector(".ptb-error").textContent = "";
-      // 詳細が盤面の下に積まれる幅では、開いた詳細が画面の外に出るので、見える位置まで送る。
-      detail.scrollIntoView({ block: "nearest" });
     }
     const current = cardOf(el, card);
     if (current === undefined) return;
     const view = viewOf(current);
-    const check = section.querySelector(".ptb-check");
-    const on = (current.tags ?? []).includes(CHECK_TAG);
-    const pressed = on ? "true" : "false";
-    if (check.getAttribute("aria-pressed") !== pressed) check.setAttribute("aria-pressed", pressed);
-    const text = on ? "確認済みにする" : "確認が必要にする";
-    if (check.textContent !== text) check.textContent = text;
-    const values = { start: view.start ?? "", due: view.due ?? "", owner: view.agent ? "agent" : "self" };
+    const checked = (current.tags ?? []).includes(CHECK_TAG);
+    setPressed(section.querySelector(".ptb-check"), checked, checked ? "確認済みにする" : "確認が必要にする");
+    setPressed(section.querySelector(".ptb-agent"), view.agent, view.agent ? "Agent に任せている" : "Agent に任せる");
+    renderAssignments(section.querySelector(".ptb-assignments"), current);
+    const values = { start: view.start ?? "", due: view.due ?? "" };
     // 入力中の欄は、他の更新が届いても書き換えない。
-    for (const input of section.querySelectorAll("[data-attr]")) {
-      if (input === root.activeElement && input.type === "date") continue;
+    for (const input of section.querySelectorAll("input[data-attr]")) {
+      if (input === root.activeElement) continue;
       const value = values[input.dataset.attr];
       // Chrome の date 入力は打ちかけの間 value が "" なので、カードを切り替えたら比べずに入れ直す。
       if (switched || input.value !== value) input.value = value;
     }
   };
 
-  const buildComposer = (el, board) => {
+  const buildComposer = (el) => {
     const section = document.createElement("section");
     section.className = "kanban-detail-field ptb-comments";
     const label = document.createElement("span");
@@ -425,16 +489,13 @@
     const submit = () => {
       const text = input.value.trim();
       if (text === "" || send.disabled) return;
-      const card = section.dataset.ptbCard;
-      let description;
-      try {
-        description = appendRecord(currentDescription(el.shadowRoot, card), tokyoStamp(new Date()), "本人", text);
-      } catch {
+      const card = cardOf(el, section.dataset.ptbCard);
+      if (card === undefined) {
         error.textContent = "記録を足せなかった。カードの詳細を開き直す";
         return;
       }
-      const ok = el.dispatchElementAction("SET_CARD_DESCRIPTION", ["card", card], { description });
-      if (!ok) {
+      const description = appendRecord(card.description, tokyoStamp(new Date()), "本人", text);
+      if (!el.dispatchElementAction("SET_CARD_DESCRIPTION", ["card", card.id], { description })) {
         error.textContent = "送れなかった。もう一度試す";
         return;
       }
@@ -454,15 +515,13 @@
     return section;
   };
 
-  const ensureComposer = (el, root) => {
-    const detail = root.querySelector("aside.kanban-detail[data-card]");
-    const body = detail?.querySelector(".kanban-detail-body");
-    if (!body) return;
-    const card = detail.dataset.card;
-    let section = body.querySelector(":scope > .ptb-comments");
+  const ensureComposer = (el, detail) => {
+    const root = detail.shadowRoot;
+    const card = detail.card.id;
+    let section = childOf(root, "ptb-comments");
     if (section === null) {
-      section = buildComposer(el, el.id);
-      body.append(section);
+      section = buildComposer(el);
+      root.append(section);
     }
     if (section.dataset.ptbCard !== card) {
       section.dataset.ptbCard = card;
@@ -474,8 +533,6 @@
   const boardSheet = new CSSStyleSheet();
   boardSheet.replaceSync(`
     dpk-dialog-panel::part(header),
-    .kanban-detail-field:has(> dpk-inline-edit:not([multiline])),
-    .kanban-detail-field:has(> .kanban-statuses),
     .kanban-column[data-column="${ARCHIVED}"],
     .diagram-stats { display: none !important; }
 
@@ -493,43 +550,50 @@
     .kanban-card::before { order: -1; grid-column: 1 / -1; justify-self: start; padding: 0 9px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 20px; letter-spacing: 0.02em; background: light-dark(#b45309, #fbbf24); color: light-dark(#fff, #1c1917); }
     .kanban-card::after { order: 5; grid-column: 1 / -1; font-size: 11px; font-weight: var(--ptb-mark-weight, 400); color: var(--ptb-mark, var(--dpk-ink-soft)); }
 
-    .kanban-detail { grid-template-rows: minmax(0, 1fr) auto; }
-    @media (max-width: 860px) { .kanban-detail { position: relative; } }
-    .kanban-detail-head { order: 1; }
-    .kanban-detail-close { position: absolute; top: 8px; right: 8px; }
-    .kanban-detail-title { order: 0; padding-right: 32px; }
-    .kanban-detail-field:has(> dpk-inline-edit[multiline]) { order: 1; }
-    .kanban-detail-field:has(> .kanban-tag-row) { order: 2; }
-    .kanban-detail-field:has(.kanban-link-add) { order: 3; }
-    .ptb-attrs { order: 0; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 12px; }
-    .ptb-attrs label { display: inline-flex; align-items: center; gap: 5px; color: var(--dpk-ink-soft); }
-    .ptb-attrs .ptb-check { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid light-dark(#d97706, #f59e0b); background: transparent; color: light-dark(#92400e, #fcd34d); cursor: pointer; }
-    .ptb-attrs .ptb-check[aria-pressed="true"] { border-color: transparent; background: light-dark(#b45309, #fbbf24); color: light-dark(#fff, #1c1917); font-weight: 600; }
-    .ptb-attrs .ptb-date { display: inline-flex; align-items: center; gap: 4px; }
-    .ptb-attrs input[type="date"], .ptb-attrs select { font: inherit; font-size: 12px; padding: 1px 4px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
-    .ptb-attrs .ptb-clear { font: inherit; font-size: 12px; padding: 1px 6px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule); background: transparent; color: var(--dpk-ink-soft); cursor: pointer; }
-    .ptb-attrs .ptb-error { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--dpk-danger); }
-    .ptb-attrs .ptb-error:empty { display: none; }
-    .ptb-comments { order: 4; display: grid; gap: 6px; }
-    .ptb-comments .ptb-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: end; }
-    .ptb-comments textarea { font: inherit; font-size: 13px; resize: vertical; min-height: 2.5em; padding: 4px 6px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
-    .ptb-comments .ptb-error { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--dpk-danger); }
-    .ptb-comments .ptb-error:empty { display: none; }
-    .ptb-comments button, .ptb-archive { font: inherit; font-size: 12px; padding: 2px 8px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule-strong); background: var(--dpk-paper); color: var(--dpk-ink); cursor: pointer; }
-    .ptb-archive { margin-left: auto; flex: none; }
+    .ptb-archive { font: inherit; font-size: 12px; padding: 2px 8px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule-strong); background: var(--dpk-paper); color: var(--dpk-ink); cursor: pointer; margin-left: auto; flex: none; }
     .ptb-archive:disabled { cursor: default; color: var(--dpk-ink-faint); }
 
     :host { --ptb-overdue: var(--dpk-danger); --ptb-today: light-dark(#b45309, #fbbf24); }
-    .kanban-column[data-column="${SPLIT}"] .kanban-cards::after { content: "Agent"; order: 1; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--dpk-ink-faint); background: linear-gradient(var(--dpk-rule-strong), var(--dpk-rule-strong)) no-repeat right center / calc(100% - 4.5em) 1px; }
+    .kanban-column[data-column="${SPLIT}"] .kanban-cards::after { content: "${AGENT_TAG}"; order: 1; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--dpk-ink-faint); background: linear-gradient(var(--dpk-rule-strong), var(--dpk-rule-strong)) no-repeat right center / calc(100% - 4.5em) 1px; }
     .kanban-column-head::after { margin-left: 6px; font-size: 11px; color: var(--dpk-ink-faint); }
   `);
 
+  // 詳細では、kit の担当者 (assignee) とステータスの欄を出さない。担い手は Agent のタグ、列の移動は盤面で行う。
+  const detailSheet = new CSSStyleSheet();
+  detailSheet.replaceSync(`
+    .kanban-detail-field:has(> dpk-inline-edit:not([multiline])),
+    .kanban-detail-field:has(> .kanban-statuses) { display: none !important; }
+    .ptb-attrs { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 12px; }
+    .ptb-attrs label { display: inline-flex; align-items: center; gap: 5px; color: var(--dpk-ink-soft); }
+    .ptb-toggle { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; background: transparent; cursor: pointer; }
+    .ptb-check { border: 1px solid light-dark(#d97706, #f59e0b); color: light-dark(#92400e, #fcd34d); }
+    .ptb-check[aria-pressed="true"] { border-color: transparent; background: light-dark(#b45309, #fbbf24); color: light-dark(#fff, #1c1917); font-weight: 600; }
+    .ptb-agent { border: 1px solid var(--dpk-blue); color: var(--dpk-blue); }
+    .ptb-agent[aria-pressed="true"] { border-color: transparent; background: var(--dpk-blue); color: var(--dpk-paper); font-weight: 600; }
+    .ptb-date { display: inline-flex; align-items: center; gap: 4px; }
+    .ptb-attrs input[type="date"] { font: inherit; font-size: 12px; padding: 1px 4px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
+    .ptb-clear { font: inherit; font-size: 12px; padding: 1px 6px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule); background: transparent; color: var(--dpk-ink-soft); cursor: pointer; }
+    .ptb-assignments { flex-basis: 100%; display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+    .ptb-assignments:empty { display: none; }
+    .ptb-assignments li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; color: var(--dpk-ink); }
+    .ptb-assignments li[data-status="Done"] { color: var(--dpk-ink-faint); }
+    .ptb-assignments .ptb-status { font-size: 11px; font-weight: 600; color: var(--dpk-blue); }
+    .ptb-assignments li[data-status="Done"] .ptb-status { color: var(--dpk-ink-faint); }
+    .ptb-assignments code { font-size: 11px; color: var(--dpk-ink-soft); overflow-wrap: anywhere; }
+    .ptb-error { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--dpk-danger); }
+    .ptb-error:empty { display: none; }
+    .ptb-comments { display: grid; gap: 6px; }
+    .ptb-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: end; }
+    .ptb-composer textarea { font: inherit; font-size: 13px; resize: vertical; min-height: 2.5em; padding: 4px 6px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
+    .ptb-composer button { font: inherit; font-size: 12px; padding: 2px 8px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule-strong); background: var(--dpk-paper); color: var(--dpk-ink); cursor: pointer; }
+  `);
+
   // kit のリンクの追加は form の submit で動き、allow-forms の無い sandbox では発火しない。どの sandbox でも動くように、Add の click と Enter で同じ action を書く。
-  const addLink = (el, form) => {
-    const card = form.closest("aside.kanban-detail[data-card]")?.dataset.card;
+  const addLink = (el, detail, form) => {
     const url = form.querySelector('[data-role="link-url"]');
     const label = form.querySelector('[data-role="link-label"]');
     const value = url?.value.trim() ?? "";
+    const card = detail.card?.id;
     if (!card || value === "") return;
     if (!url.checkValidity()) {
       url.setAttribute("aria-invalid", "true");
@@ -546,7 +610,8 @@
     }
   };
 
-  const interceptLinkAdd = (el, root) => {
+  const interceptLinkAdd = (el, detail) => {
+    const root = detail.shadowRoot;
     const formOf = (event) => (event.target instanceof Element ? event.target.closest("form.kanban-link-add") : null);
     root.addEventListener("submit", (event) => {
       if (formOf(event) === null) return;
@@ -557,14 +622,21 @@
       const form = formOf(event);
       if (form === null || !event.target.closest("button")) return;
       event.preventDefault();
-      addLink(el, form);
+      addLink(el, detail, form);
     }, true);
     root.addEventListener("keydown", (event) => {
       const form = formOf(event);
       if (form === null || event.key !== "Enter" || event.isComposing || !(event.target instanceof HTMLInputElement)) return;
       event.preventDefault();
-      addLink(el, form);
+      addLink(el, detail, form);
     }, true);
+  };
+
+  // 詳細のタグの行で、予約タグを汎用のタグとして出さない。
+  const detailTagCss = (el, detail) => {
+    const card = cardOf(el, detail.card.id);
+    const at = reservedAt(card?.tags ?? []);
+    return at.length === 0 ? "" : `.kanban-tag-row > .dpk-pill:is(${at.join(", ")}) { display: none; }`;
   };
 
   // タグの絞り込みに日付ごとの項目を並べない。絞り込みは別の shadow DOM (dpk-tag-filter) にあるので、そこへ stylesheet を足す。
@@ -572,47 +644,108 @@
     const dates = [...new Set(cardsOf(el).flatMap(({ card }) => (card.tags ?? []).filter((tag) => isReserved(tag) && tag !== CHECK_TAG)))];
     return dates.length === 0 ? "" : `button.dpk-tag:is(${dates.map((tag) => `[data-tag="${CSS.escape(tag)}"]`).join(", ")}) { display: none; }`;
   };
-  const ensureFilterSheet = (root, sheet) => {
-    const filter = root.querySelector("dpk-tag-filter")?.shadowRoot;
-    if (filter && !filter.adoptedStyleSheets.includes(sheet)) filter.adoptedStyleSheets = [...filter.adoptedStyleSheets, sheet];
+  const ensureSheets = (root, sheets) => {
+    if (root && sheets.some((sheet) => !root.adoptedStyleSheets.includes(sheet)))
+      root.adoptedStyleSheets = [...root.adoptedStyleSheets, ...sheets.filter((sheet) => !root.adoptedStyleSheets.includes(sheet))];
+  };
+  const replaceCss = (sheet, css) => {
+    if (sheet.ptbCss === css) return;
+    sheet.replaceSync(css);
+    sheet.ptbCss = css;
   };
 
-  // kit の shadow DOM への差し込みは、Done 見出しのアーカイブ、カード詳細の属性の欄と記録欄の 3 か所。印と隠す処理は stylesheet だけで行う。
+  // kit の shadow DOM への差し込みは、Done 見出しのアーカイブと、side panel のカード詳細の属性の欄と記録欄の 3 か所。印と隠す処理は stylesheet だけで行う。
   const enhancers = [];
   const enhance = (el) => {
     const root = el.shadowRoot;
     const attrSheet = new CSSStyleSheet();
     const filterSheet = new CSSStyleSheet();
+    const detailTagSheet = new CSSStyleSheet();
     root.adoptedStyleSheets = [...root.adoptedStyleSheets, boardSheet, attrSheet];
-    interceptLinkAdd(el, root);
+    const watched = new WeakSet();
     let frame = 0;
     const refresh = () => {
       if (frame !== 0) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
         ensureArchive(el, root);
-        ensureAttrs(el, root);
-        ensureComposer(el, root);
         updateDeferred();
-        const css = attrCss(el);
-        if (attrSheet.ptbCss !== css) {
-          attrSheet.replaceSync(css);
-          attrSheet.ptbCss = css;
+        replaceCss(attrSheet, attrCss(el));
+        ensureSheets(root.querySelector("dpk-tag-filter")?.shadowRoot, [filterSheet]);
+        replaceCss(filterSheet, filterCss(el));
+        const page = el.closest("dpk-page")?.shadowRoot;
+        const panel = page?.querySelector("dpk-internal-layout-panel")?.shadowRoot;
+        for (const target of [page, panel]) {
+          if (!target || watched.has(target)) continue;
+          watched.add(target);
+          observer.observe(target, { childList: true, subtree: true });
         }
-        ensureFilterSheet(root, filterSheet);
-        const filter = filterCss(el);
-        if (filterSheet.ptbCss !== filter) {
-          filterSheet.replaceSync(filter);
-          filterSheet.ptbCss = filter;
+        const detail = detailOf(el);
+        if (detail === null) return;
+        if (!watched.has(detail)) {
+          watched.add(detail);
+          observer.observe(detail.shadowRoot, { childList: true, subtree: true, characterData: true });
+          interceptLinkAdd(el, detail);
         }
+        ensureSheets(detail.shadowRoot, [detailSheet, detailTagSheet]);
+        replaceCss(detailTagSheet, detailTagCss(el, detail));
+        ensureAttrs(el, detail);
+        ensureComposer(el, detail);
       });
     };
-    new MutationObserver(refresh).observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-card"] });
+    const observer = new MutationObserver(refresh);
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-card"] });
+    el.closest("dpk-page")?.addEventListener("dpk-panel-change", refresh);
     enhancers.push(refresh);
     refresh();
   };
+
+  // Agent Office は、2 つの盤面の担当 (アーカイブを除く) を agent-office.js に渡して描く。
+  const officeAgents = () =>
+    kanbans.flatMap((el) =>
+      cardsOf(el)
+        .filter(({ column }) => column !== ARCHIVED)
+        .flatMap(({ card }) =>
+          assignmentsOf(card).map((a) => ({
+            cardId: card.id,
+            cardNumber: card.number,
+            cardTitle: card.title,
+            role: a.role,
+            runtime: a.runtime,
+            model: a.model,
+            status: a.status,
+            session: a.session,
+          })),
+        ),
+    );
+  let office;
+  let officeKey = "";
+  const refreshOffice = () => {
+    if (office === undefined) return;
+    const agents = officeAgents();
+    const key = JSON.stringify(agents);
+    if (key === officeKey) return;
+    officeKey = key;
+    office.update(agents);
+  };
+  const mountOffice = async () => {
+    const source = document.getElementById("ptb-agent-office")?.textContent ?? "";
+    const container = document.getElementById("ptb-office");
+    if (source.trim() === "" || container === null) return;
+    const url = URL.createObjectURL(new Blob([source], { type: "text/javascript" }));
+    try {
+      const { mountAgentOffice } = await import(url);
+      const agents = officeAgents();
+      officeKey = JSON.stringify(agents);
+      office = mountAgentOffice(container, agents);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  };
+
   const refreshAll = () => {
     for (const refresh of enhancers) refresh();
+    refreshOffice();
   };
 
   // 日付が変わったら、隠すカードと期日の色を描き直す。
@@ -625,11 +758,12 @@
   setInterval(recheckToday, 60_000);
   document.addEventListener("visibilitychange", recheckToday);
   document.addEventListener("dpk-change", refreshAll);
-  await import(KIT);
+  await Promise.all([import(KIT), import(PLAIN)]);
   for (const el of kanbans) {
     await el.api.ready;
     enhance(el);
   }
+  await mountOffice();
 </script>
 </body>
 </html>

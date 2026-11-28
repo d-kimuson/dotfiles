@@ -4,10 +4,28 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { test } from "node:test"
 import { fileURLToPath } from "node:url"
-import { applyReview, cardId, changesForIntents, foldDump, renderText } from "./board.ts"
-import { authorLabel, CHECK_TAG, DUE_PREFIX, mergeRecords, readCard, START_PREFIX, tokyoDate, tokyoStamp, writeCard, type Note } from "./card.ts"
+import { applyReview, cardId, changesForIntents, foldDump, normalizePage, pageTemplate, renderText } from "./board.ts"
+import {
+  AGENT_TAG,
+  assignmentKey,
+  authorLabel,
+  CHECK_TAG,
+  DUE_PREFIX,
+  formatAssignment,
+  mergeAssignments,
+  mergeRecords,
+  normalizeCard,
+  readCard,
+  START_PREFIX,
+  tokyoDate,
+  tokyoStamp,
+  writeCard,
+  type Assignment,
+  type CardView,
+  type Note,
+} from "./card.ts"
 import { applyEdits, editsBetween } from "./text-edits.ts"
-import { applyIntents, checkSession, normalizeKey, sessionFromEnv, type Intent } from "./intents.ts"
+import { applyIntents, normalizeKey, sessionFromEnv, type Intent } from "./intents.ts"
 import { emptyKanban, parsePage, renderPage, validateKanban, type Card, type Kanban, type Page } from "./page.ts"
 import { addressedHas, mergeAddressed, parseAddressed, parseBrief, parseTargetId, replay, type DraftAction } from "./replay.ts"
 
@@ -17,6 +35,7 @@ const now = new Date("2026-11-29T01:00:00.000Z")
 const today = "2026-11-29"
 
 const empty = (): Page => parsePage(TEMPLATE)
+const blankView = (over: Partial<CardView> = {}): CardView => ({ detail: "", assignments: [], records: [], check: false, agent: false, warnings: [], ...over })
 const boardOf = (page: Page, id: "personal-task-board" | "personal-learning" = "personal-task-board"): Kanban => page.boards[id]
 const columnOf = (kanban: Kanban, id: string) => {
   const column = kanban.columns.find((c) => c.id === id)
@@ -236,16 +255,16 @@ test("intent は 2 回当てても 1 回と同じで、記録も増えない", (
   columnOf(boardOf(page), "doing").cards = [card("a", 2, "動かす")]
   columnOf(boardOf(page), "done").cards = [card("d", 3, "終わった")]
   const intents: Intent[] = [
-    { op: "add", key: "https://example.com/new", column: "todo", title: "新しい", tags: ["作業"], due: "2026-12-05", owner: "agent" },
+    { op: "add", key: "https://example.com/new", column: "todo", title: "新しい", tags: ["作業"], due: "2026-12-05", agent: true },
     { op: "move", card: "a", column: "today" },
     { op: "detail", card: "a", text: "追記" },
     { op: "comment", card: "a", text: "1 行目\n2 行目", at: "2026-11-29 10:00" },
     { op: "check", card: "a", on: true, text: "本人に確かめる", at: "2026-11-29 10:01" },
     { op: "start", card: "a", date: "2026-12-01" },
     { op: "due", card: "a", date: "2026-12-10" },
-    { op: "owner", card: "a", who: "agent" },
+    { op: "agent", card: "a", on: true },
     { op: "link", card: "a", url: "https://example.com/pr", label: "PR" },
-    { op: "session", card: "a", session: "claude-code abc" },
+    { op: "assign", card: "a", status: "In Progress", role: "実装する", runtime: "claude-code", model: "claude-opus-5-5", session: "abc" },
     { op: "archive" },
   ]
   const once = applyIntents(page, intents, { now })
@@ -260,14 +279,14 @@ test("intent は 2 回当てても 1 回と同じで、記録も増えない", (
   assert.equal(view.check, true)
   assert.equal(view.start, "2026-12-01")
   assert.equal(view.due, "2026-12-10")
-  assert.equal(view.owner, "agent")
-  assert.deepEqual(view.sessions, ["claude-code abc"])
+  assert.equal(view.agent, true)
+  assert.deepEqual(view.assignments, [{ status: "In Progress", role: "実装する", runtime: "claude-code", model: "claude-opus-5-5", session: "abc" }])
   assert.equal(cardOf(boardOf(once.page), "d").id, "d")
   assert.deepEqual(columnOf(boardOf(once.page), "archived").cards.map((c) => c.id), ["d"])
   const added = cardOf(boardOf(once.page), cardId("https://example.com/new"))
   assert.equal(added.number, 4)
-  assert.deepEqual(added.tags, ["作業", `${DUE_PREFIX}2026-12-05`])
-  assert.equal(added.assignee, "Agent")
+  assert.deepEqual(added.tags, ["作業", AGENT_TAG, `${DUE_PREFIX}2026-12-05`])
+  assert.equal(added.assignee, undefined)
 })
 
 test("衝突からの回復: 新しい base に同じ intents を当て直せる", () => {
@@ -293,23 +312,9 @@ test("衝突からの回復: 新しい base に同じ intents を当て直せる
 
 test("レビューは `## 記録` を和集合にし、addressed を次の値にする", () => {
   const page = empty()
-  const old = writeCard(card("a", 1, "A"), {
-    detail: "説明",
-    records: [{ at: "2026-11-28 10:00", author: "本人", text: "古い記録" }],
-    sessions: [],
-    check: false,
-    owner: "self",
-    warnings: [],
-  })
+  const old = writeCard(card("a", 1, "A"), blankView({ detail: "説明", records: [{ at: "2026-11-28 10:00", author: "本人", text: "古い記録" }] }))
   columnOf(boardOf(page), "todo").cards = [old]
-  const next = writeCard(old, {
-    detail: "説明を直した",
-    records: [{ at: "2026-11-29 10:00", author: "本人", text: "新しい記録" }],
-    sessions: [],
-    check: false,
-    owner: "self",
-    warnings: [],
-  })
+  const next = writeCard(old, blankView({ detail: "説明を直した", records: [{ at: "2026-11-29 10:00", author: "本人", text: "新しい記録" }] }))
   const draft = [
     action({ id: "w:1", type: "SET_CARD_DESCRIPTION", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { description: next.description ?? "" } }),
   ]
@@ -349,25 +354,29 @@ test("blocked へは理由が要り、理由は Pending の理由の節に入り
   assert.equal(readCard(cardOf(boardOf(out.page), "a")).pending, undefined)
 })
 
-test("確認が必要・着手可能日・期日はタグ、担い手は assignee で表す", () => {
+test("確認が必要・Agent に任せている・着手可能日・期日はタグで表し、assignee は使わない", () => {
   const page = empty()
   columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
   const out = applyIntents(page, [
     { op: "check", card: "a", on: true },
     { op: "start", card: "a", date: "2026-12-01" },
     { op: "due", card: "a", date: "2026-12-05" },
-    { op: "owner", card: "a", who: "agent" },
+    { op: "agent", card: "a", on: true },
   ])
   const got = cardOf(boardOf(out.page), "a")
-  assert.deepEqual(got.tags, [CHECK_TAG, `${START_PREFIX}2026-12-01`, `${DUE_PREFIX}2026-12-05`])
-  assert.equal(got.assignee, "Agent")
+  assert.deepEqual(got.tags, [CHECK_TAG, AGENT_TAG, `${START_PREFIX}2026-12-01`, `${DUE_PREFIX}2026-12-05`])
+  assert.equal(got.assignee, undefined)
   const view = readCard(got)
   assert.equal(view.check, true)
   assert.equal(view.start, "2026-12-01")
   assert.equal(view.due, "2026-12-05")
-  assert.equal(view.owner, "agent")
+  assert.equal(view.agent, true)
+  const off = applyIntents(out.page, [{ op: "agent", card: "a", on: false }])
+  assert.deepEqual(cardOf(boardOf(off.page), "a").tags, [CHECK_TAG, `${START_PREFIX}2026-12-01`, `${DUE_PREFIX}2026-12-05`])
+  assert.ok(applyIntents(off.page, [{ op: "agent", card: "a", on: false }]).skipped.length === 1)
+  assert.ok(readCard(card("x", 9, "X", { tags: ["agent"] })).warnings.some((w) => w.includes("大小だけ違う")))
   // 日付を変えると古いタグを外す。解除するとタグも消える。
-  const moved = applyIntents(out.page, [{ op: "due", card: "a", date: "2026-12-09" }])
+  const moved = applyIntents(off.page, [{ op: "due", card: "a", date: "2026-12-09" }])
   assert.deepEqual(cardOf(boardOf(moved.page), "a").tags, [CHECK_TAG, `${START_PREFIX}2026-12-01`, `${DUE_PREFIX}2026-12-09`])
   const cleared = applyIntents(moved.page, [{ op: "due", card: "a", date: null }, { op: "start", card: "a", date: null }])
   assert.deepEqual(cardOf(boardOf(cleared.page), "a").tags, [CHECK_TAG])
@@ -384,7 +393,7 @@ test("アーカイブは確認が必要なカードを Done に残す", () => {
   const page = empty()
   columnOf(boardOf(page), "done").cards = [
     card("a", 1, "A"),
-    writeCard(card("b", 2, "B"), { detail: "", records: [], sessions: [], check: true, owner: "self", warnings: [] }),
+    writeCard(card("b", 2, "B"), blankView({ check: true })),
   ]
   const out = applyIntents(page, [{ op: "archive" }])
   assert.deepEqual(columnOf(boardOf(out.page), "archived").cards.map((c) => c.id), ["a"])
@@ -392,23 +401,124 @@ test("アーカイブは確認が必要なカードを Done に残す", () => {
   assert.ok(out.skipped.some((s) => s.reason.includes("確認が必要")))
 })
 
-test("セッションは description に重複なく足し、web のセッションはリンクにする", () => {
+test("担当は (役割, runtime, セッション) を鍵に、同じなら飛ばし、状態とモデルは置き換える", () => {
   const page = empty()
   columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  const base = { op: "assign", card: "a", role: "QA  をする", runtime: "pi", model: "m1", session: "s1" } as const
+  const once = applyIntents(page, [{ ...base, status: "In Progress" }, { ...base, role: "方針を決める", status: "In Progress" }])
+  const twice = applyIntents(once.page, [{ ...base, status: "In Progress" }])
+  assert.deepEqual(twice.page, once.page)
+  assert.match(twice.skipped[0]?.reason ?? "", /同じ担当/)
+  const done = applyIntents(once.page, [{ ...base, role: "QA をする", model: "m2", status: "Done" }])
+  const got = cardOf(boardOf(done.page), "a")
+  assert.deepEqual(readCard(got).assignments.map((a) => [a.status, a.role, a.model]), [["Done", "QA をする", "m2"], ["In Progress", "方針を決める", "m1"]])
+  assert.match(got.description ?? "", /## 担当\n- Done \| QA をする \| pi \| m2 \| s1\n- In Progress \| 方針を決める \| pi \| m1 \| s1/)
+  // セッションを省くと - になる。web のセッションは URL のまま持つ。
   const url = "https://claude.ai/code/session_abc"
-  const out = applyIntents(page, [
-    { op: "session", card: "a", session: "claude-code xyz" },
-    { op: "session", card: "a", session: "claude-code xyz" },
-    { op: "session", card: "a", session: url },
+  const more = applyIntents(done.page, [
+    { op: "assign", card: "a", role: "調べる", runtime: "codex", model: "gpt", status: "In Progress" },
+    { op: "assign", card: "a", role: "調べる", runtime: "claude-code", model: "claude-opus-5-5", session: url, status: "Done" },
   ])
-  const got = cardOf(boardOf(out.page), "a")
-  assert.deepEqual(readCard(got).sessions, ["claude-code xyz"])
-  assert.deepEqual(got.links, [{ url }])
-  assert.throws(() => checkSession("claude abc def"), /session/)
+  assert.deepEqual(readCard(cardOf(boardOf(more.page), "a")).assignments.slice(2).map((a) => a.session), ["-", url])
+  // 書式を壊す値と、旧い形のセッション参照と、廃止した op は拒む。
+  assert.throws(() => applyIntents(page, [{ ...base, role: "a | b", status: "Done" }]), /role/)
+  assert.throws(() => applyIntents(page, [{ ...base, session: "claude-code s1", status: "Done" }]), /board.ts session/)
+  assert.throws(() => applyIntents(page, [{ ...base, model: "-", status: "Done" }]), /model/)
+  assert.throws(() => applyIntents(page, [{ ...base, status: "Waiting" as "Done" }]), /status/)
+  assert.throws(() => applyIntents(page, [{ ...base, session: 123 as unknown as string, status: "Done" }]), /session は文字列/)
+  assert.throws(() => applyIntents(page, [{ op: "add", key: "https://example.com/b", column: "todo", title: "B", agent: "false" as unknown as boolean }]), /agent: true か false/)
+  assert.throws(() => applyIntents(page, [{ op: "session", card: "a", session: "x" } as unknown as Intent]), /unknown op: session \(assign を使う\)/)
+  assert.throws(() => applyIntents(page, [{ op: "owner", card: "a", who: "agent" } as unknown as Intent]), /unknown op: owner \(agent を使う\)/)
   assert.equal(normalizeKey("https://Example.com/x/#frag"), "https://example.com/x")
-  assert.equal(sessionFromEnv({ CLAUDE_CODE_SESSION_ID: "s1" }), "claude-code s1")
-  assert.equal(sessionFromEnv({ PI_SESSION_ID: "p1" }), "pi p1")
+  assert.deepEqual(sessionFromEnv({ CLAUDE_CODE_SESSION_ID: "s1" }), { runtime: "claude-code", session: "s1" })
+  assert.deepEqual(sessionFromEnv({ PI_SESSION_ID: "p1" }), { runtime: "pi", session: "p1" })
+  assert.deepEqual(sessionFromEnv({ CLAUDE_CODE_REMOTE: "true", CLAUDE_CODE_REMOTE_SESSION_ID: "cse_x" }), { runtime: "claude-code", session: "https://claude.ai/code/session_x" })
   assert.equal(sessionFromEnv({}), undefined)
+})
+
+test("担当の合わせ方は、鍵を失わず、Done を戻さず、冪等で、状態以外は base の値を採る (81 通り)", () => {
+  const keys = [
+    { role: "実装する", runtime: "pi", session: "s1" },
+    { role: "QA をする", runtime: "codex", session: "-" },
+  ]
+  const states = [undefined, "In Progress", "Done"] as const
+  const make = (picks: (typeof states)[number][], model: string): Assignment[] =>
+    picks.flatMap((status, i) => (status === undefined ? [] : [{ ...(keys[i] ?? keys[0]), status, model } as Assignment]))
+  let count = 0
+  for (const b0 of states) for (const b1 of states) for (const r0 of states) for (const r1 of states) {
+    count++
+    const base = make([b0, b1], "base")
+    const review = make([r0, r1], "review")
+    const merged = mergeAssignments(base, review)
+    const keyset = (list: Assignment[]): string[] => [...new Set(list.map(assignmentKey))].sort()
+    assert.deepEqual(keyset(merged), keyset([...base, ...review]))
+    for (const a of merged) {
+      const b = base.find((x) => assignmentKey(x) === assignmentKey(a))
+      const r = review.find((x) => assignmentKey(x) === assignmentKey(a))
+      if (b?.status === "Done" || r?.status === "Done") assert.equal(a.status, "Done")
+      if (b !== undefined) assert.equal(a.model, b.model)
+    }
+    assert.deepEqual(mergeAssignments(merged, review), merged)
+  }
+  assert.equal(count, 81)
+})
+
+test("5 回目までの assignee と `## セッション` は、書き出すときに Agent のタグと Done の担当へ移す", () => {
+  const legacy = card("a", 1, "A", { assignee: "Agent", description: "説明\n\n## セッション\n- claude-code s1\n- https://claude.ai/code/session_w\n- 読めない 行 です" })
+  const { card: moved, migrated } = normalizeCard(legacy)
+  assert.equal(migrated, true)
+  assert.equal(moved.assignee, undefined)
+  assert.deepEqual(moved.tags, [AGENT_TAG])
+  assert.equal(
+    moved.description,
+    "説明\n\n## 担当\n- Done | 作業 | claude-code | - | s1\n- Done | 作業 | claude-code | - | https://claude.ai/code/session_w\n- 読めない 行 です",
+  )
+  assert.ok(readCard(moved).warnings.some((w) => w.includes("担当の行を読めない")))
+  assert.equal(normalizeCard(moved).migrated, false)
+  // Agent 以外の assignee も消し、タグにはしない。
+  assert.deepEqual(normalizeCard(card("b", 2, "B", { assignee: "山田" })).card, { id: "b", number: 2, title: "B" })
+  // 書き出す前に盤面の全カードへ当て、移したカードを change log に載せる。
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [legacy, card("c", 3, "C")]
+  const out = normalizePage(page)
+  assert.deepEqual(out.changes.map((c) => c.title), ["TASK-1 A: 古い形式を移行"])
+  assert.deepEqual(cardOf(boardOf(out.page), "c"), card("c", 3, "C"))
+  // レビューで本人が旧ページの詳細から Agent を assignee に入れても、書き出すときにタグになる。
+  const target = { type: "element", id: "personal-task-board/card/c@board" }
+  const reviewed = applyReview(page, brief([action({ id: "w:1", type: "SET_CARD_ASSIGNEE", target, payload: { assignee: "Agent" } })], "w:1"), { now })
+  assert.deepEqual(cardOf(boardOf(reviewed.page), "c").tags, [AGENT_TAG])
+  assert.equal(cardOf(boardOf(reviewed.page), "c").assignee, undefined)
+})
+
+test("レビューの古い説明の再生で、Agent が足した担当は消えず、Done は戻らない", () => {
+  const page = empty()
+  const stale = writeCard(card("a", 1, "A"), blankView({ detail: "説明", assignments: [{ status: "In Progress", role: "実装する", runtime: "pi", model: "m", session: "s1" }] }))
+  const current = writeCard(stale, blankView({
+    detail: "説明",
+    assignments: [
+      { status: "Done", role: "実装する", runtime: "pi", model: "m", session: "s1" },
+      { status: "In Progress", role: "QA をする", runtime: "codex", model: "g", session: "-" },
+    ],
+  }))
+  columnOf(boardOf(page), "todo").cards = [current]
+  const description = (stale.description ?? "").replace("説明", "説明を直した")
+  const draft = [action({ id: "w:1", type: "SET_CARD_DESCRIPTION", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { description } })]
+  const view = readCard(cardOf(boardOf(applyReview(page, brief(draft, "w:1"), { now }).page), "a"))
+  assert.equal(view.detail, "説明を直した")
+  assert.deepEqual(view.assignments.map((a) => `${a.status} ${a.role}`), ["Done 実装する", "In Progress QA をする"])
+  // office のページへのコメントで review は落ちない。
+  const comment = action({ id: "c:1", type: "comment", target: { type: "element", id: "personal-task-board/section:office" }, payload: { body: "見た" } })
+  assert.equal(applyReview(page, brief([comment], "c:1"), { now }).comments.length, 1)
+})
+
+test("テンプレートは agent-office.js を text/plain の script に埋め込み、</script を逃がす", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ptb-tpl-"))
+  writeFileSync(join(dir, "board.html"), '<p>a</p>\n<script type="text/plain" id="ptb-agent-office" data-src="agent-office.js"></script>\n')
+  writeFileSync(join(dir, "agent-office.js"), 'export const x = "</script>"\n')
+  assert.equal(pageTemplate(dir), '<p>a</p>\n<script type="text/plain" id="ptb-agent-office">\nexport const x = "<\\/script>"\n</script>\n')
+  assert.match(pageTemplate(), /export function mountAgentOffice/)
+  assert.deepEqual(parsePage(pageTemplate()).boards, empty().boards)
+  assert.equal(formatAssignment({ status: "Done", role: "r", runtime: "pi", model: "m", session: "-" }), "- Done | r | pi | m | -")
 })
 
 test("記録は日時順の和集合で、同じ行は 1 つにする", () => {
@@ -453,9 +563,9 @@ test("移行は dump のカード・番号・記録・属性を base に畳む",
   assert.equal(got.number, 1)
   const view = readCard(got)
   assert.equal(view.detail, "説明")
-  assert.deepEqual(view.sessions, ["claude-code s1"])
+  assert.deepEqual(view.assignments, [{ status: "Done", role: "作業", runtime: "claude-code", model: "-", session: "s1" }])
   assert.deepEqual(view.records, [{ at: "2026-11-28 22:53", author: "Claude Code", text: "記録" }])
-  assert.equal(view.owner, "agent")
+  assert.equal(view.agent, true)
   const done = cardOf(boardOf(page), "b")
   assert.equal(done.number, 2)
   assert.deepEqual(done.tags, [`${DUE_PREFIX}2026-12-05`])
@@ -464,25 +574,24 @@ test("移行は dump のカード・番号・記録・属性を base に畳む",
   assert.deepEqual(parsePage(html).boards, page.boards)
 })
 
-test("show はタグ・担い手・記録・アーカイブを人が読める形で出す", () => {
+test("show はタグ・Agent・担当・記録・アーカイブを人が読める形で出す", () => {
   const page = empty()
   columnOf(boardOf(page), "archived").cards = [card("z", 9, "アーカイブ済み")]
   columnOf(boardOf(page), "todo").cards = [
-    writeCard(card("a", 1, "A"), {
+    writeCard(card("a", 1, "A"), blankView({
       detail: "説明",
+      assignments: [{ status: "In Progress", role: "QA をする", runtime: "pi", model: "m", session: "s1" }],
       records: [{ at: "2026-11-29 10:00", author: "本人", text: "1 行目\n2 行目" }],
-      sessions: ["pi s1"],
       check: true,
       start: "2026-12-01",
       due: today,
-      owner: "agent",
-      warnings: [],
-    }),
+      agent: true,
+    })),
   ]
   const text = renderText(page, { today })
-  assert.match(text, /- TASK-1 a A \(確認が必要, 担い手 Agent, 着手可能 2026-12-01, 期日 2026-11-29 今日\)/)
+  assert.match(text, /- TASK-1 a A \(確認が必要, Agent, 着手可能 2026-12-01, 期日 2026-11-29 今日\)/)
   assert.match(text, /    > 2026-11-29 10:00 本人: 1 行目\n    >   2 行目/)
-  assert.match(text, /    - pi s1/)
+  assert.match(text, /    ## 担当\n    - In Progress \| QA をする \| pi \| m \| s1/)
   assert.match(text, /アーカイブ 1 枚は --archived で出す/)
   assert.match(renderText(page, { today, archived: true }), /TASK-9 z アーカイブ済み/)
 })
@@ -494,31 +603,6 @@ test("空の盤面は列だけを持ち、board.html の列の定義と一致す
   assert.equal(authorLabel({ id: "agent:claude-code" }), "Claude Code")
   assert.equal(authorLabel({ id: "u_1" }), "本人")
   assert.equal(tokyoStamp(new Date("2026-11-28T13:53:03.254Z")), "2026-11-28 22:53")
-})
-
-test("writeCard は Agent 以外の assignee を残し、本人に戻したときだけ Agent を外す", () => {
-  const page = empty()
-  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A", { assignee: "山田" })]
-  const target = { type: "element", id: "personal-task-board/card/a@board" }
-  // intent で説明を足しても、本人が入れた assignee は消えない。
-  const detailed = applyIntents(page, [{ op: "detail", card: "a", text: "追記" }])
-  assert.equal(cardOf(boardOf(detailed.page), "a").assignee, "山田")
-  // レビューの説明の更新でも、本人が kit の詳細で入れた assignee は消えない。
-  const draft = [
-    action({ id: "w:1", type: "SET_CARD_ASSIGNEE", target, payload: { assignee: "妻" } }),
-    action({ id: "w:2", type: "SET_CARD_DESCRIPTION", target, payload: { description: "説明" } }),
-  ]
-  const reviewed = applyReview(page, brief(draft, "w:1-2"), { now })
-  assert.equal(cardOf(boardOf(reviewed.page), "a").assignee, "妻")
-  // 担い手を Agent にすると Agent になり、null で戻すと Agent だけが外れる。
-  const agent = applyIntents(reviewed.page, [{ op: "owner", card: "a", who: "agent" }])
-  assert.equal(cardOf(boardOf(agent.page), "a").assignee, "Agent")
-  assert.equal(readCard(cardOf(boardOf(agent.page), "a")).owner, "agent")
-  const self = applyIntents(agent.page, [{ op: "owner", card: "a", who: null }])
-  assert.equal(cardOf(boardOf(self.page), "a").assignee, undefined)
-  // 元から Agent 以外の担い手が入っているカードは、本人に戻しても値を残す。
-  const kept = applyIntents(reviewed.page, [{ op: "owner", card: "a", who: "self" }])
-  assert.equal(cardOf(boardOf(kept.page), "a").assignee, "妻")
 })
 
 test("`## 記録` の書式外の行は捨てず、記録の続きか原文として書き戻す", () => {
@@ -700,7 +784,7 @@ test("--keep で見送った ADD_CARD のカードを payload.before に指す M
 
 test("archive intent は確認が必要のカードがあっても、移したカードの変更を記録する", () => {
   const page = empty()
-  const check = writeCard(card("b", 2, "B"), { detail: "", records: [], sessions: [], check: true, owner: "self", warnings: [] })
+  const check = writeCard(card("b", 2, "B"), blankView({ check: true }))
   columnOf(boardOf(page), "done").cards = [card("a", 1, "A"), check]
   const intents: Intent[] = [{ op: "archive" }]
   const out = applyIntents(page, intents)

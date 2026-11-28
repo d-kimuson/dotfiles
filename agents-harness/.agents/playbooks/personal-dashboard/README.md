@@ -9,20 +9,21 @@ personal-dashboard/
 ├── PLAYBOOK.md         # Agent が実行する手順の入口
 ├── README.md           # 構成と設計判断
 ├── assets/
-│   └── board.html      # カードを持たないテンプレート HTML (dev-process-kit 0.4.2)
+│   ├── board.html      # カードを持たないテンプレート HTML (dev-process-kit 0.4.4)
+│   └── agent-office.js # Agent Office のページが描く 3D の事務所 (`board.ts template` が board.html に埋め込む)
 └── scripts/
-    ├── board.ts        # CLI (show / apply / review / edits / migrate-db / id / session)
+    ├── board.ts        # CLI (show / apply / review / render / template / edits / migrate-db / id / session)
     ├── page.ts         # HTML と base JSON・change log の相互変換と検証
-    ├── card.ts         # description の節と予約タグ・assignee の読み書き
+    ├── card.ts         # description の節 (担当を含む) と予約タグの読み書き、古い形式の移行
     ├── intents.ts      # intent の base JSON への冪等な適用、カード id とセッション参照
-    ├── replay.ts       # brief と draft action の解析、kit 0.4.2 互換の draft 再生、addressed の計算
+    ├── replay.ts       # brief と draft action の解析、kit 0.4.4 互換の draft 再生、addressed の計算
     ├── text-edits.ts   # 書く前と後の HTML の差分を、順に当てる置き換えの列にする
     └── board.test.ts   # ユニットテスト
 ```
 
 ## 設計判断
 
-- 積む主体は、着手中のタスクを更新する全 Agent のセッション (`AGENTS.md` のルール)、収集役 (`references/manage-user.md`)、`product-manage` (タスク管理元から拾ったタスク)、`retro` (学習バックログ)
+- 積む主体は、着手中のタスクを更新する全 Agent のセッション (`AGENTS.md` のルール)、`product-manage` (タスク管理元から拾ったタスク)、`retro` (学習バックログ)
 - タスクはプロジェクト横断で 1 つの盤面に集め、プロジェクト名のタグで絞る。学習バックログは同じ文書の別ページの Kanban (`personal-learning`) に分けた。タスクの列に混ぜると、今日やることを選ぶときに学習のカードが邪魔になるため
 - 盤面の呼び名はページの題と同じ「パーソナルダッシュボード」に揃え、Playbook・reference・prompt の名前も `personal-dashboard` にした。文書の中の盤面 id と kit の storage key は `personal-task-board` のまま残す。本人の未反映の draft と、draft の action の target id がこの値に結び付いているため
 - 列は Todo・今日やる・進行中・Pending・Done。Pending の列 id は `blocked` のまま残す。今日やるは本人が朝に選ぶ列で、Agent は動かさない
@@ -31,22 +32,26 @@ personal-dashboard/
 - カードの属性と記録は kit 標準の項目で表し、kit が知らない項目を base JSON に持たない
   - 確認が必要: タグ `確認が必要`
   - 着手可能日・期日: タグ `着手可能 YYYY-MM-DD`、`期日 YYYY-MM-DD` (半角空白 1 つ、Asia/Tokyo の暦日)
-  - 担い手: `assignee` に `Agent` (未設定は本人)
+  - Agent に任せている: タグ `Agent`。進行中の列の分割はこの 1 つのフラグだけで決める。kit の `assignee` は使わず、書き出すときに消す (`assignee` が `Agent` の古いカードはタグ `Agent` に移す)
+  - 担当: description の `## 担当` 節に `- <状態> | <役割> | <runtime> | <モデル> | <セッション>` の行。状態は `In Progress` か `Done`、不明な値は `-`。1 枚のカードを複数の Agent が分担するので、モデルやセッションはカードではなく担当の行に持たせる。同じ担当は (役割・runtime・セッション) で決まり、`assign` intent で足すか状態を変える
   - 状況の記録: description の `## 記録` 節に `- YYYY-MM-DD HH:mm <書き手>: <本文>` の行
-  - Pending の理由とセッション参照: description の `## Pending の理由` 節と `## セッション` 節。Web のセッションは `https://claude.ai/code/session_<id>` をリンクに置く (ローカルの参照は http でないためリンクに置けない)
-  - description の節の順は、本文・Pending の理由・記録・セッション。kit はカード表面に description の先頭 3 行を出すので本文を先頭に置く
-- ページが描くのは kit の Kanban だけにする。見出し行 (`::part(header)`)、Status 欄、全列の枚数 (`.diagram-stats`)、`archived` 列を CSS で隠す
+  - Pending の理由: description の `## Pending の理由` 節
+  - セッションの参照は担当の行に置く。ローカルのセッションは runtime の欄と組にした session ID、Web のセッションは `https://claude.ai/code/session_<id>`。以前の `## セッション` 節は、読むときに Done の担当 (役割 `作業`) へ移す
+  - description の節の順は、本文・Pending の理由・担当・記録。kit はカード表面に description の先頭 3 行を出すので本文を先頭に置き、本文が無いカードは表面に説明を出さない
+- ページは kit 0.4.4 の `<dpk-app page-nav="sidebar">` の 3 ページ (タスク・学習バックログ・Agent Office) にした。ページが増えるとヘッダーの切り替えは使いづらいため、サイドバーで切り替える。kit は幅 720px 未満でサイドバーをヘッダーの切り替えに変える。Kanban に `heading` を付けない。kit 0.4.4 は、ページの名前と Kanban の `heading` が同じだと、サイドバーにページの名前の代わりに文書の題や「ページ2」を出すため
+- Agent Office のページは、アーカイブ以外のカードの担当を Agent の一覧にし、`agent-office.js` の `mountAgentOffice(container, agents)` に渡す。`In Progress` に絞るのは `agent-office.js` である。一覧の要素は `{ cardId, cardNumber, cardTitle, role, runtime, model, status, session }` で、不明な値は null。盤面が変わるたびに `update` で渡し直す。`agent-office.js` は `board.ts template` が board.html の `<script type="text/plain">` に埋め込み、ページは Blob URL から import する。置き場の文書は 1 ファイルの HTML なので、別ファイルを読みに行かせないため
+- Kanban のページで描くのは kit の Kanban だけにする。見出し行 (`::part(header)`)、Status 欄、全列の枚数 (`.diagram-stats`)、`archived` 列を CSS で隠す
 - 表示は Kanban だけにした。List の切り替えは本人が要らないと判断したので 5 回目に外した
 - kit は draft で足したカード (`.is-added`、緑の破線) と動かしたカード (`.is-moved`、青) に色を付ける。本人にとって draft にあるかどうかは意味が無いので、ページの stylesheet で kit の基本のカードと同じ枠と背景に戻す。選択とフォーカスの表示は残す。カードの色は `確認が必要` (amber) と期日 (超過・今日) にだけ使う
-- カード詳細の kit の Assignee 欄は隠し、担い手は属性の欄の select (自分 / Agent) だけで変える。タグの絞り込みには日付のタグを出さない (`確認が必要` は絞り込みに残す)
+- カード詳細の kit の Assignee 欄は隠し、Agent に任せているかは属性の欄のトグルだけで変える。詳細の属性の欄には担当の一覧も出す。タグの絞り込みには日付のタグを出さない (`確認が必要` は絞り込みに残す)
 - カードと詳細は、題 → 説明 → 番号・タグ・リンクの順に CSS の `order` で並べ替える。kit の DOM の順は変えない
-- カードの属性の見せ方は、kit のタグと assignee をそのまま出さず、CSS と詳細の専用の欄で表す。確認が必要のカードは題の上に塗りつぶしのバッジを出し、枠と背景を amber にする。着手可能日と期日は `着手可能 12/3`・`期日 12/5` の印にし、予約タグは `:nth-child` で汎用のタグから隠す。期日超過・今日の強調、着手前の非表示 (`todo` と `backlog` の列だけ、ヘッダーのチェックボックス `ptb.showDeferred` で淡く表示可)、進行中 (`doing`) 列の担い手別分割 (`order` と `.kanban-cards::after` の区切り線) も、ページのスクリプトが `el.items()` (draft を反映した盤面) と閲覧時の日付 (Asia/Tokyo) から作る adopted stylesheet だけで行う。本人の draft の変更もその場で印に反映される
-- kit の Shadow DOM への差し込みは、Done 列見出しの `アーカイブ` ボタン、カード詳細の属性の欄 (`.ptb-attrs`)、カード詳細末尾の「記録を足す」欄の 3 か所。どれも kit の action (`MOVE_CARD`・`ADD_CARD_TAG`・`REMOVE_CARD_TAG`・`SET_CARD_ASSIGNEE`・`SET_CARD_DESCRIPTION`) を dispatch する
+- カードの属性の見せ方は、kit のタグをそのまま出さず、CSS と詳細の専用の欄で表す。確認が必要のカードは題の上に塗りつぶしのバッジを出し、枠と背景を amber にする。着手可能日と期日は `着手可能 12/3`・`期日 12/5` の印にし、予約タグは `:nth-child` で汎用のタグから隠す。期日超過・今日の強調、着手前の非表示 (`todo` と `backlog` の列だけ、ヘッダーのチェックボックス `ptb.showDeferred` で淡く表示可)、進行中 (`doing`) 列の Agent に任せているカードの分割 (`order` と `.kanban-cards::after` の区切り線) も、ページのスクリプトが `el.items()` (draft を反映した盤面) と閲覧時の日付 (Asia/Tokyo) から作る adopted stylesheet だけで行う。本人の draft の変更もその場で印に反映される
+- kit の Shadow DOM への差し込みは、Done 列見出しの `アーカイブ` ボタン、カード詳細の属性の欄 (`.ptb-attrs`)、カード詳細末尾の「記録を足す」欄の 3 か所。どれも kit の action (`MOVE_CARD`・`ADD_CARD_TAG`・`REMOVE_CARD_TAG`・`SET_CARD_DESCRIPTION`) を dispatch する
 - ページは sandbox の iframe で描かれることがあるので、localStorage が使えない前提で作る (読み書きは try/catch で包む)。`confirm()` を使わず、リンクの追加は Add の click と Enter を拾って `ADD_CARD_LINK` を dispatch する
 - `board.ts edits` は、書き戻しで文書全体 (約 40,000 字) を送らずに済むよう、差分を置き換えの列で出す
 - 書き戻しの衝突は、最新の文書を読み直して同じ `intents.json` を `board.ts apply` (または `review`) で当て直して回復する。`comment` intent に日時 `at` を持たせて重複行を防ぐことで、再適用を冪等にする
-- レビューの反映 (`board.ts review`) では、kit 0.4.2 の Kanban と同じ規則で draft を再生し、`stale` の action は base に書かない。`SET_CARD_DESCRIPTION` は description 全体を置き換えるため、`## 記録` 節だけ base 側とレビュー側の和集合 (日時順) にして Agent の記録が消えないようにする。`addressed` は `board.ts` が単調に増える範囲として計算し、brief を渡して見送り (`--keep`) が無いときは brief の値と突き合わせる
+- レビューの反映 (`board.ts review`) では、kit 0.4.4 の Kanban と同じ規則で draft を再生し、`stale` の action は base に書かない。`SET_CARD_DESCRIPTION` は description 全体を置き換えるため、`## 記録` 節と `## 担当` 節だけ base 側とレビュー側の和集合にして、Agent の記録と担当が消えないようにする。担当は同じ担当どうしで `Done` を優先する。`SET_CARD_ASSIGNEE` は再生するが、書き出すときに `assignee` を消し、値が `Agent` ならタグ `Agent` に移す。`addressed` は `board.ts` が単調に増える範囲として計算し、brief を渡して見送り (`--keep`) が無いときは brief の値と突き合わせる
 - アーカイブは、Done のカードをページが隠す最後の列 `archived` へ移す。カードを削除しないので番号が詰まらず、新しいカード番号は `archived` 列を含む盤面全体の最大番号 + 1 を振る。`確認が必要` タグを持つカードは Done に残す
-- `assets/board.html` はカードを持たないので、どの置き場でも同じテンプレートから盤面を作れる
+- `assets/board.html` はカードを持たないので、どの置き場でも同じテンプレート (`board.ts template`) から盤面を作れる。既にある盤面のページは `board.ts render` で今のテンプレートに載せ替える。盤面と change log はそのまま残し、古い形式のカードは移行する。`apply` と `review` は、ページの `KIT_VERSION` か Agent Office の埋め込みが今のテンプレートと違うと止まる。カードだけを新しい形式にすると、古いページの UI と食い違うため。HTML を標準出力に書くときは、要約を標準エラーに出す
 
 本文: [PLAYBOOK.md](./PLAYBOOK.md)

@@ -2,8 +2,25 @@
 // 盤面の正は公開する HTML の kit の base JSON。この CLI は base の読み書きと、レビュー (draft action) の反映を担う。
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
-import { pathToFileURL } from "node:url"
-import { authorLabel, CHECK_TAG, DUE_PREFIX, isDate, mergeRecords, readCard, START_PREFIX, tokyoDate, tokyoStamp, writeCard, type CardView, type Note } from "./card.ts"
+import { fileURLToPath, pathToFileURL } from "node:url"
+import {
+  AGENT_TAG,
+  authorLabel,
+  CHECK_TAG,
+  DUE_PREFIX,
+  formatAssignment,
+  isDate,
+  mergeAssignments,
+  mergeRecords,
+  normalizeCard,
+  readCard,
+  START_PREFIX,
+  tokyoDate,
+  tokyoStamp,
+  writeCard,
+  type CardView,
+  type Note,
+} from "./card.ts"
 import { editsBetween } from "./text-edits.ts"
 import { applyIntents, cardId, sessionFromEnv, type Intent, type Skipped } from "./intents.ts"
 import {
@@ -44,12 +61,12 @@ const findInPage = (page: Page, id: string): { board: BoardId; column: string; c
   return undefined
 }
 
-const RESERVED_TAG = (tag: string): boolean => tag === CHECK_TAG || tag.startsWith(START_PREFIX) || tag.startsWith(DUE_PREFIX)
+const RESERVED_TAG = (tag: string): boolean => tag === CHECK_TAG || tag === AGENT_TAG || tag.startsWith(START_PREFIX) || tag.startsWith(DUE_PREFIX)
 
 const marks = (column: string, view: CardView, today: string): string => {
   const out: string[] = []
   if (view.check) out.push(CHECK_TAG)
-  if (view.owner === "agent") out.push("担い手 Agent")
+  if (view.agent) out.push(AGENT_TAG)
   if (view.start !== undefined) out.push(`着手可能 ${view.start}`)
   if (view.due !== undefined) {
     const open = column !== DONE && column !== ARCHIVED
@@ -79,14 +96,14 @@ export const renderText = (page: Page, options: { archived?: boolean; today?: st
           lines.push("    ## Pending の理由")
           lines.push(...indent(view.pending))
         }
+        if (view.assignments.length > 0) {
+          lines.push("    ## 担当")
+          for (const a of view.assignments) lines.push(`    ${formatAssignment(a)}`)
+        }
         for (const note of view.records) {
           const [first = "", ...rest] = note.text.split("\n")
           lines.push(`    > ${note.at} ${note.author}: ${first}`)
           lines.push(...rest.map((line) => `    >   ${line}`))
-        }
-        if (view.sessions.length > 0) {
-          lines.push("    ## セッション")
-          for (const session of view.sessions) lines.push(`    - ${session}`)
         }
         for (const warning of view.warnings) lines.push(`    ! ${warning}`)
       }
@@ -131,8 +148,6 @@ const intentSummary = (intent: Intent): string => {
       return "説明を更新"
     case "link":
       return "リンクを追加"
-    case "session":
-      return "セッションを追加"
     case "comment":
       return "記録を追加"
     case "check":
@@ -141,8 +156,10 @@ const intentSummary = (intent: Intent): string => {
       return intent.date === null ? "着手可能日を解除" : `着手可能日 ${intent.date}`
     case "due":
       return intent.date === null ? "期日を解除" : `期日 ${intent.date}`
-    case "owner":
-      return intent.who === "agent" ? "担い手 Agent" : "担い手を本人に"
+    case "agent":
+      return intent.on ? "Agent に任せる" : "Agent に任せるのをやめる"
+    case "assign":
+      return `担当 ${intent.status} | ${intent.role}`
     case "archive":
       return "アーカイブ"
   }
@@ -182,7 +199,7 @@ const ACTION_SUMMARY: Record<string, string> = {
   MOVE_CARD: "移動",
   SET_CARD_TITLE: "題を変更",
   SET_CARD_DESCRIPTION: "説明を更新",
-  SET_CARD_ASSIGNEE: "担い手を変更",
+  SET_CARD_ASSIGNEE: "assignee を変更 (書き出すときに消す)",
   ADD_CARD_TAG: "タグを追加",
   REMOVE_CARD_TAG: "タグを削除",
   ADD_CARD_LINK: "リンクを追加",
@@ -237,8 +254,9 @@ const replayPage = (page: Page, actions: DraftAction[]): { page: Page; results: 
   return { page: next, results, boards }
 }
 
-// レビューは description の全体を置き換える。`## 記録` の行は、本人が古い base を見て書いた分で消えるので、和集合にする。
-const unionRecords = (before: Page, after: Page): Page => {
+// レビューは description の全体を置き換える。本人が古い base を見て書いた説明で `## 記録` と `## 担当` の行が消えないよう、和集合にする。
+// 担当は鍵ごとに合わせ、どちらかが Done なら Done にする。
+const unionSections = (before: Page, after: Page): Page => {
   for (const board of BOARD_IDS) {
     for (const column of after.boards[board].columns) {
       column.cards = column.cards.map((card) => {
@@ -246,11 +264,29 @@ const unionRecords = (before: Page, after: Page): Page => {
         if (was === undefined || was.description === card.description) return card
         const view = readCard(card)
         const old = readCard(was)
-        return writeCard(card, { ...view, records: mergeRecords(old.records, view.records) })
+        return writeCard(card, { ...view, records: mergeRecords(old.records, view.records), assignments: mergeAssignments(old.assignments, view.assignments) })
       })
     }
   }
   return after
+}
+
+// 5 回目までの形 (assignee・`## セッション`) のカードを今の形に移す。書き戻すよう、移したカードを change log に載せる。
+export const normalizePage = (page: Page): { page: Page; changes: Change[] } => {
+  const changes: Change[] = []
+  const next: Page = { boards: { ...page.boards }, changes: page.changes }
+  for (const board of BOARD_IDS) {
+    const kanban = structuredClone(page.boards[board])
+    for (const column of kanban.columns) {
+      column.cards = column.cards.map((card) => {
+        const out = normalizeCard(card)
+        if (out.migrated) changes.push({ id: `migrate-${card.id}`, title: `${cardLabel(out.card, card.id)}: 古い形式を移行`, target: targetOf(board, card.id) })
+        return out.card
+      })
+    }
+    next.boards[board] = kanban
+  }
+  return { page: next, changes }
 }
 
 // --- レビューの反映 --------------------------------------------------------
@@ -290,7 +326,7 @@ export function applyReview(before: Page, markdown: string, options: { keep?: st
   const skippedKeep = new Set([...keep, ...autoKeep])
   const draft = brief.draft.filter((a) => !skippedKeep.has(a.id))
   const replayed = replayPage(before, draft)
-  const after = unionRecords(before, replayed.page)
+  const after = normalizePage(unionSections(before, replayed.page))
   const ids = draft.map((a) => a.id)
   const addressed = mergeAddressed(before.changes.addressed, ids, [...skippedKeep])
   // 見送りが無いときは、brief が示す addressed を計算した値が含むはず。別の端末の brief を先に反映していると計算値の方が広くなる。
@@ -303,18 +339,47 @@ export function applyReview(before: Page, markdown: string, options: { keep?: st
         ? { id: a.id, status: "stale" as const, reason: "kept-add" }
         : (replayed.results.get(a.id) ?? { id: a.id, status: "stale" as const, reason: "target-missing" }),
   )
-  const changes = changesForActions(after, draft, results)
-  const page: Page = { boards: after.boards, changes: { ...withRevision(after.changes, changes, now), addressed } }
+  const changes = [...changesForActions(after.page, draft, results), ...after.changes]
+  const page: Page = { boards: after.page.boards, changes: { ...withRevision(after.page.changes, changes, now), addressed } }
   return { page, results, addressed, comments: brief.comments, handled }
 }
 
 // --- 入出力 ----------------------------------------------------------------
 
+// 公開するページは 1 つの HTML なので、assets/agent-office.js をページの text/plain の script に埋め込む。
+const ASSETS = join(dirname(fileURLToPath(import.meta.url)), "..", "assets")
+const OFFICE_SLOT = /<script type="text\/plain" id="ptb-agent-office" data-src="agent-office\.js"><\/script>/
+export const pageTemplate = (assets = ASSETS): string => {
+  const template = readFileSync(join(assets, "board.html"), "utf8")
+  if (!OFFICE_SLOT.test(template)) throw new Error("board.html に agent-office.js の埋め込み先が無い")
+  const source = readFileSync(join(assets, "agent-office.js"), "utf8").replace(/<\/(script)/gi, "<\\/$1")
+  return template.replace(OFFICE_SLOT, () => `<script type="text/plain" id="ptb-agent-office">\n${source.trimEnd()}\n</script>`)
+}
+
+// 古いテンプレートのページに書くと、カードだけが新しい形式になり、ページの UI と食い違う。
+const KIT_VERSION_LINE = /const KIT_VERSION = "([^"]+)"/
+const assertCurrentTemplate = (html: string): void => {
+  const want = KIT_VERSION_LINE.exec(pageTemplate())?.[1]
+  const got = KIT_VERSION_LINE.exec(html)?.[1]
+  if (got !== want || !html.includes('id="ptb-agent-office"'))
+    throw new Error(`ページのテンプレートが古い (kit ${got ?? "不明"})。先に board.ts render <page.html> <out.html> で作り直す`)
+}
+
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
 // 入力のパスに - を渡すと標準入力から読む。
 const readInput = (path: string): string => readFileSync(path === "-" ? 0 : path, "utf8")
 const readJson = (path: string): Json => JSON.parse(readInput(path)) as Json
+// HTML を標準出力に書くときは、要約を標準エラーに出して HTML に混ぜない。
+const printSummary = (summary: unknown, outPath: string): void => {
+  const text = JSON.stringify(summary, null, 2)
+  if (outPath === "-") console.error(text)
+  else console.log(text)
+}
 const writeOutput = (html: string, outPath: string): void => {
+  if (outPath === "-") {
+    process.stdout.write(html)
+    return
+  }
   mkdirSync(dirname(outPath), { recursive: true })
   writeFileSync(outPath, html)
 }
@@ -431,7 +496,8 @@ export const foldDump = (dumpDir: string): { page: Page; warnings: string[] } =>
     }
     const view = viewOf(attr.board, found.card)
     if (attr.attr === "check") view.check = true
-    else if (attr.attr === "owner") view.owner = attr.value === "agent" ? "agent" : "self"
+    // 4 回目の db は Agent に任せていることを attr "owner" の値 agent で持っていた。
+    else if (attr.attr === "owner") view.agent = attr.value === "agent"
     else view[attr.attr] = attr.value as string
   }
   for (const board of BOARD_IDS) {
@@ -462,8 +528,10 @@ const usage = `usage:
                                           書く前と後の HTML の差分を、順に当てる置き換え (oldText と newText) の JSON 配列で出す。
                                           --max の件数を超えるか範囲を絞れなければ失敗する
   入力のパスに - を渡すと標準入力から読む
+  board.ts template [out.html]            カードを持たないページ (agent-office.js を埋め込んだ assets/board.html) を書き出す
+  board.ts render <page.html> <out.html>  盤面と change log を保ったまま、ページを今のテンプレートで書き直す
   board.ts id <key>                       キー (チケット URL など) からカード id を出す
-  board.ts session                        いまのセッションの参照を環境変数から出す`
+  board.ts session                        いまのセッションの runtime と参照を {"runtime","session"} の JSON で出す`
 
 type Flags = { values: Map<string, string[]>; rest: string[] }
 const parseFlags = (argv: string[], known: string[]): Flags => {
@@ -523,34 +591,51 @@ const main = (argv: string[]): void => {
       console.error("セッションを見分ける環境変数が無い")
       process.exit(1)
     }
-    console.log(ref)
+    console.log(JSON.stringify(ref))
+    return
+  }
+  if (command === "template") {
+    writeOutput(pageTemplate(), rest[0] ?? "-")
+    return
+  }
+  if (command === "render" && rest[0] !== undefined && rest[1] !== undefined) {
+    // 盤面と change log はそのまま、ページの外側を今のテンプレートにする。
+    const normalized = normalizePage(parsePage(readInput(rest[0])))
+    const page: Page = { ...normalized.page, changes: withRevision(normalized.page.changes, normalized.changes, new Date()) }
+    writeOutput(renderPage(pageTemplate(), page), rest[1])
+    printSummary({ migrated: normalized.changes.length, addressed: page.changes.addressed ?? "" }, rest[1])
     return
   }
   if (command === "apply" && rest[0] !== undefined && rest[1] !== undefined && rest[2] !== undefined) {
-    const before = parsePage(readInput(rest[0]))
+    const html = readInput(rest[0])
+    assertCurrentTemplate(html)
+    const before = parsePage(html)
     const intents = readJson(rest[1])
     if (!Array.isArray(intents)) throw new Error("intents.json は配列であること")
     const now = new Date()
     const result = applyIntents(before, intents as Intent[], { now })
     for (const skipped of result.skipped) console.error(`skip: ${skipped.reason}`)
-    const changes = changesForIntents(before, result.page, intents as Intent[], result.skipped)
-    const page: Page = { ...result.page, changes: withRevision(result.page.changes, changes, now) }
-    writeOutput(renderPage(readInput(rest[0]), page), rest[2])
-    console.log(JSON.stringify({ changes: changes.length, skipped: result.skipped.length, addressed: page.changes.addressed ?? "" }, null, 2))
+    const normalized = normalizePage(result.page)
+    const changes = [...changesForIntents(before, normalized.page, intents as Intent[], result.skipped), ...normalized.changes]
+    const page: Page = { ...normalized.page, changes: withRevision(normalized.page.changes, changes, now) }
+    writeOutput(renderPage(html, page), rest[2])
+    printSummary({ changes: changes.length, skipped: result.skipped.length, addressed: page.changes.addressed ?? "" }, rest[2])
     return
   }
   if (command === "review" && rest[0] !== undefined && rest[1] !== undefined && rest[2] !== undefined) {
     const html = readInput(rest[0])
+    assertCurrentTemplate(html)
     const before = parsePage(html)
     const output = applyReview(before, readInput(rest[1]), { keep: flags.values.get("--keep") ?? [] })
     writeOutput(renderPage(html, output.page), rest[2])
-    console.log(
-      JSON.stringify({
+    printSummary(
+      {
         results: output.results,
         addressed: output.addressed,
         handled: output.handled,
         comments: output.comments.map((c) => ({ id: c.id, target: c.target.id, body: c.payload?.body })),
-      }, null, 2),
+      },
+      rest[2],
     )
     return
   }

@@ -5,9 +5,10 @@
 ## 置き場所
 
 - `~/.agents/state/personal-dashboard/index.md`: マシンごとの入口。置き場、本人に渡す URL、読む・書き戻す・draft を得る・新しく作る方法を持つ。盤面を読み書きするときは、まずこれを読み、そこに書かれた方法で読み書きする
-- 盤面の文書: dev-process-kit 0.4.2 の Kanban の HTML。カードを持たない空のテンプレートは `~/.agents/playbooks/personal-dashboard/assets/board.html`。ページは 2 つある
-  - `タスク` (盤面 `personal-task-board`): 列は `todo` (Todo)、`today` (今日やる)、`doing` (進行中)、`blocked` (Pending)、`done` (Done)。進行中の列は担い手で分かれ、本人が進めるカードが上、`Agent` の区切り線の下に Agent が進めるカードが並ぶ
+- 盤面の文書: dev-process-kit 0.4.4 の HTML。カードを持たない空のテンプレートは `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts template <out.html>` で出す。ページはサイドバーで切り替える 3 つがある
+  - `タスク` (盤面 `personal-task-board`): 列は `todo` (Todo)、`today` (今日やる)、`doing` (進行中)、`blocked` (Pending)、`done` (Done)。進行中の列は「Agent に任せている」フラグで分かれ、本人が進めるカードが上、`Agent` の区切り線の下に Agent に任せたカードが並ぶ
   - `学習バックログ` (盤面 `personal-learning`): 列は `backlog` (バックログ)、`done` (Done)。retro が積む
+  - `Agent Office`: アーカイブ以外のカードの担当のうち `In Progress` の Agent を 3D の事務所に描く。Agent を選ぶとカード・役割・runtime・モデル・セッションが出る。盤面は持たない
   - どちらの盤面にも、ページが CSS で隠す最後の列 `archived` (アーカイブ) がある。下の「アーカイブ」で Done のカードを移す先である
 - 盤面の正: 文書の HTML の各 `<dpk-board-kanban>` が持つ base JSON。変更履歴と処理済みの操作範囲 (`addressed`) は同じ HTML の `data-dpk-changes` に入る
 
@@ -17,10 +18,14 @@
 
 本人に盤面の置き場 (使う文書サービスやツール) を尋ね、テンプレートから盤面の文書を作り、上の「置き場所」の項目を持つ `index.md` を書く。
 
+## テンプレートが変わったとき
+
+`board.html` か `agent-office.js` が変わったら、「読む」の手順 1 で保存した HTML を `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts render <保存した HTML> <out.html>` で今のテンプレートに載せ替え、「書く」の手順 4 から書き戻す。盤面と変更履歴 (`addressed` を含む) はそのまま残り、古い形式のカードは移行される。`apply` と `review` は、古いテンプレートのページを受け取ると render を求めるエラーで止まる。
+
 ## 読む
 
 1. `index.md` の方法で最新の文書を読み、HTML を一時ファイルに保存する
-2. `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts show <保存した HTML>` で盤面ごと・列ごとのカードを出す (`--json` を付けると JSON で出す)。1 行目は判定に使う今日の日付 (Asia/Tokyo)。カードの行は `- TASK-<n> <カード id> <題> [タグ] (属性) <リンク>` で、`(属性)` は `確認が必要`、`担い手 Agent` (担い手が Agent のときだけ)、`着手可能 <日付>`、`期日 <日付>` (Done とアーカイブ以外で過ぎていれば `超過`、今日なら `今日`) の並び。続く字下げ行が本文、`## Pending の理由`、状況の記録 (`> <日時> <書き手>: <本文>` の行、古い順)、`## セッション`、タグの警告 (`! <内容>`)
+2. `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts show <保存した HTML>` で盤面ごと・列ごとのカードを出す (`--json` を付けると JSON で出す)。1 行目は判定に使う今日の日付 (Asia/Tokyo)。カードの行は `- TASK-<n> <カード id> <題> [タグ] (属性) <リンク>` で、`(属性)` は `確認が必要`、`Agent` (Agent に任せているときだけ)、`着手可能 <日付>`、`期日 <日付>` (Done とアーカイブ以外で過ぎていれば `超過`、今日なら `今日`) の並び。続く字下げ行が本文、`## Pending の理由`、`## 担当` (担当の行)、状況の記録 (`> <日時> <書き手>: <本文>` の行、古い順)、警告 (`! <内容>`)
 3. `show` はアーカイブの列を枚数だけ出す。アーカイブしたカードの中身は `show <保存した HTML> --archived` で出す
 
 ## 書く
@@ -34,58 +39,70 @@
 
 | intent | すること |
 | --- | --- |
-| `{"op":"add","key":k,"board"?:b,"column":c,"title":t,"detail"?:d,"reason"?:r,"tags"?:[..],"links"?:[{"url","label"?}],"sessions"?:[s],"start"?:日付,"due"?:日付,"owner"?:"self"\|"agent"}` | カードを積む。カード id は `key` から決まり、どの盤面かに同じ `key` のカードがあれば積まない。`board` の既定は `personal-task-board`。`start`・`due`・`owner` は着手可能日・期日・担い手 |
+| `{"op":"add","key":k,"board"?:b,"column":c,"title":t,"detail"?:d,"reason"?:r,"tags"?:[..],"links"?:[{"url","label"?}],"start"?:日付,"due"?:日付,"agent"?:true}` | カードを積む。カード id は `key` から決まり、どの盤面かに同じ `key` のカードがあれば積まない。`board` の既定は `personal-task-board`。`start`・`due`・`agent` は着手可能日・期日・Agent に任せているか |
 | `{"op":"move","key"?:k,"card"?:id,"column":c,"reason"?:r}` | 列を移す。`blocked` へは `reason` (何を待っているか) が要り、description の `## Pending の理由` になる。`blocked` から出すと `## Pending の理由` を消す |
 | `{"op":"detail","key"?:k,"card"?:id,"text":t}` | description の本文に段落を足す |
 | `{"op":"link","key"?:k,"card"?:id,"url":u,"label"?:l}` | リンクを足す。成果物 (PR やコミット) もここに置く |
-| `{"op":"session","key"?:k,"card"?:id,"session":s}` | セッションの参照を足す。形式は下の「セッションの参照」 |
 | `{"op":"comment","key"?:k,"card"?:id,"text":t,"at":日時,"by"?:書き手}` | description の `## 記録` 節に 1 行足す。`at` は Asia/Tokyo の `YYYY-MM-DD HH:mm` (必須)。`by` には自分の名前 (`Claude Code`・`Codex` など) を入れる。省くと `Claude Code` になる |
 | `{"op":"check","key"?:k,"card"?:id,"on":true,"text"?:t,"at"?:日時,"by"?:書き手}` | `確認が必要` タグを付ける。`text` を渡すと `## 記録` に `確認が必要: <text>` を足す (`text` に本人に確かめてほしいことを書き、`at` も固定して再適用での重複を防ぐ)。`text` を渡すときは `at` が必須で、`text` が無ければ `at` は要らない |
 | `{"op":"check","key"?:k,"card"?:id,"on":false}` | `確認が必要` タグを外す |
 | `{"op":"start"\|"due","key"?:k,"card"?:id,"date":日付\|null}` | `着手可能 <日付>` か `期日 <日付>` のタグを設定する。`null` で外す |
-| `{"op":"owner","key"?:k,"card"?:id,"who":"self"\|"agent"\|null}` | 担い手を設定する。`"agent"` は `assignee` に `Agent` を入れ、`"self"` と `null` は `Agent` を外す。本人が詳細で入れた `Agent` 以外の `assignee` は残る |
+| `{"op":"agent","key"?:k,"card"?:id,"on":true\|false}` | Agent に任せているかを設定する (タグ `Agent` の付け外し) |
+| `{"op":"assign","key"?:k,"card"?:id,"status":"In Progress"\|"Done","role":r,"runtime":rt,"model":m,"session"?:s}` | 担当を足すか、同じ担当 (`role`・`runtime`・`session` が同じ) の状態とモデルを変える。形式は下の「担当」 |
 | `{"op":"archive","board"?:b}` | Done 列のうち `確認が必要` タグが無いカードを `archived` 列へ移す。`board` を省くと全盤面 |
 
 - `key`: チケットがあればその URL。無ければ出どころが分かる一意な文字列 (`slack:<channel>/<スレッドの親の ts>`、`session:<handoff の identifier>` など)。URL の `key` は host の大小・fragment・末尾の `/` をそろえてからカード id にする (`board.ts id <key>` で確かめられる)。本人がページで足したカードは `card` に `board.ts show` のカード id を渡す
 - 列は上の「置き場所」のとおり。`today` は本人が選ぶ列で、Agent はカードを `today` へ動かさない。`today` にあるカードの着手は `doing` へ動かす
 - `links` は URL として読める `http(s)` の URL だけ。ローカルのパスは `detail` に書く
-- タグは種類 (`判断`・`学習`・`作業` から 1 つ) と、プロジェクトに属すならプロジェクト名 (remote のリポジトリ名、無ければディレクトリ名)。下の「カードの属性」の予約タグ (`確認が必要`、`着手可能 YYYY-MM-DD`、`期日 YYYY-MM-DD`) とは別に付ける
-- description は本文、`## Pending の理由`、`## 記録`、`## セッション` の順に並ぶ。経緯と状況は `comment` で `## 記録` に書く。いまの状態は列が表す
+- タグは種類 (`判断`・`学習`・`作業` から 1 つ) と、プロジェクトに属すならプロジェクト名 (remote のリポジトリ名、無ければディレクトリ名)。下の「カードの属性」の予約タグ (`確認が必要`、`Agent`、`着手可能 YYYY-MM-DD`、`期日 YYYY-MM-DD`) とは別に付ける
+- description は本文、`## Pending の理由`、`## 担当`、`## 記録` の順に並ぶ。経緯と状況は `comment` で `## 記録` に書く。いまの状態は列が表す
 - 日付は Asia/Tokyo の暦日を `YYYY-MM-DD` で、`at` は Asia/Tokyo の日時を `YYYY-MM-DD HH:mm` で書く (`TZ=Asia/Tokyo date "+%Y-%m-%d %H:%M"`)
 
 ## カードの属性
 
-確認が必要・着手可能日・期日は予約タグ、担い手は `assignee` で表す。
+確認が必要・着手可能日・期日・Agent に任せているかは、どれも予約タグで表す。kit の `assignee` は使わない (`board.ts` が書き出すときに消す)。
 
 | 属性 | base での表し方 | 意味 | ページでの出方 |
 | --- | --- | --- | --- |
 | 確認が必要 | タグ `確認が必要` | 本人の確認を待っている。列とは別で、カードは動かない | カードの題の上に塗りつぶしのバッジで出て、枠と背景が amber になる。汎用のタグとしては出ない。本人は詳細の「確認が必要にする」/「確認済みにする」ボタンで付け外しする |
 | 着手可能日 | タグ `着手可能 YYYY-MM-DD` | この日から着手できる | カード表面に `着手可能 12/3` の印が出る。今日 (Asia/Tokyo) がこの日より前なら、`todo` と `backlog` のカードは既定で隠れる。当日からは出る。ほかの列のカードは隠さない。ヘッダーの「着手前 N 枚を表示」で隠れたカードも淡く出せる。本人は詳細の着手可能日の欄 (date 入力と解除) で変える |
 | 期日 | タグ `期日 YYYY-MM-DD` | この日までに済ませる | カード表面に `期日 12/5` の印が出る。Done とアーカイブ以外のカードは、期日を過ぎると `超過`、当日は `今日` が付き、印と左の帯が色付く。本人は詳細の期日の欄 (date 入力と解除) で変える |
-| 担い手 | `assignee` が `Agent` (未設定は本人) | 本人が手で進めるか、Agent に進めさせるか。列とは別で、カードは動かない | カード表面に `Agent` が出る。進行中 (`doing`) の列では、本人のカードが区切り線の上、`Agent` のカードが下に並ぶ。本人は詳細の担い手の select (自分 / Agent) で切り替える |
+| Agent に任せている | タグ `Agent` (無ければ本人が進める) | 本人が手で進めるか、Agent に任せるか。担当の有無とは別で、列も変えない | カード表面に `Agent` が出る。進行中 (`doing`) の列では、本人のカードが区切り線の上、`Agent` のカードが下に並ぶ。本人は詳細の「Agent に任せる」/「Agent に任せている」ボタンで切り替える |
 
-本人が詳細の属性の欄で変えた内容は、タグと assignee の draft action (`ADD_CARD_TAG`・`REMOVE_CARD_TAG`・`SET_CARD_ASSIGNEE`) としてレビューに出る。レビューの Agent は、他の操作と一緒に `board.ts review` でそのまま反映する。
+本人が詳細の属性の欄で変えた内容は、タグの draft action (`ADD_CARD_TAG`・`REMOVE_CARD_TAG`) としてレビューに出る。レビューの Agent は、他の操作と一緒に `board.ts review` でそのまま反映する。
 
 - 「確認が必要」は、作業が本人の確認か判断 (成果物を見てほしい、方針を選んでほしい) を待つ間だけ立てる。作業が済んでいれば、先に `move` で `done` へ移す
 - Pending は本人以外の事情 (レビュー、外部の返事など) で進められないときに使う。本人の確認待ちは Pending でなく `確認が必要` で表す
 - 着手可能日と期日は、チケットか本人の指示に日付があるときだけ書く。推測で書かない
-- 本人がページで足したカードは `assignee` を持たず、本人のものとして並ぶ。本人が作業を引き取ったと言ったら `self` にする
+- 本人がページで足したカードは `Agent` タグを持たず、本人のものとして並ぶ。本人が作業を引き取ったと言ったら `agent` を `on: false` にする
 
-## セッションの参照
+## 担当
 
-カードには、そのタスクを進めたセッションの参照を 1 つ以上付ける。自分の参照は `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts session` で出し、`session` に渡す。
+担当は、カードの作業をどの Agent が受け持つかの記録で、description の `## 担当` 節に 1 件 1 行で入る。1 枚のカードを複数の Agent が分担するので、モデルやセッションはカードではなく担当に持たせる。`In Progress` の担当は Agent Office のページに出る。
 
-| セッション | 出る参照 |
+```text
+- <状態> | <役割> | <runtime> | <モデル> | <セッション>
+- In Progress | 実装する | claude-code | claude-opus-5-5 | <session-id>
+```
+
+| 項目 | 書く値 |
 | --- | --- |
-| Claude Code on the web | `https://claude.ai/code/session_<id>` |
-| ローカルの Claude Code | `claude-code <session id>` |
-| Codex | `codex <thread id>` |
-| Pi | `pi <session id>` |
-| Command Code | `command-code <session id>` |
+| 状態 | `In Progress` (受け持って進めている) か `Done` (受け持ちを終えた) |
+| 役割 | 何を受け持つかを短く (`実装する`・`レビューする` など)。Playbook の役割名があればそれを使う |
+| runtime | `claude-code`・`codex`・`pi`・`command-code` など、Agent を動かす runtime |
+| モデル | runtime に渡したモデル id |
+| セッション | ローカルはセッション ID、Claude Code on the web は `https://claude.ai/code/session_<id>`。分からなければ `assign` で省く (`-` になる) |
 
-`board.ts session` が失敗する (セッションを見分ける環境変数が無い) ときは、参照を付けずに進める。
+自分の runtime とセッションは `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts session` が `{"runtime","session"}` の JSON で出す。失敗する (セッションを見分ける環境変数が無い) ときは `session` を省く。セッションログから参照を作るときは、ログのファイル名の末尾の UUID が session id である。
 
-URL はリンク (`add` 時は label `session`) に、ローカルの参照は description の `## セッション` に 1 行ずつ入る。同じ参照は 2 度付かない。セッションログから参照を作るときは、ログのファイル名の末尾の UUID が session id である (`retro/scripts/sessions.ts` は `session: <provider> <id>` の行で出す)。
+同じ担当は (役割, runtime, セッション) で決まる。状態やモデルを変えるときは、足したときと同じ `role`・`runtime`・`session` で `assign` する。
+
+### 別の Agent を呼ぶとき
+
+- 呼んだ側が、呼ばれた Agent の担当を足す。runtime とモデルは `models list` の候補の値を使う
+- 呼ぶ前に `In Progress` で足し、結果を受けたら同じ担当を `Done` にする。セッションは呼ぶ前に分かるときだけ入れ、分からなければ `Done` にするときも省く
+- セッションを省いた担当は (役割, runtime) で区別される。同じ runtime の Agent を並べて呼ぶときは、役割を `レビューする (1)`・`レビューする (2)` のように分ける
+- 呼ばれた側は、呼んだ側から渡されたカードだけを更新し、新しいカードを積まない
 
 ## 作業中の更新
 
@@ -93,15 +110,15 @@ URL はリンク (`add` 時は label `session`) に、ローカルの参照は d
 
 | 要所 | intent |
 | --- | --- |
-| 着手した。または、進めているタスクのカードが `todo`・`today` に残っていた | カードが無ければ `add` (`column: "doing"`, `sessions: [自分の参照]`, `owner: "agent"`)。あれば `move` で `doing` へ動かし、`session` で自分の参照を足し、`owner` で `agent` にする |
+| 着手した。または、進めているタスクのカードが `todo`・`today` に残っていた | カードが無ければ `add` (`column: "doing"`, `agent: true`)。あれば `move` で `doing` へ動かし、`agent` を `on: true` にする。どちらも `assign` で自分の担当を `In Progress` で足す |
 | 作業が本人の確認か判断を待つことになった | `check` を `on: true` で立てる。`text` に確かめてほしいこと、`at` に現在時刻を入れる (`## 記録` に 1 行入る) |
 | 本人の確認を受けた | `check` を `on: false` で下ろす |
 | 本人以外の事情 (レビュー、外部の返事など) で進められなくなった | `move` で `blocked` (Pending) へ。`reason` に何を待っているか |
 | 待ちが解けた | `move` で `doing` へ |
-| すべて完了した | `move` で `done` へ。成果物 (PR やコミット) を `link` で足し、`comment` で結果を 1〜3 行書く |
+| すべて完了した | `move` で `done` へ。成果物 (PR やコミット) を `link` で足し、`comment` で結果を 1〜3 行書き、自分の担当を `assign` で `Done` にする |
 
 - `## 記録` には上の要所のことだけを書き、作業の細かな経過は書かない
-- 着手の前に盤面を `show --archived` で読み、同じタスクのカード (チケットの URL のリンク、似た題) があれば該当するカードを使う。収集役が先に積んでいることがある。アーカイブしたカードなら `move` で `doing` へ戻す
+- 着手の前に盤面を `show --archived` で読み、同じタスクのカード (チケットの URL のリンク、似た題) があれば該当するカードを使う。アーカイブしたカードなら `move` で `doing` へ戻す
 - カードの `key` は、チケットがあればその URL、無ければ `session:<handoff の identifier>`。使うカード id は handoff ファイルに書き、以降の更新で同じカードを使う
 
 ## アーカイブ
@@ -116,12 +133,12 @@ Done 列のカードをまとめて、ページが隠す `archived` 列へ移す
 
 ## 本人がページで書いたもの
 
-ページでのカードの追加・移動・編集・タグの変更・詳細の属性の欄 (確認が必要・着手可能日・期日・担い手) の変更・「記録を足す」からの追記・アーカイブボタン・レビューコメントは、すべて dev-process-kit の draft action になる。
+ページでのカードの追加・移動・編集・タグの変更・詳細の属性の欄 (確認が必要・Agent に任せている・着手可能日・期日) の変更・「記録を足す」からの追記・アーカイブボタン・レビューコメントは、すべて dev-process-kit の draft action になる。
 
 - draft は Agent が `board.ts review` で base に反映し、`addressed` を書き戻すまで base には入らない
 - Agent が書き戻した更新は、本人がページを開き直すまでページに見えない
 - 書き戻した `addressed` に入った action は、次に誰かがページを開いたとき kit が draft から消す。それまで draft に残ることがあるが、`board.ts review` は `addressed` 済みの action を当て直さない (出力の `handled` に出る)
-- 期日の強調、着手前の非表示、進行中列の担い手による区切り線は、draft を反映した `el.items()` から計算する
+- 期日の強調、着手前の非表示、進行中列の Agent の区切り線、Agent Office の Agent は、draft を反映した `el.items()` から計算する
 
 ### コメントの 2 つの種類
 
@@ -152,7 +169,7 @@ Done 列のカードをまとめて、ページが隠す `archived` 列へ移す
 ## 同時更新
 
 - Agent 同士の更新: 衝突したら最新の文書を読み直し、同じ `intents.json` を `apply` し直して書き戻す (3 回まで)。各 intent は再適用しても同じ結果になるため (`comment` は同じ日時・書き手・本文の行を重ねない、`add` は同じ `key` を積まない)、別セッションの更新も自分の更新も失われない
-- 本人の draft と Agent の更新: 本人の操作は `board.ts review` で最新の base に再生される。同じカードに Agent が足した `## 記録` がある状態で本人の `SET_CARD_DESCRIPTION` を再生しても、`board.ts review` は `## 記録` 節を両方の行の和集合 (日時順) にするため、Agent の記録は消えない。`## 記録` 以外の節や題・列・Assignee を本人と Agent が同時に変えた場合は、レビュー再生時に本人の値が採られる。重複する追加や消えたカードへの操作は `stale` になり base には書かれない。判断が要る操作は `--keep` で見送って本人に確かめる
+- 本人の draft と Agent の更新: 本人の操作は `board.ts review` で最新の base に再生される。同じカードに Agent が足した `## 記録` がある状態で本人の `SET_CARD_DESCRIPTION` を再生しても、`board.ts review` は `## 記録` 節と `## 担当` 節を両方の行の和集合にするため (担当は同じ担当どうしで `Done` を採る)、Agent の記録と担当は消えない。それ以外の節や題・列・タグを本人と Agent が同時に変えた場合は、レビュー再生時に本人の値が採られる。重複する追加や消えたカードへの操作は `stale` になり base には書かれない。判断が要る操作は `--keep` で見送って本人に確かめる
 
 ## 盤面を更新できないとき
 

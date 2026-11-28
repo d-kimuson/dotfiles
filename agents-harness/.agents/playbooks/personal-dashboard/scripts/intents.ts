@@ -1,9 +1,28 @@
 // intent を base (kit の Kanban の JSON) への操作に置き換える。何度当てても同じ結果になる。
 import { createHash } from "node:crypto"
-import { CHECK_TAG, DUE_PREFIX, isDate, isStamp, mergeRecords, readCard, START_PREFIX, writeCard, type Note } from "./card.ts"
+import {
+  AGENT_TAG,
+  ASSIGNMENT_STATUSES,
+  assignmentKey,
+  CHECK_TAG,
+  DUE_PREFIX,
+  isAssignmentField,
+  isDate,
+  isSessionValue,
+  isStamp,
+  mergeRecords,
+  normalizeRole,
+  readCard,
+  RUNTIME,
+  START_PREFIX,
+  UNKNOWN,
+  writeCard,
+  type Assignment,
+  type AssignmentStatus,
+  type Note,
+} from "./card.ts"
 import { ARCHIVED, BOARD_IDS, BOARDS, DONE, isHttpUrl, type BoardId, type Card, type Kanban, type Page } from "./page.ts"
 
-export type Owner = "self" | "agent"
 export type CardRef = { card?: string; key?: string }
 export type Intent =
   | {
@@ -16,19 +35,18 @@ export type Intent =
       reason?: string
       tags?: string[]
       links?: { url: string; label?: string }[]
-      sessions?: string[]
       start?: string
       due?: string
-      owner?: Owner
+      agent?: boolean
     }
   | ({ op: "move"; column: string; reason?: string } & CardRef)
   | ({ op: "detail"; text: string } & CardRef)
   | ({ op: "link"; url: string; label?: string } & CardRef)
-  | ({ op: "session"; session: string } & CardRef)
   | ({ op: "comment"; text: string; at: string; by?: string } & CardRef)
   | ({ op: "check"; on: boolean; text?: string; at?: string; by?: string } & CardRef)
   | ({ op: "start" | "due"; date: string | null } & CardRef)
-  | ({ op: "owner"; who: Owner | null } & CardRef)
+  | ({ op: "agent"; on: boolean } & CardRef)
+  | ({ op: "assign"; role: string; runtime: string; model: string; session?: string; status: AssignmentStatus } & CardRef)
   | { op: "archive"; board?: BoardId }
 
 export type Skipped = { intent: Intent; reason: string }
@@ -37,7 +55,9 @@ const BLOCKED = "blocked"
 const isHttp = isHttpUrl
 
 // 盤面を変える op。未知の op はカードを探す前に拒む。
-const OPS = new Set(["add", "move", "detail", "link", "session", "comment", "check", "start", "due", "owner", "archive"])
+const OPS = new Set(["add", "move", "detail", "link", "comment", "check", "start", "due", "agent", "assign", "archive"])
+// 5 回目までの op。旧い手順で送られたときに、置き換え先を示して拒む。
+const RETIRED: Record<string, string> = { session: "assign を使う", owner: "agent を使う" }
 
 // 同じチケットの URL が表記ゆれで別のカードにならないよう、host の大小・fragment・末尾の / をそろえる。
 export const normalizeKey = (key: string): string => {
@@ -50,28 +70,33 @@ export const normalizeKey = (key: string): string => {
 // チケットの URL などの同じキーからは、どのセッションでも同じカード id になる。
 export const cardId = (key: string): string => `t-${createHash("sha256").update(normalizeKey(key)).digest("hex").slice(0, 12)}`
 
-// セッションの参照: web は claude.ai のセッション URL をリンクに、ローカルは `<provider> <session-id>` を description に置く。
+// セッションの参照: ローカルは runtime のセッション ID、Claude Code on the web はセッションの URL。
 export const PROVIDERS = ["claude-code", "pi", "codex", "command-code"] as const
-const SESSION_URL = /^https:\/\/claude\.ai\/code\/session_[A-Za-z0-9_-]+$/
-export const checkSession = (ref: string): string => {
-  const trimmed = ref.trim()
-  if (SESSION_URL.test(trimmed)) return trimmed
-  const [provider, id, ...rest] = trimmed.split(/\s+/)
-  if (rest.length > 0 || id === undefined || !(PROVIDERS as readonly string[]).includes(provider ?? ""))
-    throw new Error(`session は https://claude.ai/code/session_… か "<provider> <id>" (provider: ${PROVIDERS.join(", ")}): ${ref}`)
-  return `${provider} ${id}`
+export type SessionRef = { runtime: string; session: string }
+
+// いまのセッションの runtime と参照を環境変数から出す。どのセッションか分からなければ undefined。
+export const sessionFromEnv = (env: Record<string, string | undefined>): SessionRef | undefined => {
+  if (env.CLAUDE_CODE_REMOTE === "true" && env.CLAUDE_CODE_REMOTE_SESSION_ID)
+    return { runtime: "claude-code", session: `https://claude.ai/code/${env.CLAUDE_CODE_REMOTE_SESSION_ID.replace(/^cse_/, "session_")}` }
+  if (env.CLAUDE_CODE_SESSION_ID) return { runtime: "claude-code", session: env.CLAUDE_CODE_SESSION_ID }
+  if (env.CODEX_THREAD_ID) return { runtime: "codex", session: env.CODEX_THREAD_ID }
+  if (env.PI_SESSION_ID) return { runtime: "pi", session: env.PI_SESSION_ID }
+  const scratchpad = env.COMMANDCODE_SCRATCHPAD?.split("/").filter((x) => x !== "")
+  if (scratchpad !== undefined && scratchpad.length >= 2) return { runtime: "command-code", session: scratchpad.at(-2) ?? "" }
+  return undefined
 }
 
-// いまのセッションの参照を環境変数から出す。どのセッションか分からなければ undefined。
-export const sessionFromEnv = (env: Record<string, string | undefined>): string | undefined => {
-  if (env.CLAUDE_CODE_REMOTE === "true" && env.CLAUDE_CODE_REMOTE_SESSION_ID)
-    return `https://claude.ai/code/${env.CLAUDE_CODE_REMOTE_SESSION_ID.replace(/^cse_/, "session_")}`
-  if (env.CLAUDE_CODE_SESSION_ID) return `claude-code ${env.CLAUDE_CODE_SESSION_ID}`
-  if (env.CODEX_THREAD_ID) return `codex ${env.CODEX_THREAD_ID}`
-  if (env.PI_SESSION_ID) return `pi ${env.PI_SESSION_ID}`
-  const scratchpad = env.COMMANDCODE_SCRATCHPAD?.split("/").filter((x) => x !== "")
-  if (scratchpad !== undefined && scratchpad.length >= 2) return `command-code ${scratchpad.at(-2)}`
-  return undefined
+// assign の intent を担当の 1 件にする。書式を壊す値は、直し方を添えて拒む。
+const toAssignment = (intent: Extract<Intent, { op: "assign" }>, label: string): Assignment => {
+  if (!(ASSIGNMENT_STATUSES as readonly string[]).includes(intent.status)) throw new Error(`${label}: status は ${ASSIGNMENT_STATUSES.join(" か ")} (${String(intent.status)})`)
+  if (!isAssignmentField(intent.role)) throw new Error(`${label}: role は空でなく、| と改行を含まない (${String(intent.role)})`)
+  if (typeof intent.runtime !== "string" || !RUNTIME.test(intent.runtime)) throw new Error(`${label}: runtime は ${PROVIDERS.join(", ")} などの小文字の名前 (${String(intent.runtime)})`)
+  if (!isAssignmentField(intent.model) || intent.model.trim() === UNKNOWN) throw new Error(`${label}: model は runtime に渡したモデル id (${String(intent.model)})`)
+  if (intent.session !== undefined && typeof intent.session !== "string") throw new Error(`${label}: session は文字列。board.ts session の JSON の session を使う (${String(intent.session)})`)
+  const session = intent.session?.trim() ?? ""
+  if (session !== "" && !isSessionValue(session))
+    throw new Error(`${label}: session はセッション ID か https://claude.ai/code/session_… の URL。board.ts session の JSON の session を使う (${String(intent.session)})`)
+  return { status: intent.status, role: normalizeRole(intent.role), runtime: intent.runtime, model: intent.model.trim(), session: session === "" ? UNKNOWN : session }
 }
 
 const locate = (kanban: Kanban, id: string): { column: number; card: Card } | undefined => {
@@ -116,7 +141,10 @@ export const applyIntents = (page: Page, intents: Intent[], _options: { now?: Da
   const next: Page = structuredClone(page)
   const outcomes: Outcomes = { skipped: [] }
   for (const intent of intents) {
-    if (!OPS.has(intent.op)) throw new Error(`unknown op: ${String((intent as { op: string }).op)}`)
+    if (!OPS.has(intent.op)) {
+      const op = String((intent as { op: string }).op)
+      throw new Error(`unknown op: ${op}${RETIRED[op] === undefined ? "" : ` (${RETIRED[op]})`}`)
+    }
     if (intent.op === "archive") {
       const targets = intent.board === undefined ? [...BOARD_IDS] : [checkBoard(intent.board)]
       for (const board of targets) {
@@ -153,7 +181,8 @@ export const applyIntents = (page: Page, intents: Intent[], _options: { now?: Da
       const title = intent.title.trim()
       if (title === "") throw new Error(`add ${id}: title が空`)
       needReason(intent.column, intent.reason, `add ${id}`)
-      const sessions = (intent.sessions ?? []).map(checkSession)
+      if ((intent as { sessions?: unknown }).sessions !== undefined || (intent as { owner?: unknown }).owner !== undefined)
+        throw new Error(`add ${id}: sessions と owner は使わない (担当は assign、Agent に任せるのは agent)`)
       const tags = (intent.tags ?? []).map((t) => t.trim()).filter((t) => t !== "")
       // 予約したタグを intent の tags に書いたときも、属性と同じ意味にする。
       const tagDate = (prefix: string): string | undefined => {
@@ -165,20 +194,22 @@ export const applyIntents = (page: Page, intents: Intent[], _options: { now?: Da
       if (start !== undefined && !isDate(start)) throw new Error(`add ${id} start: YYYY-MM-DD でない (${start})`)
       if (due !== undefined && !isDate(due)) throw new Error(`add ${id} due: YYYY-MM-DD でない (${due})`)
       const check = tags.includes(CHECK_TAG)
+      if (intent.agent !== undefined && typeof intent.agent !== "boolean") throw new Error(`add ${id} agent: true か false (${String(intent.agent)})`)
+      const agent = intent.agent ?? tags.includes(AGENT_TAG)
       const card = writeCard(
         { id, number: maxNumber(kanban) + 1, title, ...(tags.length === 0 ? {} : { tags }) },
         {
         detail: intent.detail?.trim() ?? "",
         ...(intent.column === BLOCKED ? { pending: intent.reason?.trim() ?? "" } : {}),
+        assignments: [],
         records: [],
-        sessions: sessions.filter((s) => !isHttp(s)),
         check,
         ...(start === undefined ? {} : { start }),
         ...(due === undefined ? {} : { due }),
-        owner: intent.owner ?? "self",
+        agent,
         warnings: [],
       })
-      const links = [...(intent.links ?? []), ...sessions.filter(isHttp).map((url) => ({ url, label: "session" }))]
+      const links = intent.links ?? []
       for (const link of links) {
         if (!isHttp(link.url)) throw new Error(`add ${id} link: URL として読める http(s) の URL でない (${link.url})`)
         if ((card.links ?? []).some((l) => l.url === link.url)) continue
@@ -249,24 +280,6 @@ export const applyIntents = (page: Page, intents: Intent[], _options: { now?: Da
         edit(kanban, at, (card) => ({ ...card, links: [...(card.links ?? []), label === "" ? { url } : { url, label }] }))
         break
       }
-      case "session": {
-        const ref = checkSession(intent.session)
-        if (isHttp(ref)) {
-          if ((at.card.links ?? []).some((l) => l.url === ref)) {
-            outcome(outcomes, intent, `session ${id}: 既にある ${ref}`)
-            continue
-          }
-          edit(kanban, at, (card) => ({ ...card, links: [...(card.links ?? []), { url: ref }] }))
-          break
-        }
-        if (view.sessions.includes(ref)) {
-          outcome(outcomes, intent, `session ${id}: 既にある ${ref}`)
-          continue
-        }
-        view.sessions = [...view.sessions, ref]
-        edit(kanban, at, write)
-        break
-      }
       case "comment": {
         const text = intent.text.trim()
         if (text === "") throw new Error(`comment ${id}: text が空`)
@@ -318,13 +331,26 @@ export const applyIntents = (page: Page, intents: Intent[], _options: { now?: Da
         edit(kanban, at, write)
         break
       }
-      case "owner": {
-        const who = intent.who ?? "self"
-        if (view.owner === who) {
-          outcome(outcomes, intent, `owner ${id}: 既に ${who}`)
+      case "agent": {
+        if (typeof intent.on !== "boolean") throw new Error(`agent ${id}: on は true か false (${String(intent.on)})`)
+        if (view.agent === intent.on) {
+          outcome(outcomes, intent, `agent ${id}: 既に ${intent.on ? "Agent に任せている" : "自分で進めている"}`)
           continue
         }
-        view.owner = who
+        view.agent = intent.on
+        edit(kanban, at, write)
+        break
+      }
+      case "assign": {
+        const next = toAssignment(intent, `assign ${id}`)
+        const index = view.assignments.findIndex((a) => assignmentKey(a) === assignmentKey(next))
+        const was = view.assignments[index]
+        if (was !== undefined && was.status === next.status && was.model === next.model) {
+          outcome(outcomes, intent, `assign ${id}: 同じ担当がある (${next.status} | ${next.role})`)
+          continue
+        }
+        if (was === undefined) view.assignments = [...view.assignments, next]
+        else view.assignments = view.assignments.map((a, i) => (i === index ? next : a))
         edit(kanban, at, write)
         break
       }

@@ -1,4 +1,4 @@
-// kit 0.4.2 の draft action を base の上で再生する。規則は kit の Kanban (dist/boards.js) と同じ。
+// kit 0.4.4 の draft action を base の上で再生する。規則は kit の Kanban (dist/boards.js) と同じ。
 import { BOARDS, isHttpUrl, type BoardId, type Card, type Kanban } from "./page.ts"
 
 export type DraftAction = {

@@ -127,7 +127,7 @@ const validateCard = (value: unknown, path: string, assign: () => number): Card 
   return card
 }
 
-// kit 0.4.2 の Kanban と同じ入力を拒む。違反は path 付きの例外にする。
+// kit 0.4.4 の Kanban と同じ入力を拒む。違反は path 付きの例外にする。
 export const validateKanban = (value: unknown): Kanban => {
   if (!isObject(value)) fail("board", "オブジェクトであること")
   onlyKeys(value, ["columns"], "board")
