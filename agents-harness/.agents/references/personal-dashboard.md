@@ -1,38 +1,25 @@
 # パーソナルダッシュボード
 
-本人のタスクを 1 つに集めるパーソナルダッシュボードの読み書きの手順。盤面は folio の HTML 文書 `/projects/パーソナルダッシュボード/personal-dashboard.html` で、読み書きに folio の MCP ツール (`folio_read_document`・`folio_edit_document`・`folio_update_document`・`folio_get_draft_state`) を使う。
+本人のタスクを 1 つに集めるパーソナルダッシュボードの読み書きの手順。
 
 ## 置き場所
 
-- `~/.agents/state/personal-dashboard/index.md`: マシンごとの入口。Git 管理外。形式は下の「index.md」
-- folio の文書: dev-process-kit 0.4.2 の Kanban。カードを持たない空のテンプレートは `~/.agents/playbooks/personal-dashboard/assets/board.html`。ページは 2 つある
+- `~/.agents/state/personal-dashboard/index.md`: マシンごとの入口。置き場、本人に渡す URL、読む・書き戻す・draft を得る・新しく作る方法を持つ。盤面を読み書きするときは、まずこれを読み、そこに書かれた方法で読み書きする
+- 盤面の文書: dev-process-kit 0.4.2 の Kanban の HTML。カードを持たない空のテンプレートは `~/.agents/playbooks/personal-dashboard/assets/board.html`。ページは 2 つある
   - `タスク` (盤面 `personal-task-board`): 列は `todo` (Todo)、`today` (今日やる)、`doing` (進行中)、`blocked` (Pending)、`done` (Done)。進行中の列は担い手で分かれ、本人が進めるカードが上、`Agent` の区切り線の下に Agent が進めるカードが並ぶ
   - `学習バックログ` (盤面 `personal-learning`): 列は `backlog` (バックログ)、`done` (Done)。retro が積む
   - どちらの盤面にも、ページが CSS で隠す最後の列 `archived` (アーカイブ) がある。下の「アーカイブ」で Done のカードを移す先である
-- 盤面の正: folio の文書の HTML の各 `<dpk-board-kanban>` が持つ base JSON。変更履歴と処理済みの操作範囲 (`addressed`) は同じ HTML の `data-dpk-changes` に入る
+- 盤面の正: 文書の HTML の各 `<dpk-board-kanban>` が持つ base JSON。変更履歴と処理済みの操作範囲 (`addressed`) は同じ HTML の `data-dpk-changes` に入る
 
-本人のページ上での操作は、folio のサーバーに文書ごとの draft として溜まる (`folio_get_draft_state` で読める)。Agent が盤面を更新するときは、最新の HTML を読み、`board.ts` で base JSON を書き換えて同じ文書に書き戻す。
-
-## index.md
-
-```markdown
-# パーソナルダッシュボード
-
-- path: /projects/パーソナルダッシュボード/personal-dashboard.html
-- url: https://folio.hs.kimuson.dev/d/projects/<path を URL エンコードしたもの>
-- tools: folio_read_document, folio_edit_document, folio_update_document, folio_get_draft_state
-```
-
-`path` の行で読み書きし、`url` の行を本人に渡す。ほかの行は本人のメモとして残す。
+本人のページ上での操作は kit の draft に溜まる。Agent が盤面を更新するときは、最新の HTML を読み、`board.ts` で base JSON を書き換えて同じ文書に書き戻す。`board.ts` はファイルか標準入力 (`-`) の HTML だけを扱う。
 
 ## index.md が無いとき
 
-1. `folio_read_document` で `/projects/パーソナルダッシュボード/personal-dashboard.html` を読む。読めたら、その `path` と `webUrl` で `index.md` を書く
-2. 文書が無ければ、`~/.agents/playbooks/personal-dashboard/assets/board.html` の中身を同じ path に `folio_create_document` で作り、返った `webUrl` で `index.md` を書く
+本人に盤面の置き場 (使う文書サービスやツール) を尋ね、テンプレートから盤面の文書を作り、上の「置き場所」の項目を持つ `index.md` を書く。
 
 ## 読む
 
-1. `folio_read_document` で文書を読み、結果の JSON (`content` と `revision` を持つ) か `content` の HTML を一時ファイルに保存する。`revision` は書くときの `baseRevision` に使う
+1. `index.md` の方法で最新の文書を読み、HTML を一時ファイルに保存する
 2. `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts show <保存した HTML>` で盤面ごと・列ごとのカードを出す (`--json` を付けると JSON で出す)。1 行目は判定に使う今日の日付 (Asia/Tokyo)。カードの行は `- TASK-<n> <カード id> <題> [タグ] (属性) <リンク>` で、`(属性)` は `確認が必要`、`担い手 Agent` (担い手が Agent のときだけ)、`着手可能 <日付>`、`期日 <日付>` (Done とアーカイブ以外で過ぎていれば `超過`、今日なら `今日`) の並び。続く字下げ行が本文、`## Pending の理由`、状況の記録 (`> <日時> <書き手>: <本文>` の行、古い順)、`## セッション`、タグの警告 (`! <内容>`)
 3. `show` はアーカイブの列を枚数だけ出す。アーカイブしたカードの中身は `show <保存した HTML> --archived` で出す
 
@@ -41,9 +28,9 @@
 1. 上の「読む」で最新の HTML を一時ファイルに保存し、`board.ts show` で盤面を確かめる
 2. 変更を intents の JSON 配列でファイル (`intents.json`) に書く
 3. `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts apply <保存した HTML> <intents.json> <out.html>` を実行する。標準出力は `{changes, skipped, addressed}` の JSON で、標準エラーに飛ばした intent の `skip: <理由>` が出る。`changes` が 0 なら書き戻さない
-4. `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts edits <保存した HTML> <out.html>` で差分を置き換えの JSON 配列にし、`folio_edit_document` に `path`、`edits` (その配列そのまま)、`baseRevision` (手順 1 で読んだ `revision`) を渡して書き戻す。配列が空 (`[]`) なら差分が無いので書き戻さない。文書全体 (約 40,000 字) を送らずに済む。`edits` が作れないときや文書を作り直すときは、`folio_update_document` に `content` (`<out.html>` の中身そのまま) と `baseRevision` を渡す
-5. 書き戻しが revision の衝突 (`{"error":"CONFLICT","reason":"stale","currentRevision":n}`) で拒まれたら、手順 1 で読み直して保存し直し、同じ `intents.json` で手順 3 から当て直す。やり直しは 3 回までとする
-6. 書いた結果の `size` (文字数) が `<out.html>` の文字数と同じことを確かめ、`folio_read_document` で読み戻して `board.ts show` で変更が盤面に出たことを確かめる
+4. `index.md` の方法で `<out.html>` を書き戻す。`node ~/.agents/playbooks/personal-dashboard/scripts/board.ts edits <保存した HTML> <out.html>` は差分を置き換えの JSON 配列で出す (空なら差分が無い)
+5. 書き戻しが衝突で拒まれたら、手順 1 で読み直して保存し直し、同じ `intents.json` で手順 3 から当て直す。やり直しは 3 回までとする
+6. 読み戻して `board.ts show` で変更が盤面に出たことを確かめる
 
 | intent | すること |
 | --- | --- |
@@ -129,11 +116,11 @@ Done 列のカードをまとめて、ページが隠す `archived` 列へ移す
 
 ## 本人がページで書いたもの
 
-ページでのカードの追加・移動・編集・タグの変更・詳細の属性の欄 (確認が必要・着手可能日・期日・担い手) の変更・「記録を足す」からの追記・アーカイブボタン・レビューコメントは、すべて dev-process-kit の draft action になる。folio はこの draft を文書ごとにサーバーへ同期し (5 秒ごと)、同じ文書を開いた全員に同じ draft が見える。
+ページでのカードの追加・移動・編集・タグの変更・詳細の属性の欄 (確認が必要・着手可能日・期日・担い手) の変更・「記録を足す」からの追記・アーカイブボタン・レビューコメントは、すべて dev-process-kit の draft action になる。
 
 - draft は Agent が `board.ts review` で base に反映し、`addressed` を書き戻すまで base には入らない
 - Agent が書き戻した更新は、本人がページを開き直すまでページに見えない
-- 書き戻した `addressed` に入った action は、次に誰かがページを開いたとき kit が draft から消す。それまで `folio_get_draft_state` に残るが、`board.ts review` は `addressed` 済みの action を当て直さない (出力の `handled` に出る)
+- 書き戻した `addressed` に入った action は、次に誰かがページを開いたとき kit が draft から消す。それまで draft に残ることがあるが、`board.ts review` は `addressed` 済みの action を当て直さない (出力の `handled` に出る)
 - 期日の強調、着手前の非表示、進行中列の担い手による区切り線は、draft を反映した `el.items()` から計算する
 
 ### コメントの 2 つの種類
@@ -141,7 +128,7 @@ Done 列のカードをまとめて、ページが隠す `archived` 列へ移す
 | | 状況の記録 (`## 記録`) | レビューコメント |
 | --- | --- | --- |
 | 書く場所 | カード詳細の「記録を足す」欄、`board.ts` の `comment` intent | カードを右クリックした「レビューコメント」(kit の review rail) |
-| 置き場所 | カードの description の `## 記録` 節 | folio の draft (kit の `comment` action) |
+| 置き場所 | カードの description の `## 記録` 節 | kit の draft (`comment` action) |
 | 用途 | 本人と Agent が状況やメモを書き残す | 本人から Agent への指示 |
 | 寿命 | 残す。古くなった状況は新しい行を足す | 応えて `addressed` を書き戻すと、次にページを開いたとき draft から消える |
 | 読み方 | `board.ts show` でカードの下に `> <日時> <書き手>: <本文>` で出る | `board.ts review` の出力の `comments` に出る |
@@ -152,22 +139,21 @@ Done 列のカードをまとめて、ページが隠す `archived` 列へ移す
 
 本人から盤面の draft の反映を頼まれたら (「盤面を見て」「レビューした」など)、次の手順で反映して応える。本人が kit の「変更・コメントをコピー」で brief (Markdown) を貼り付けたときも、手順 1 の代わりに brief を `<draft.json>` の代わりのファイルに保存して同じ手順で進める。
 
-1. `folio_get_draft_state` で文書の draft を読み、結果の JSON を一時ファイル `<draft.json>` に保存する。`board.ts review` は storageKey が `personal-task-board` の group の action だけを使う
-2. `folio_read_document` で最新の文書を読み、保存する (「読む」の手順 1)
+1. `index.md` の方法で draft を得て、kit の draft action の JSON 配列を一時ファイル `<draft.json>` に保存する
+2. 最新の文書を読み、保存する (「読む」の手順 1)
 3. `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts review <保存した HTML> <draft.json> <out.html> [--keep <id>...]` を実行する。標準出力の `results` (`applied`・`stale`・`comment`)、`addressed`、`handled` (反映済みで当て直さなかった action)、`comments` を確認する
    - 本人に確かめたい action があれば、該当する action の id を `--keep` に渡して `review` をやり直す。見送った action は `addressed` から外れ、draft に残る
    - brief を渡したときは、見送りが無く、計算した `addressed` が brief の `## Change log: addressed` と一致しなければ `board.ts review` はエラーで止まる
 4. `comments` (レビューコメント) は本人から Agent への指示として扱い、盤面の変更が必要なら `intents.json` を作って `node ~/.agents/playbooks/personal-dashboard/scripts/board.ts apply <out.html> <intents.json> <out2.html>` で反映する。レビューコメントの本文は `## 記録` には写さない
-5. 「書く」の手順 4 と同じく、`board.ts edits` で作った置き換えを `folio_edit_document` に、手順 2 の `revision` を `baseRevision` として渡して書き戻す。配列が空なら書き戻さない。衝突で拒まれたら、手順 1 から読み直して当て直す。やり直しは 3 回までとする
-6. `folio_read_document` で読み戻し、`board.ts show` で反映を確かめる
-7. 本人へ結果をセッションで伝える (反映した内容、レビューコメントへの返事、`stale` になった操作と見送った操作)
-8. 書き戻した `addressed` により、次にページを開いたとき処理済みの操作が draft から消え、バッジが 0 になる (見送った操作だけは残る)
+5. 「書く」の手順 4 から 6 と同じく書き戻して確かめる。衝突したら、手順 1 から読み直して当て直す
+6. 本人へ結果をセッションで伝える (反映した内容、レビューコメントへの返事、`stale` になった操作と見送った操作)
+7. 書き戻した `addressed` により、次にページを開いたとき処理済みの操作が draft から消え、バッジが 0 になる (見送った操作だけは残る)
 
 ## 同時更新
 
-- Agent 同士の更新: `folio_edit_document` と `folio_update_document` は `baseRevision` が最新の revision でなければ衝突で拒む。衝突したら最新の文書を読み直し、同じ `intents.json` を `apply` し直して書き戻す (3 回まで)。各 intent は再適用しても同じ結果になるため (`comment` は同じ日時・書き手・本文の行を重ねない、`add` は同じ `key` を積まない)、別セッションの更新も自分の更新も失われない
-- 本人の draft と Agent の更新: 本人の操作は `board.ts review` で最新の base に再生される。folio の draft は閲覧者の間で共有されるので、本人が複数の端末で操作しても 1 つの draft にまとまる。同じカードに Agent が足した `## 記録` がある状態で本人の `SET_CARD_DESCRIPTION` を再生しても、`board.ts review` は `## 記録` 節を両方の行の和集合 (日時順) にするため、Agent の記録は消えない。`## 記録` 以外の節や題・列・Assignee を本人と Agent が同時に変えた場合は、レビュー再生時に本人の値が採られる。重複する追加や消えたカードへの操作は `stale` になり base には書かれない。判断が要る操作は `--keep` で見送って本人に確かめる
+- Agent 同士の更新: 衝突したら最新の文書を読み直し、同じ `intents.json` を `apply` し直して書き戻す (3 回まで)。各 intent は再適用しても同じ結果になるため (`comment` は同じ日時・書き手・本文の行を重ねない、`add` は同じ `key` を積まない)、別セッションの更新も自分の更新も失われない
+- 本人の draft と Agent の更新: 本人の操作は `board.ts review` で最新の base に再生される。同じカードに Agent が足した `## 記録` がある状態で本人の `SET_CARD_DESCRIPTION` を再生しても、`board.ts review` は `## 記録` 節を両方の行の和集合 (日時順) にするため、Agent の記録は消えない。`## 記録` 以外の節や題・列・Assignee を本人と Agent が同時に変えた場合は、レビュー再生時に本人の値が採られる。重複する追加や消えたカードへの操作は `stale` になり base には書かれない。判断が要る操作は `--keep` で見送って本人に確かめる
 
 ## 盤面を更新できないとき
 
-folio の MCP ツールが無い、または書き戻しに失敗した (衝突のやり直し 3 回を超えた場合を含む) ときは、本人に 1 回だけ伝えて本筋の作業を続ける。
+`index.md` の方法で読み書きできない、または書き戻しに失敗した (衝突のやり直し 3 回を超えた場合を含む) ときは、本人に 1 回だけ伝えて本筋の作業を続ける。

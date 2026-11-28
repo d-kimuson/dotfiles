@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // 盤面の正は公開する HTML の kit の base JSON。この CLI は base の読み書きと、レビュー (draft action) の反映を担う。
-import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs"
-import { join } from "node:path"
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
+import { dirname, join } from "node:path"
 import { pathToFileURL } from "node:url"
 import { authorLabel, CHECK_TAG, DUE_PREFIX, isDate, mergeRecords, readCard, START_PREFIX, tokyoDate, tokyoStamp, writeCard, type CardView, type Note } from "./card.ts"
-import { editsBetween, htmlFromRead, writeForPublish } from "./folio.ts"
+import { editsBetween } from "./text-edits.ts"
 import { applyIntents, cardId, sessionFromEnv, type Intent, type Skipped } from "./intents.ts"
 import {
   ARCHIVED,
@@ -261,7 +261,7 @@ export type ReviewOutput = { page: Page; results: Result[]; addressed: string; c
 // keep の id は本人に確かめたいものとして見送り、draft に残す。
 export function applyReview(before: Page, markdown: string, options: { keep?: string[]; now?: Date } = {}): ReviewOutput {
   const parsed = parseBrief(markdown)
-  // folio の draft は、addressed を公開したあとも閲覧者がページを開くまで残る。処理済みの action は当て直さない。
+  // draft は、addressed を書き戻したあとも閲覧者がページを開くまで残ることがある。処理済みの action は当て直さない。
   const handled = parsed.draft.filter((a) => addressedHas(before.changes.addressed, a.id)).map((a) => a.id)
   const brief = { ...parsed, draft: parsed.draft.filter((a) => !handled.includes(a.id)), comments: parsed.comments.filter((a) => !handled.includes(a.id)) }
   const keep = new Set(options.keep ?? [])
@@ -311,7 +311,13 @@ export function applyReview(before: Page, markdown: string, options: { keep?: st
 // --- 入出力 ----------------------------------------------------------------
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
-const readJson = (path: string): Json => JSON.parse(readFileSync(path, "utf8")) as Json
+// 入力のパスに - を渡すと標準入力から読む。
+const readInput = (path: string): string => readFileSync(path === "-" ? 0 : path, "utf8")
+const readJson = (path: string): Json => JSON.parse(readInput(path)) as Json
+const writeOutput = (html: string, outPath: string): void => {
+  mkdirSync(dirname(outPath), { recursive: true })
+  writeFileSync(outPath, html)
+}
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
 
 const readDumpActions = (dumpDir: string): DraftAction[] => {
@@ -447,14 +453,15 @@ const usage = `usage:
                                           盤面を表示する。base の JSON と change log を読み、カードを人が読める形か JSON で出す
   board.ts apply <page.html> <intents.json> <out.html>
                                           intent を base に当て、公開用の HTML を書き出す
-  board.ts review <page.html> <brief.md|review.json|draft-state.json> <out.html> [--keep <id>...]
-                                          brief (kit の Copy changes & comments) か folio_get_draft_state の結果の draft を base に反映し、addressed を更新する。
+  board.ts review <page.html> <brief.md|draft.json> <out.html> [--keep <id>...]
+                                          brief (kit の Copy changes & comments) か kit の draft action の JSON 配列を base に反映し、addressed を更新する。
                                           --keep の id は見送り、draft に残す
   board.ts migrate-db <dump-dir> <page.html> <out.html>
                                           4 回目の db の dump (actions・notes・attrs) を base に畳んで HTML を書き出す
-  board.ts edits <before.html> <after.html>
-                                          folio_edit_document に渡す edits (oldText と newText の配列) を、書く前と後の HTML の差分から出す。
-                                          50 件を超えるか範囲を絞れなければ失敗するので、folio_update_document で全体を書く
+  board.ts edits <before.html> <after.html> [--max <n>]
+                                          書く前と後の HTML の差分を、順に当てる置き換え (oldText と newText) の JSON 配列で出す。
+                                          --max の件数を超えるか範囲を絞れなければ失敗する
+  入力のパスに - を渡すと標準入力から読む
   board.ts id <key>                       キー (チケット URL など) からカード id を出す
   board.ts session                        いまのセッションの参照を環境変数から出す`
 
@@ -490,17 +497,18 @@ const parseFlags = (argv: string[], known: string[]): Flags => {
 }
 
 const main = (argv: string[]): void => {
-  const flags = parseFlags(argv, ["--json", "--archived", "--keep"])
+  const flags = parseFlags(argv, ["--json", "--archived", "--keep", "--max"])
   const [command, ...rest] = flags.rest
   const json = (flags.values.get("--json")?.length ?? 0) > 0
   const archived = (flags.values.get("--archived")?.length ?? 0) > 0
   if (command === "show" && rest[0] !== undefined) {
-    const page = parsePage(htmlFromRead(rest[0]))
+    const page = parsePage(readInput(rest[0]))
     console.log(json ? JSON.stringify({ today: tokyoDate(new Date()), boards: page.boards, changes: page.changes }, null, 2) : renderText(page, { archived }))
     return
   }
   if (command === "edits" && rest[0] !== undefined && rest[1] !== undefined) {
-    const edits = editsBetween(htmlFromRead(rest[0]), htmlFromRead(rest[1]))
+    const max = flags.values.get("--max")?.[0]
+    const edits = editsBetween(readInput(rest[0]), readInput(rest[1]), max === undefined ? undefined : Number(max))
     if (edits.length === 0) console.error("差分が無い。書き戻さない")
     console.log(JSON.stringify(edits))
     return
@@ -519,7 +527,7 @@ const main = (argv: string[]): void => {
     return
   }
   if (command === "apply" && rest[0] !== undefined && rest[1] !== undefined && rest[2] !== undefined) {
-    const before = parsePage(htmlFromRead(rest[0]))
+    const before = parsePage(readInput(rest[0]))
     const intents = readJson(rest[1])
     if (!Array.isArray(intents)) throw new Error("intents.json は配列であること")
     const now = new Date()
@@ -527,15 +535,15 @@ const main = (argv: string[]): void => {
     for (const skipped of result.skipped) console.error(`skip: ${skipped.reason}`)
     const changes = changesForIntents(before, result.page, intents as Intent[], result.skipped)
     const page: Page = { ...result.page, changes: withRevision(result.page.changes, changes, now) }
-    writeForPublish(renderPage(htmlFromRead(rest[0]), page), rest[2])
+    writeOutput(renderPage(readInput(rest[0]), page), rest[2])
     console.log(JSON.stringify({ changes: changes.length, skipped: result.skipped.length, addressed: page.changes.addressed ?? "" }, null, 2))
     return
   }
   if (command === "review" && rest[0] !== undefined && rest[1] !== undefined && rest[2] !== undefined) {
-    const html = htmlFromRead(rest[0])
+    const html = readInput(rest[0])
     const before = parsePage(html)
-    const output = applyReview(before, readFileSync(rest[1], "utf8"), { keep: flags.values.get("--keep") ?? [] })
-    writeForPublish(renderPage(html, output.page), rest[2])
+    const output = applyReview(before, readInput(rest[1]), { keep: flags.values.get("--keep") ?? [] })
+    writeOutput(renderPage(html, output.page), rest[2])
     console.log(
       JSON.stringify({
         results: output.results,
@@ -549,10 +557,10 @@ const main = (argv: string[]): void => {
   if (command === "migrate-db" && rest[0] !== undefined && rest[1] !== undefined && rest[2] !== undefined) {
     const { page, warnings } = foldDump(rest[0])
     for (const warning of warnings) console.error(`warn: ${warning}`)
-    const template = htmlFromRead(rest[1])
+    const template = readInput(rest[1])
     // 移行は base を dump から作り直す。change log はテンプレートのものを残す。
     const changes = parsePage(template).changes
-    writeForPublish(renderPage(template, { ...page, changes }), rest[2])
+    writeOutput(renderPage(template, { ...page, changes }), rest[2])
     const counts = BOARD_IDS.map((b) => `${b}: ${page.boards[b].columns.map((c) => `${c.id} ${c.cards.length}`).join(", ")}`)
     console.error(counts.join("\n"))
     console.log(JSON.stringify({ boards: page.boards, warnings }, null, 2))

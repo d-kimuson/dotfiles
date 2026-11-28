@@ -315,11 +315,6 @@ const parseDraft = (value: unknown): DraftAction[] => {
   })
 }
 
-// folio_get_draft_state の結果は storageKey と template ごとの group に action を持つ。盤面のページの storageKey の group だけを使う。
-export const STORAGE_KEY = "personal-task-board"
-const draftOfGroups = (groups: unknown[]): unknown[] =>
-  groups.flatMap((group) => (isObject(group) && group.storageKey === STORAGE_KEY && Array.isArray(group.actions) ? group.actions : []))
-
 // brief (kit の Copy changes & comments が出した Markdown) を読む。addressed は次の公開で置き換える値。
 export function parseBrief(markdown: string): { draft: DraftAction[]; addressed: string; comments: DraftAction[] } {
   const trimmed = markdown.trim()
@@ -330,7 +325,7 @@ export function parseBrief(markdown: string): { draft: DraftAction[]; addressed:
   } else if (trimmed.startsWith("{")) {
     const value = JSON.parse(trimmed) as unknown
     if (!isObject(value)) throw new Error("review.json がオブジェクトでない")
-    draft = Array.isArray(value.groups) ? parseDraft(draftOfGroups(value.groups)) : parseDraft(value.draft)
+    draft = parseDraft(value.draft)
     if (typeof value.addressed === "string") addressed = value.addressed.trim()
   } else {
     const json = fenced(markdown, "## Canonical draft (JSON)", "json")

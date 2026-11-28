@@ -5,7 +5,7 @@ description: 本人がやることをパーソナルダッシュボードに積�
 
 # パーソナルダッシュボード
 
-本人がやること (判断、作業) を 1 つの Kanban に、学習を同じ文書の別のページの Kanban (学習バックログ) に集める。盤面は folio の HTML 文書 `/projects/パーソナルダッシュボード/personal-dashboard.html` で、`~/.agents/references/personal-dashboard.md` を読んで、その手順で次のことを行う。
+本人がやること (判断、作業) を 1 つの Kanban に、学習を同じ文書の別のページの Kanban (学習バックログ) に集める。`~/.agents/references/personal-dashboard.md` を読んで、その手順で次のことを行う。
 
 - 盤面を見せる: `~/.agents/state/personal-dashboard/index.md` の URL を本人に渡す
 - 積む・動かす: 書き戻した後に URL を本人に渡す

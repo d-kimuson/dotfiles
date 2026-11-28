@@ -6,7 +6,7 @@ import { test } from "node:test"
 import { fileURLToPath } from "node:url"
 import { applyReview, cardId, changesForIntents, foldDump, renderText } from "./board.ts"
 import { authorLabel, CHECK_TAG, DUE_PREFIX, mergeRecords, readCard, START_PREFIX, tokyoDate, tokyoStamp, writeCard, type Note } from "./card.ts"
-import { applyEdits, editsBetween, htmlFromRead } from "./folio.ts"
+import { applyEdits, editsBetween } from "./text-edits.ts"
 import { applyIntents, checkSession, normalizeKey, sessionFromEnv, type Intent } from "./intents.ts"
 import { emptyKanban, parsePage, renderPage, validateKanban, type Card, type Kanban, type Page } from "./page.ts"
 import { addressedHas, mergeAddressed, parseAddressed, parseBrief, parseTargetId, replay, type DraftAction } from "./replay.ts"
@@ -792,30 +792,12 @@ test("記録の下の書式外の行は、同じ記録をまとめても繰り�
   assert.deepEqual(mergeRecords([note], [{ ...note, extra: [...extra, "足した行"] }])[0]?.extra, [...extra, "足した行"])
 })
 
-test("folio_read_document の結果の JSON からも、保存した HTML からも盤面を読む", () => {
-  const dir = mkdtempSync(join(tmpdir(), "ptb-folio-"))
-  const html = renderPage(TEMPLATE, empty())
-  writeFileSync(join(dir, "read.json"), JSON.stringify({ path: "/projects/x/board.html", format: "html", revision: 4, content: html }))
-  writeFileSync(join(dir, "page.html"), html)
-  writeFileSync(join(dir, "other.json"), JSON.stringify({ revision: 4 }))
-  assert.equal(htmlFromRead(join(dir, "read.json")), html)
-  assert.equal(htmlFromRead(join(dir, "page.html")), html)
-  assert.throws(() => htmlFromRead(join(dir, "other.json")), /folio_read_document/)
-})
-
-test("folio の draft の状態から反映し、addressed 済みの action は当て直さない", () => {
+test("draft action の配列から反映し、addressed 済みの action は当て直さない", () => {
   const page = empty()
   columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
   const target = { type: "element", id: "personal-task-board/card/a@board" }
   const first = action({ id: "w:1", type: "SET_CARD_TITLE", target, payload: { title: "本人が直した題" } })
-  const state = (actions: DraftAction[]) =>
-    JSON.stringify({
-      path: "/projects/x/board.html",
-      groups: [
-        { storageKey: "personal-task-board", template: "board", actions: actions.map((a) => ({ ...a, author: { id: "u1" } })) },
-        { storageKey: "other", template: "board", actions: [action({ id: "z:1", type: "SET_CARD_TITLE", target, payload: { title: "別のページ" } })] },
-      ],
-    })
+  const state = (actions: DraftAction[]) => JSON.stringify(actions.map((a) => ({ ...a, author: { id: "u1" } })))
   const once = applyReview(page, state([first]), { now })
   assert.equal(cardOf(boardOf(once.page), "a").title, "本人が直した題")
   assert.equal(once.addressed, "w:1")
@@ -830,7 +812,7 @@ test("folio の draft の状態から反映し、addressed 済みの action は�
   assert.equal(twice.addressed, "w:1-2")
 })
 
-test("folio_edit_document の edits は、順に当てると前の HTML を後の HTML に変える", () => {
+test("edits は、順に当てると前の HTML を後の HTML に変える", () => {
   const before = ["<a>", "  {", "    x", "  }", "  {", "    y", "  }", "</a>", ""].join("\n")
   const cases = [
     ["<a>", "  {", "    x", "  }", "  {", "    z", "  }", "  {", "    w", "  }", "</a>", ""].join("\n"),
@@ -844,10 +826,11 @@ test("folio_edit_document の edits は、順に当てると前の HTML を後�
   assert.equal(applyEdits(moveFrom, editsBetween(moveFrom, moveTo)), moveTo)
   // 重なる出現も数える。
   assert.equal(applyEdits("x\nx\nx\n", editsBetween("x\nx\nx\n", "x\nx\nz\nx\n")), "x\nx\nz\nx\n")
-  // folio_edit_document は 1 回に 50 件までしか受け付けない。
+  // max を超える件数になると失敗する。
   const many = Array.from({ length: 600 }, (_, i) => `line ${i}\n`)
   const changed = many.map((line, i) => (i % 10 === 0 ? `changed ${i}\n` : line))
-  assert.throws(() => editsBetween(many.join(""), changed.join("")), /上限 50 件/)
+  assert.throws(() => editsBetween(many.join(""), changed.join(""), 50), /上限 50 件/)
+  assert.equal(applyEdits(many.join(""), editsBetween(many.join(""), changed.join(""))), changed.join(""))
   assert.deepEqual(editsBetween(before, before), [])
   // 盤面の HTML を apply した結果でも、送る量は文書全体より小さい。
   const page = empty()
