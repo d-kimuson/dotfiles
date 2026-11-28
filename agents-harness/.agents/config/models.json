@@ -4,8 +4,8 @@
       "name": "worker",
       "description": "主力の実装担当。指示がはっきりしていて、長く自律的に進める作業",
       "candidates": [
-        "command-code:deepseek/deepseek-v4.1-flash:high",
         "pi:opencode-go/deepseek-v4.1-flash:high",
+        "command-code:deepseek/deepseek-v4.1-flash:high",
         "claude-code:claude-opus-5-5:medium"
       ]
     },
@@ -35,8 +35,8 @@
       "name": "scout",
       "description": "explore など、範囲が限られた簡単な作業",
       "candidates": [
-        "command-code:deepseek/deepseek-v4.1-flash:low",
         "pi:opencode-go/deepseek-v4.1-flash:low",
+        "command-code:deepseek/deepseek-v4.1-flash:low",
         "pi:openai-codex/gpt-6-luna:low",
         "claude-code:claude-haiku-5-5:low"
       ]
