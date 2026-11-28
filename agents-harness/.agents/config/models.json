@@ -26,8 +26,8 @@
         "一段メタな Agent の Goal を検討するとき。例: 決定論的に判定できる goal を設計し、worker に達成までループさせる戦略を取る場合の、その goal の設計"
       ],
       "candidates": [
-        "claude-code:claude-fable-5-2:xhigh",
-        "pi:openai-codex/gpt-6-astra:xhigh",
+        "claude-code:claude-fable-5-2:high",
+        "pi:openai-codex/gpt-6-astra:high",
         "claude-code:claude-opus-5-5:max"
       ]
     },
