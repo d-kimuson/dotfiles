@@ -340,3 +340,50 @@ test("plan は未知の op と盤面を拒み、空の label を付けず、本�
   const result = plan([userAdd, own], [{ op: "session", card: "ui-card", session: "codex t1" }], { writer: "cc-a", now })
   assert.equal(findCard(fold([userAdd, own, ...result.actions]), "ui-card")?.card.description, "説明\n\n## 状況\n本人のメモ\n\n## セッション\n- codex t1")
 })
+
+test("comment はカードへの comment action を 1 つ作り、ページのコメントと同じ形で読める", () => {
+  const result = plan([userAdd], [{ op: "comment", card: "ui-card", text: "  方針: A を採る\n理由は B  " }], { writer: "cc-a", now })
+  assert.deepEqual(result.actions, [
+    {
+      id: "cc-a:001",
+      type: "comment",
+      target: { type: "element", id: "personal-task-board/card/ui-card@board" },
+      payload: { body: "方針: A を採る\n理由は B" },
+      createdAt: now.toISOString(),
+      author: { id: "agent:claude-code", name: "Claude Code" },
+    },
+  ])
+  assert.deepEqual(fold([userAdd, ...result.actions]).comments.map((c) => [c.card, c.author, c.body]), [["ui-card", "Claude Code", "方針: A を採る\n理由は B"]])
+})
+
+test("comment は無いカードを飛ばし、空の text を拒む", () => {
+  const missing = plan([userAdd], [{ op: "comment", key: "none", text: "x" }], { writer: "cc-a", now })
+  assert.deepEqual(missing, { actions: [], skipped: [`comment ${cardId("none")}: カードが無い`] })
+  assert.throws(() => plan([userAdd], [{ op: "comment", card: "ui-card", text: " \n " }], { writer: "cc-a", now }), /comment: text が空/)
+})
+
+test("show はコメントを時刻の順に出し、複数行の本文の 2 行目以降を字下げする", () => {
+  const second = pageAction("u:3", "comment", "card/ui-card", { body: "後のコメント" }, "2026-11-27T09:03:00.000Z")
+  const first = pageAction("u:2", "comment", "card/ui-card", { body: "1 行目\n2 行目" }, "2026-11-27T09:02:00.000Z")
+  const text = renderBoard(fold([userAdd, second, first]))
+  assert.ok(
+    text.includes(
+      ["    > 2026-11-27T09:02:00.000Z u_tester: 1 行目", "    >   2 行目", "    > 2026-11-27T09:03:00.000Z u_tester: 後のコメント"].join("\n"),
+    ),
+    text,
+  )
+})
+
+test("kit が区切りごとに符号化した target のカードを読む", () => {
+  const add: Action = { ...userAdd, payload: { id: "日本語-card", title: "日本語の id" } }
+  const comment: Action = {
+    ...pageAction("u:2", "comment", "", { body: "本文" }, "2026-11-27T09:01:00.000Z"),
+    target: { type: "element", id: `personal-task-board/card/${encodeURIComponent("日本語-card")}@board` },
+  }
+  const move: Action = { ...comment, id: "u:3", type: "MOVE_CARD", payload: { column: "doing", before: null }, createdAt: "2026-11-27T09:02:00.000Z" }
+  const board = fold([add, comment, move])
+  assert.equal(findCard(board, "日本語-card")?.column, "doing")
+  assert.deepEqual(board.comments.map((c) => c.card), ["日本語-card"])
+  const planned = plan([add], [{ op: "comment", card: "日本語-card", text: "x" }], { writer: "cc-a", now })
+  assert.equal(planned.actions[0]?.target.id, comment.target.id)
+})

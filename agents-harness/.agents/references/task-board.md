@@ -1,6 +1,6 @@
 # Task Board
 
-本人のタスクを 1 つに集める Personal Task Board の読み書きの仕方。盤面は Claude Artifact のページで、読み書きに `Artifact` と `ArtifactData` ツールを使う。ローカルの Claude Code と Claude Code on the web のどちらでも同じ手順で扱える。
+本人のタスクを 1 つに集める Personal Task Board の読み書きの仕方。盤面は「パーソナルダッシュボード」という題の Claude Artifact のページで、読み書きに `Artifact` と `ArtifactData` ツールを使う。ローカルの Claude Code と Claude Code on the web のどちらでも同じ手順で扱える。
 
 ## 置き場所
 
@@ -27,13 +27,13 @@ Agent は `actions` に文書を追記するだけで、既存の文書を書き
 
 Claude Code on the web では毎回これにあたる。
 
-1. `Artifact` の `list` で `Personal Task Board` という題の Artifact を探す。あれば、その URL で index.md を書く。同じ題が複数あれば、`ArtifactData` の `list` (`collection: "actions"`) で文書が返るものを選び、複数返れば最も新しく更新されたものを選ぶ
+1. `Artifact` の `list` で `パーソナルダッシュボード` という題の Artifact を探す (以前の題は `Personal Task Board`)。あれば、その URL で index.md を書く。同じ題が複数あれば、`ArtifactData` の `list` (`collection: "actions"`) で文書が返るものを選び、複数返れば最も新しく更新されたものを選ぶ
 2. 無ければ `board.html` を `capabilities: {"comments": {}, "db": {}, "user": {}}` で publish し (共有範囲は既定の非公開のまま)、返った URL で index.md を書く
 
 ## 読む
 
 1. 空のディレクトリ `<dir>` を作り (`mktemp -d`)、`ArtifactData` の `list` を `url` に盤面の URL、`collection: "actions"`、`query: {"limit": 1000}`、`out_dir: <dir>` で呼ぶ。`next_cursor` が返る間は `query.cursor` に渡して同じ `out_dir` へ続けて読む
-2. `node ~/.agents/playbooks/personal-task-board/scripts/board.ts show <dir>` で盤面ごと・列ごとのカードを出す。カードの行は `TASK-<n> <カード id> <題> [タグ] <リンク>`、続く字下げ行が description と、ページで本人が付けたコメント (`>` の行)。列などカード以外に付いたコメントは「カード以外へのコメント」の節に出る
+2. `node ~/.agents/playbooks/personal-task-board/scripts/board.ts show <dir>` で盤面ごと・列ごとのカードを出す。カードの行は `TASK-<n> <カード id> <題> [タグ] <リンク>`、続く字下げ行が description と、カードのコメント (`> <日時> <書き手>: <本文>` の行、古い順)。列などカード以外に付いたコメントは「カード以外へのコメント」の節に出る
 3. `show` はアーカイブの列を枚数だけ出す。アーカイブしたカードの中身は `show <dir> --archived` で出す
 
 `<dir>/actions` が無いと `board.ts` は失敗する。`list` が 0 件で盤面が空のときだけ、`show` と `plan` に `--empty` を付ける。
@@ -54,13 +54,14 @@ Claude Code on the web では毎回これにあたる。
 | `{"op":"detail","key"?:k,"card"?:id,"text":t}` | description の説明に段落を足す |
 | `{"op":"link","key"?:k,"card"?:id,"url":u,"label"?:l}` | リンクを足す。成果物 (PR やコミット) もここに置く |
 | `{"op":"session","key"?:k,"card"?:id,"session":s}` | セッションの参照を足す。形式は下の「セッションの参照」 |
+| `{"op":"comment","key"?:k,"card"?:id,"text":t}` | カードにコメントを足す。状況・方針・進み具合はここに書く。書き手は `Claude Code` と出る |
 | `{"op":"archive","board"?:b}` | Done のカードを `archived` へ移す。下の「アーカイブ」と同じ。`board` を省くと全盤面 |
 
 - `key`: チケットがあればその URL。無ければ出どころが分かる一意な文字列 (`slack:<channel>/<スレッドの親の ts>`、`session:<handoff の identifier>` など)。URL の key は host の大小・fragment・末尾の `/` をそろえてからカード id にする。本人がページで足したカードは `card` に `board.ts show` のカード id を渡す
 - 列は上の「置き場所」のとおり。`today` は本人が選ぶ列で、Agent はカードを `today` へ動かさない。`today` にあるカードの着手は `doing` へ動かす
 - `links` は `http(s)` の URL だけ。ローカルのパスは `detail` に書く
 - タグは種類 (`判断`・`学習`・`作業` から 1 つ) と、プロジェクトに属すならプロジェクト名 (remote のリポジトリ名、無ければディレクトリ名)
-- description は説明、`## ブロック理由`、`## セッション` の 3 節だけにする。経緯や日時の記録は書かない。いまの状態は列が表す
+- description は説明、`## ブロック理由`、`## セッション` の 3 節だけにする。経緯と状況は `comment` に書く。いまの状態は列が表す
 
 ## セッションの参照
 
@@ -85,7 +86,8 @@ URL はリンク (label `session`) に、ローカルの参照は description �
 | 要所 | intent |
 | --- | --- |
 | 着手 | カードが無ければ `add` (`column: "doing"`, `sessions: [自分の参照]`)。あれば `move` で `doing` へ動かし、`session` で自分の参照を足す |
-| 方針の確定 | `detail` に決めた方針を 1〜3 行 |
+| 方針の確定 | `comment` に決めた方針を 1〜3 行 |
+| 状況の変化 (区切りの作業が済んだ、委譲した、レビューを待つなど) | `comment` に 1〜3 行 |
 | ブロック | `move` で `blocked` へ。`reason` に何を待っているか |
 | ブロックの解消 | `move` で `doing` へ |
 | 完了 | `move` で `done` へ。成果物 (PR やコミット) を `link` で足す |
@@ -96,7 +98,7 @@ URL はリンク (label `session`) に、ローカルの参照は description �
 
 ## アーカイブ
 
-Done 列のカードをまとめて、ページが隠す `archived` 列へ移す。ページの下の欄にある `Done の N 枚をアーカイブ` ボタンと、次の手順は同じ `MOVE_CARD` を書く。
+Done 列のカードをまとめて、ページが隠す `archived` 列へ移す。ページの Done 列の見出しにある `アーカイブ` ボタンと、次の手順は同じ `MOVE_CARD` を書く。ボタンは確認を挟まずに移す。
 
 1. 「読む」で `actions` を読む
 2. `node ~/.agents/playbooks/personal-task-board/scripts/board.ts archive <dir> <out-dir> [<盤面>]` を実行する。標準出力は `plan` と同じ `writes` の配列で、1 つずつ `batch` に渡す。標準エラーに移すカードが `archive: TASK-<n> <カード id> <題>` で出る
@@ -108,7 +110,11 @@ action を消さないので、カードの番号・コメント・リンクは�
 
 ## 本人がページで書いたもの
 
-ページでのカードの追加・移動・編集・コメントは db の `actions` に入るので、上の「読む」で読める。コメントは本人から Agent への依頼やメモとして扱う。
+ページでのカードの追加・移動・編集・コメントは db の `actions` に入るので、上の「読む」で読める。
+
+- カードのコメントは、カード詳細の「コメント」欄から本人が書くものと、Agent が `comment` で書くものが同じ `comment` action として並ぶ。`show` で書き手が `Claude Code` のコメントは Agent が残した状況の記録で、依頼ではない。それ以外の書き手のコメントは本人から Agent への依頼やメモとして扱う
+- Agent はコメントを消さない。古くなった状況は新しいコメントで上書きする
+- Artifact のコメント (kit の review rail の Send to Claude で、ページを publish したセッションへ届くもの) はカードのコメントとは別物で、`actions` には入らない
 
 ページが db から消すのは、そのページを開いてから本人が足した action (Undo の対象) とコメントだけである。操作ログの「すべてクリア」と、それ以前の action の削除は db に反映せず、盤面は db の内容に戻る。
 

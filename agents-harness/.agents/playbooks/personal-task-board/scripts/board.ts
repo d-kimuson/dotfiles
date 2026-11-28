@@ -65,12 +65,24 @@ export type Comment = { board?: BoardId; card: string; body: string; author: str
 export type Stale = { id: string; type: string }
 export type Board = { columns: Column[]; comments: Comment[]; stale: Stale[] }
 const boardOf = (id: string) => BOARDS.find((b) => b.id === id)
-const target = (board: BoardId, path: string): Target => ({ type: "element", id: `${board}/${path}@${boardOf(board)?.page}` })
+// kit と同じく、区切りごとに encodeURIComponent する (commentRef)。
+const target = (board: BoardId, path: string): Target => ({
+  type: "element",
+  id: `${[board, ...path.split("/")].map(encodeURIComponent).join("/")}@${boardOf(board)?.page}`,
+})
+const decode = (segment: string): string => {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return segment
+  }
+}
 export const parseTarget = (t: Target | undefined): { board: BoardId; path: string } | undefined => {
   for (const b of BOARDS) {
     const prefix = `${b.id}/`
     const suffix = `@${b.page}`
-    if (t?.id?.startsWith(prefix) === true && t.id.endsWith(suffix)) return { board: b.id, path: t.id.slice(prefix.length, -suffix.length) }
+    if (t?.id?.startsWith(prefix) === true && t.id.endsWith(suffix))
+      return { board: b.id, path: t.id.slice(prefix.length, -suffix.length).split("/").map(decode).join("/") }
   }
   return undefined
 }
@@ -122,7 +134,7 @@ export const fold = (actions: Action[]): Board => {
     const apply = (): boolean => {
       if (action.type === "comment") {
         const id = t === undefined ? str(action.target?.id) : t.path.startsWith("card/") ? t.path.slice(5) : t.path
-        comments.push({ ...(t === undefined ? {} : { board: t.board }), card: id, body: str(p.body), author: action.author?.id ?? "", createdAt: action.createdAt })
+        comments.push({ ...(t === undefined ? {} : { board: t.board }), card: id, body: str(p.body), author: action.author?.name ?? action.author?.id ?? "", createdAt: action.createdAt })
         return true
       }
       if (t === undefined) return false
@@ -280,6 +292,7 @@ export type Intent =
   | ({ op: "detail"; text: string } & CardRef)
   | ({ op: "link"; url: string; label?: string } & CardRef)
   | ({ op: "session"; session: string } & CardRef)
+  | ({ op: "comment"; text: string } & CardRef)
   | { op: "archive"; board?: BoardId }
 
 export type PlanResult = { actions: Action[]; skipped: string[] }
@@ -313,9 +326,10 @@ export const plan = (
   const needReason = (column: string, reason: string | undefined, label: string): void => {
     if (column === BLOCKED && (reason === undefined || reason.trim() === "")) throw new Error(`${label}: blocked へは reason (何を待っているか) が要る`)
   }
-  const OPS = ["add", "move", "detail", "link", "session", "archive"]
+  const OPS = ["add", "move", "detail", "link", "session", "comment", "archive"]
   for (const intent of intents) {
     if (!OPS.includes(intent.op)) throw new Error(`unknown op: ${String(intent.op)} (${OPS.join(", ")})`)
+    if (intent.op === "comment" && (typeof intent.text !== "string" || intent.text.trim() === "")) throw new Error("comment: text が空")
     const board = fold([...actions, ...created])
     if (intent.op === "archive") {
       if (intent.board !== undefined) checkBoard(intent.board)
@@ -371,6 +385,8 @@ export const plan = (
       setDescription({ ...desc, detail: [desc.detail, intent.text.trim()].filter((s) => s !== "").join("\n\n") })
     } else if (intent.op === "link") {
       addLink(intent.url, intent.label)
+    } else if (intent.op === "comment") {
+      emit(b, "comment", `card/${id}`, { body: intent.text.trim() })
     } else if (intent.op === "session") {
       const ref = checkSession(intent.session)
       if (isHttp(ref)) addLink(ref, "session")
@@ -419,6 +435,9 @@ export const readActions = (dumpDir: string, options: { allowEmpty?: boolean } =
     .map((f) => JSON.parse(readFileSync(join(dir, f), "utf8")) as Action)
 }
 
+const commentLines = (head: string, body: string, indent: string): string[] =>
+  body.split("\n").map((line, i) => (i === 0 ? `${head}${line}` : `${indent}${line}`))
+
 export const renderBoard = (board: Board, options: { archived?: boolean } = {}): string => {
   const lines: string[] = []
   for (const b of BOARDS) {
@@ -431,7 +450,7 @@ export const renderBoard = (board: Board, options: { archived?: boolean } = {}):
         lines.push(`- TASK-${card.number} ${card.id} ${card.title}${tags}${links === "" ? "" : ` ${links}`}`)
         for (const line of (card.description ?? "").split("\n")) if (line.trim() !== "") lines.push(`    ${line}`)
         for (const c of board.comments.filter((x) => x.board === b.id && x.card === card.id))
-          lines.push(`    > ${c.createdAt} ${c.author}: ${c.body}`)
+          lines.push(...commentLines(`    > ${c.createdAt} ${c.author}: `, c.body, "    >   "))
       }
     }
   }
@@ -440,7 +459,7 @@ export const renderBoard = (board: Board, options: { archived?: boolean } = {}):
   const others = board.comments.filter((c) => !cardIds.has(`${c.board}/${c.card}`))
   if (others.length > 0) {
     lines.push("## カード以外へのコメント")
-    for (const c of others) lines.push(`- ${c.card} ${c.createdAt} ${c.author}: ${c.body}`)
+    for (const c of others) lines.push(...commentLines(`- ${c.card} ${c.createdAt} ${c.author}: `, c.body, "    "))
   }
   if (board.stale.length > 0) lines.push(`\n適用できなかった action: ${board.stale.map((s) => `${s.id}(${s.type})`).join(", ")}`)
   return lines.join("\n")

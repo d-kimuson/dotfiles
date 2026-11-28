@@ -1,4 +1,4 @@
-<title>Personal Task Board</title>
+<title>パーソナルダッシュボード</title>
 <style>
   html,
   body {
@@ -9,132 +9,42 @@
     display: block;
     height: 100%;
   }
-  .ptb-summary {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    max-height: 32vh;
-    overflow: auto;
-    box-sizing: border-box;
-    padding: 12px 16px;
-    border-top: 1px solid var(--dpk-rule);
-    background: var(--dpk-paper-sunken);
-    color: var(--dpk-ink);
-  }
-  .ptb-panel[hidden] {
-    display: none;
-  }
-  .ptb-panel {
-    background: var(--dpk-paper-raised);
-    overflow: auto;
+  .ptb-view {
+    display: inline-flex;
+    position: relative;
+    padding: 2px;
     border: 1px solid var(--dpk-rule);
-    border-radius: var(--dpk-radius);
-    padding: 12px 14px;
-    min-width: 0;
-  }
-  .ptb-panel h3 {
-    margin: 0 0 8px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--dpk-ink-soft);
-  }
-  .ptb-counts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .ptb-counts li {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--dpk-ink-soft);
-  }
-  .ptb-counts strong {
-    font-size: 20px;
-    font-variant-numeric: tabular-nums;
-    color: var(--dpk-ink);
-  }
-  .ptb-counts li[data-column="blocked"] strong {
-    color: var(--dpk-danger);
-  }
-  .ptb-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 6px;
-    font-size: 13px;
-  }
-  .ptb-list li {
-    display: grid;
-    gap: 2px;
-    min-width: 0;
-  }
-  .ptb-list .ptb-title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .ptb-list .ptb-key {
-    font-family: var(--dpk-mono);
-    color: var(--dpk-ink-faint);
-    margin-right: 6px;
-  }
-  .ptb-list .ptb-sub {
-    color: var(--dpk-ink-soft);
-    font-size: 12px;
-  }
-  .ptb-empty {
-    color: var(--dpk-ink-faint);
-    font-size: 13px;
-    margin: 0;
-  }
-  .ptb-archive {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--dpk-ink-faint);
-  }
-  .ptb-archive button {
-    font: inherit;
-    font-size: 13px;
-    padding: 4px 10px;
     border-radius: var(--dpk-radius-sm);
-    border: 1px solid var(--dpk-rule-strong);
-    background: var(--dpk-paper);
-    color: var(--dpk-ink);
+    background: var(--dpk-paper-sunken);
+  }
+  .ptb-view input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ptb-view label {
+    padding: 2px 10px;
+    border-radius: var(--dpk-radius-sm);
+    font-size: 12px;
+    color: var(--dpk-ink-soft);
     cursor: pointer;
   }
-  .ptb-archive button:disabled {
-    cursor: default;
-    color: var(--dpk-ink-faint);
+  .ptb-view input:checked + label {
+    background: var(--dpk-paper-raised);
+    color: var(--dpk-ink);
+    box-shadow: 0 0 0 1px var(--dpk-rule-strong);
+  }
+  .ptb-view input:focus-visible + label {
+    outline: 2px solid currentColor;
+    outline-offset: 1px;
   }
 </style>
 
 <dpk-app lang="ja" storage-key="personal-task-board">
-  <script type="application/json">{ "title": "Personal Task Board" }</script>
-  <div slot="main" class="ptb-summary">
-    <section class="ptb-panel">
-      <h3>列ごとの枚数</h3>
-      <ul class="ptb-counts"></ul>
-      <div class="ptb-archive"><button type="button" disabled>Done をアーカイブ</button><span></span></div>
-    </section>
-    <section class="ptb-panel" data-panel="blocked">
-      <h3>ブロック中</h3>
-      <ul class="ptb-list" data-list="blocked"></ul>
-    </section>
-    <section class="ptb-panel">
-      <h3>最近動いたカード</h3>
-      <ul class="ptb-list" data-list="recent"></ul>
-    </section>
+  <script type="application/json">{ "title": "パーソナルダッシュボード" }</script>
+  <div slot="header" class="ptb-view" role="radiogroup" aria-label="表示">
+    <input type="radio" name="ptb-view" id="ptb-view-kanban" value="kanban" checked /><label for="ptb-view-kanban">Kanban</label>
+    <input type="radio" name="ptb-view" id="ptb-view-list" value="list" /><label for="ptb-view-list">List</label>
   </div>
   <dpk-page name="board" label="タスク">
     <dpk-board-kanban id="personal-task-board" heading="タスク">
@@ -173,41 +83,70 @@
   const KIT = "https://cdn.jsdelivr.net/npm/dev-process-kit@0.4.2/dist/boards.js";
   const ACTIONS = "actions";
   const ARCHIVED = "archived";
-  const BLOCKED_HEADING = "## ブロック理由";
+  const DONE = "done";
+  const VIEW_KEY = "ptb.view";
+  const kanbans = [...document.querySelectorAll("dpk-page > dpk-board-kanban")];
   // 列は各 Kanban の base JSON から読む。
   const BOARDS = Object.fromEntries(
-    [...document.querySelectorAll("dpk-page > dpk-board-kanban")].map((el) => [
+    kanbans.map((el) => [
       el.id,
       {
         page: el.parentElement.getAttribute("name"),
-        label: el.parentElement.getAttribute("label"),
         columns: JSON.parse(el.querySelector(":scope > script[type='application/json']").textContent).columns,
       },
     ]),
   );
 
+  // 表示の切り替えは 2 枚の Kanban に同じ値を当てる。storage が使えない環境では毎回 Kanban から始める。
+  const readView = () => {
+    try {
+      return localStorage.getItem(VIEW_KEY) === "list" ? "list" : "kanban";
+    } catch {
+      return "kanban";
+    }
+  };
+  const applyView = (view) => {
+    for (const el of kanbans) el.dataset.view = view;
+    document.getElementById(`ptb-view-${view}`).checked = true;
+  };
+  applyView(readView());
+  document.querySelector(".ptb-view").addEventListener("change", (event) => {
+    applyView(event.target.value);
+    try {
+      localStorage.setItem(VIEW_KEY, event.target.value);
+    } catch {}
+  });
+
+  // kit と同じく、target の区切りごとに encodeURIComponent する。
+  const cardPath = (board, card) => [board, "card", card].map(encodeURIComponent).join("/");
+  const decode = (segment) => {
+    try {
+      return decodeURIComponent(segment);
+    } catch {
+      return segment;
+    }
+  };
   const order = (a, b) => (a.createdAt === b.createdAt ? (a.id < b.id ? -1 : 1) : a.createdAt < b.createdAt ? -1 : 1);
   const parseTarget = (t) => {
     const id = t?.id ?? "";
     for (const [board, { page }] of Object.entries(BOARDS)) {
-      if (id.startsWith(`${board}/`) && id.endsWith(`@${page}`)) return { board, path: id.slice(board.length + 1, -page.length - 1) };
+      if (id.startsWith(`${board}/`) && id.endsWith(`@${page}`))
+        return { board, path: id.slice(board.length + 1, -page.length - 1).split("/").map(decode).join("/") };
     }
     return undefined;
-  };
-  const actionCard = (a) => {
-    const t = parseTarget(a.target);
-    if (t === undefined) return undefined;
-    if (a.type === "ADD_CARD") return { board: t.board, card: a.payload?.id };
-    return t.path.startsWith("card/") ? { board: t.board, card: t.path.slice(5) } : undefined;
   };
 
   let actions = [];
   let pending = 0;
-  let renderLater = () => {};
+  let self = null;
+  const listeners = new Set();
+  const changed = () => {
+    for (const listener of listeners) listener();
+  };
 
   // board.ts の fold と同じ規則で、db の action から 1 つの盤面の列とカードを出す (Kanban の api.state は盤面を返さない)。
   const columnsOf = (board) => {
-    const columns = BOARDS[board].columns.map((c) => ({ id: c.id, label: c.label, cards: [] }));
+    const columns = BOARDS[board].columns.map((c) => ({ id: c.id, cards: [] }));
     const locate = (id) => {
       for (const column of columns) {
         const index = column.cards.findIndex((c) => c.id === id);
@@ -223,26 +162,28 @@
       if (a.type === "ADD_CARD") {
         const column = columns.find((c) => `column/${c.id}` === t.path);
         const number = typeof p.number === "number" ? p.number : Math.max(0, ...numbers()) + 1;
-        const title = String(p.title ?? "").trim();
-        if (column && title !== "" && !locate(p.id) && !numbers().includes(number))
-          column.cards.push({ id: p.id, number, title, description: null, tags: [], links: [] });
+        if (column && String(p.title ?? "").trim() !== "" && !locate(p.id) && !numbers().includes(number)) column.cards.push({ id: p.id, number });
         continue;
       }
-      const found = t.path.startsWith("card/") ? locate(t.path.slice(5)) : undefined;
+      const found = a.type === "MOVE_CARD" && t.path.startsWith("card/") ? locate(t.path.slice(5)) : undefined;
       if (found === undefined) continue;
-      const { card } = found;
-      if (a.type === "MOVE_CARD") {
-        const to = columns.find((c) => c.id === p.column);
-        const before = p.before ?? null;
-        if (!to || before === card.id || (before !== null && !to.cards.some((c) => c.id === before))) continue;
-        found.column.cards.splice(found.index, 1);
-        const at = before === null ? -1 : to.cards.findIndex((c) => c.id === before);
-        if (at === -1) to.cards.push(card);
-        else to.cards.splice(at, 0, card);
-      } else if (a.type === "SET_CARD_TITLE" && String(p.title ?? "").trim() !== "") card.title = String(p.title).trim();
-      else if (a.type === "SET_CARD_DESCRIPTION") card.description = p.description ? String(p.description) : null;
+      const to = columns.find((c) => c.id === p.column);
+      const before = p.before ?? null;
+      if (!to || before === found.card.id || (before !== null && !to.cards.some((c) => c.id === before))) continue;
+      found.column.cards.splice(found.index, 1);
+      const at = before === null ? -1 : to.cards.findIndex((c) => c.id === before);
+      if (at === -1) to.cards.push(found.card);
+      else to.cards.splice(at, 0, found.card);
     }
     return columns;
+  };
+
+  const commentsOf = (el, board, card) => {
+    const path = cardPath(board, card);
+    const source = self === null ? (el.api?.actions ?? []) : actions;
+    return source
+      .filter((a) => a.type === "comment" && (a.target?.id === `${path}@${BOARDS[board].page}` || a.target?.id === path))
+      .sort(order);
   };
 
   const localWriter = () => {
@@ -260,7 +201,7 @@
   // 消してよいのは、このページを開いてから自分で足した action とコメントだけ。Clear all と古い action の Delete・Undo は db に反映せず、盤面を db の内容に戻す。
   // ページの追加・削除・改名は db に入れない。ページは board.html が決める。
   const PAGE_ACTIONS = ["ADD_PAGE", "REMOVE_PAGE", "RENAME_PAGE"];
-  const dbTransport = (db, self) => {
+  const dbTransport = (db) => {
     const collection = db.collection(ACTIONS);
     const mine = new Set();
     let emit = () => {};
@@ -284,151 +225,272 @@
         return collection.onSnapshot((snap) => {
           actions = snap.docs.map((doc) => ({ ...doc.data() })).sort(order);
           emit();
-          renderLater();
+          changed();
         }, onError);
       },
       async push(ops) {
         pending++;
-        renderLater();
+        changed();
         try {
           await write(ops);
         } finally {
           pending--;
-          renderLater();
+          changed();
         }
       },
     };
   };
 
-  // アーカイブは Done のカードを隠した列へ移すだけ (board.ts archive と同じ action)。
-  const archiveDone = (board) => {
-    const el = document.getElementById(board);
-    for (const card of columnsOf(board).find((c) => c.id === "done")?.cards ?? [])
+  // アーカイブは Done のカードを隠した列へ移すだけ (board.ts archive と同じ action)。戻すときは kit の Undo を使う。
+  const archiveDone = (el, board) => {
+    for (const card of columnsOf(board).find((c) => c.id === DONE)?.cards ?? [])
       el.dispatchElementAction("MOVE_CARD", ["card", card.id], { column: ARCHIVED, before: null });
   };
 
-  const item = (key, title, sub) => {
-    const li = document.createElement("li");
-    const head = document.createElement("span");
-    head.className = "ptb-title";
-    const k = document.createElement("span");
-    k.className = "ptb-key";
-    k.textContent = key;
-    head.append(k, title);
-    li.append(head);
-    if (sub) {
-      const s = document.createElement("span");
-      s.className = "ptb-sub";
-      s.textContent = sub;
-      li.append(s);
+  const ensureArchive = (el, root, board) => {
+    const head = root.querySelector(`.kanban-column[data-column="${DONE}"] > .kanban-column-head`);
+    if (head === null) return;
+    let button = head.querySelector(":scope > .ptb-archive");
+    if (button === null) {
+      button = document.createElement("button");
+      button.type = "button";
+      button.className = "ptb-archive";
+      button.textContent = "アーカイブ";
+      button.addEventListener("pointerdown", (event) => event.stopPropagation());
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        archiveDone(el, board);
+      });
+      head.append(button);
     }
-    return li;
+    const done = columnsOf(board).find((c) => c.id === DONE)?.cards.length ?? 0;
+    // 書き込み中は db の盤面がページの表示より古いので押させない。
+    const disabled = self === null || done === 0 || pending > 0;
+    if (button.disabled !== disabled) button.disabled = disabled;
+    const title = done === 0 ? "Done にカードが無い" : `Done の ${done} 枚をアーカイブ`;
+    if (button.title !== title) button.title = title;
   };
-  const empty = (text) => {
-    const p = document.createElement("li");
-    p.className = "ptb-empty";
-    p.textContent = text;
-    return p;
-  };
-  const blockedReason = (description) => {
-    const lines = (description ?? "").split("\n");
-    const start = lines.findIndex((l) => l.trim() === BLOCKED_HEADING);
-    if (start === -1) return "";
-    const rest = lines.slice(start + 1);
-    const end = rest.findIndex((l) => /^#{1,6} /.test(l.trim()));
-    return (end === -1 ? rest : rest.slice(0, end)).join(" ").trim();
-  };
+
   const when = (iso) => {
     const d = new Date(iso);
     return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
   };
+  const authorName = (author) => (author?.id !== undefined && author.id === self?.id ? "自分" : (author?.name ?? author?.id ?? ""));
 
-  // 下の欄は、いま表示しているページの盤面を要約する。
-  const render = (writable) => {
-    const app = document.querySelector("dpk-app");
-    const page = app.api?.navigation?.page;
-    const board = Object.keys(BOARDS).find((id) => BOARDS[id].page === page) ?? Object.keys(BOARDS)[0];
-    const root = document.querySelector(".ptb-summary");
-    const all = columnsOf(board);
-    const columns = all.filter((c) => c.id !== ARCHIVED);
-    const cards = new Map(columns.flatMap((c) => c.cards.map((card) => [card.id, { card, column: c }])));
-    root.querySelector(".ptb-counts").replaceChildren(
-      ...columns.map((c) => {
+  const buildComments = (el, board) => {
+    const section = document.createElement("section");
+    section.className = "kanban-detail-field ptb-comments";
+    const label = document.createElement("span");
+    label.className = "dpk-label";
+    label.textContent = "コメント";
+    const list = document.createElement("ol");
+    const form = document.createElement("div");
+    form.className = "ptb-composer";
+    const input = document.createElement("textarea");
+    input.rows = 2;
+    input.placeholder = "状況やメモを書く";
+    input.setAttribute("aria-label", "コメント");
+    const send = document.createElement("button");
+    send.type = "button";
+    send.textContent = "送る";
+    const error = document.createElement("p");
+    error.className = "ptb-error";
+    form.append(input, send, error);
+    section.append(label, list, form);
+    const submit = () => {
+      const text = input.value.trim();
+      if (text === "") return;
+      let result;
+      try {
+        result = el.api.comment(`element:${cardPath(board, section.dataset.ptbCard)}`, text);
+      } catch (e) {
+        result = { ok: false, issues: [{ message: e instanceof Error ? e.message : String(e) }] };
+      }
+      if (result?.ok === false) {
+        error.textContent = `送れなかった: ${(result.issues ?? []).map((i) => i.message).join(", ")}`;
+        return;
+      }
+      input.value = "";
+      error.textContent = "";
+    };
+    // sandbox に allow-forms が無いと form の submit は発火しないので、button の click で送る。
+    send.addEventListener("click", submit);
+    // 入力中のキーを kit のショートカットへ渡さない。
+    for (const type of ["keydown", "keyup", "keypress"]) form.addEventListener(type, (event) => event.stopPropagation());
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && !event.isComposing) {
+        event.preventDefault();
+        submit();
+      }
+    });
+    return section;
+  };
+
+  const reveal = new Set();
+
+  const ensureComments = (el, root, board) => {
+    const detail = root.querySelector("aside.kanban-detail[data-card]");
+    const body = detail?.querySelector(".kanban-detail-body");
+    if (!body) return;
+    const card = detail.dataset.card;
+    let section = body.querySelector(":scope > .ptb-comments");
+    if (section === null) {
+      section = buildComments(el, board);
+      body.append(section);
+    }
+    // 860px 以下では詳細が盤面の下に積まれ、kit は preventScroll で focus するので、押したカードの詳細を画面に入れる。
+    if (section.dataset.ptbCard !== card || reveal.has(el)) {
+      reveal.delete(el);
+      const rect = detail.getBoundingClientRect();
+      if (rect.top >= innerHeight || rect.bottom <= 0) detail.scrollIntoView({ block: "start" });
+    }
+    if (section.dataset.ptbCard !== card) {
+      section.dataset.ptbCard = card;
+      delete section.dataset.sig;
+      section.querySelector("textarea").value = "";
+      section.querySelector(".ptb-error").textContent = "";
+    }
+    const comments = commentsOf(el, board, card);
+    const sig = `#${comments.map((c) => `${c.id}:${c.payload?.body ?? ""}`).join("\n")}`;
+    if (section.dataset.sig === sig) return;
+    section.dataset.sig = sig;
+    const list = section.querySelector("ol");
+    list.replaceChildren(
+      ...comments.map((c) => {
         const li = document.createElement("li");
-        li.dataset.column = c.id;
-        const n = document.createElement("strong");
-        n.textContent = String(c.cards.length);
-        li.append(c.label, n);
+        const meta = document.createElement("span");
+        meta.className = "ptb-comment-meta";
+        meta.textContent = `${when(c.createdAt)} ${authorName(c.author)}`;
+        const text = document.createElement("p");
+        text.textContent = String(c.payload?.body ?? "");
+        li.append(meta, text);
         return li;
       }),
     );
-    const blocked = root.querySelector('[data-list="blocked"]');
-    const blockedColumn = columns.find((c) => c.id === "blocked");
-    root.querySelector('[data-panel="blocked"]').hidden = blockedColumn === undefined;
-    if (blockedColumn) {
-      const list = blockedColumn.cards;
-      blocked.replaceChildren(...(list.length === 0 ? [empty("なし")] : list.map((c) => item(`TASK-${c.number}`, c.title, blockedReason(c.description) || "理由が書かれていない"))));
-    }
-    const recent = root.querySelector('[data-list="recent"]');
-    const seen = new Set();
-    const moves = [];
-    for (const a of [...actions].reverse()) {
-      if (a.type !== "MOVE_CARD" && a.type !== "ADD_CARD") continue;
-      const ref = actionCard(a);
-      const hit = ref && ref.board === board && cards.get(ref.card);
-      if (!hit || seen.has(ref.card)) continue;
-      seen.add(ref.card);
-      moves.push(item(`TASK-${hit.card.number}`, hit.card.title, `${when(a.createdAt)} ${a.type === "ADD_CARD" ? "追加" : "移動"} → ${hit.column.label}`));
-      if (moves.length === 5) break;
-    }
-    recent.replaceChildren(...(moves.length === 0 ? [empty("なし")] : moves));
-    const done = columns.find((c) => c.id === "done")?.cards.length ?? 0;
-    const button = root.querySelector(".ptb-archive button");
-    // 書き込み中は db の盤面がページの表示より古いので押させない。
-    button.disabled = !writable || done === 0 || pending > 0;
-    button.textContent = done === 0 ? "Done をアーカイブ" : `Done の ${done} 枚をアーカイブ`;
-    const kept = all.find((c) => c.id === ARCHIVED)?.cards.length ?? 0;
-    root.querySelector(".ptb-archive span").textContent = kept === 0 ? "" : `アーカイブ済み ${kept} 枚`;
-    button.onclick = () => {
-      if (!confirm(`${BOARDS[board].label} の Done の ${done} 枚をアーカイブする`)) return;
-      archiveDone(board);
-      render(writable);
-    };
+    list.hidden = comments.length === 0;
   };
 
-  // カード詳細の Status と Assignee、カード上の担当者、アーカイブの列、全列の枚数を隠す。列の移動はドラッグで行い、担当者は使わない。
-  const hideFields = (el) => {
-    if (!el.shadowRoot || el.dataset.ptbStyled === "1") return;
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(
-      [
-        ".kanban-detail-field:has(> .kanban-statuses), .kanban-detail-field:has(> dpk-inline-edit:not([multiline])), .kanban-assignee",
-        `.kanban-column[data-column="${ARCHIVED}"]`,
-        ".diagram-stats",
-      ].join(", ") + " { display: none !important; }",
-    );
-    el.shadowRoot.adoptedStyleSheets = [...el.shadowRoot.adoptedStyleSheets, sheet];
-    el.dataset.ptbStyled = "1";
+  const boardSheet = new CSSStyleSheet();
+  boardSheet.replaceSync(`
+    dpk-dialog-panel::part(header),
+    .kanban-detail-field:has(> .kanban-statuses),
+    .kanban-detail-field:has(> dpk-inline-edit:not([multiline])),
+    .kanban-assignee,
+    .kanban-column[data-column="${ARCHIVED}"],
+    .diagram-stats { display: none !important; }
+
+    :host([data-view="list"]) .kanban-board { flex-direction: column; align-items: stretch; overflow-x: visible; }
+    :host([data-view="list"]) .kanban-column { width: auto; max-width: none; flex: none; }
+    :host([data-view="list"]) .kanban-cards { min-height: 40px; }
+
+    .kanban-card { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; row-gap: var(--dpk-card-gap, 6px); align-items: center; }
+    .kanban-card > .dpk-card-head { display: contents; }
+    .kanban-card .dpk-card-title { order: 0; grid-column: 1 / -1; }
+    .kanban-card > .dpk-card-text { order: 1; grid-column: 1 / -1; }
+    .kanban-card .dpk-card-key { order: 2; }
+    .kanban-card > .kanban-card-meta { order: 3; }
+    .kanban-card > .kanban-card-links { order: 4; grid-column: 1 / -1; }
+
+    .kanban-detail { grid-template-rows: minmax(0, 1fr) auto; }
+    @media (max-width: 860px) { .kanban-detail { position: relative; } }
+    .kanban-detail-head { order: 1; }
+    .kanban-detail-close { position: absolute; top: 8px; right: 8px; }
+    .kanban-detail-title { order: 0; padding-right: 32px; }
+    .kanban-detail-field:has(> dpk-inline-edit[multiline]) { order: 1; }
+    .kanban-detail-field:has(> .kanban-tag-row) { order: 2; }
+    .kanban-detail-field:has(.kanban-link-add) { order: 3; }
+    .ptb-comments { order: 4; }
+    .ptb-comments ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .ptb-comments li { display: grid; gap: 2px; }
+    .ptb-comments li p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; color: var(--dpk-ink); }
+    .ptb-comment-meta { font-size: 11px; color: var(--dpk-ink-faint); }
+    .ptb-comments .ptb-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: end; margin-top: 6px; }
+    .ptb-comments textarea { font: inherit; font-size: 13px; resize: vertical; min-height: 2.5em; padding: 4px 6px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
+    .ptb-comments .ptb-error { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--dpk-danger); }
+    .ptb-comments .ptb-error:empty { display: none; }
+    .ptb-comments button, .ptb-archive { font: inherit; font-size: 12px; padding: 2px 8px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule-strong); background: var(--dpk-paper); color: var(--dpk-ink); cursor: pointer; }
+    .ptb-archive { margin-left: auto; flex: none; }
+    .ptb-archive:disabled { cursor: default; color: var(--dpk-ink-faint); }
+  `);
+
+  // kit のリンクの追加は form の submit で動き、allow-forms の無い sandbox では発火しない。Add の click と Enter で同じ action を書く。
+  const addLink = (el, form) => {
+    const card = form.closest("aside.kanban-detail[data-card]")?.dataset.card;
+    const url = form.querySelector('[data-role="link-url"]');
+    const label = form.querySelector('[data-role="link-label"]');
+    const value = url?.value.trim() ?? "";
+    if (!card || value === "") return;
+    if (!url.checkValidity()) {
+      url.setAttribute("aria-invalid", "true");
+      url.reportValidity();
+      return;
+    }
+    const name = label?.value.trim() ?? "";
+    const ok = el.dispatchElementAction("ADD_CARD_LINK", ["card", card], name === "" ? { url: value } : { url: value, label: name });
+    if (ok) {
+      url.removeAttribute("aria-invalid");
+      form.reset();
+    } else {
+      url.setAttribute("aria-invalid", "true");
+    }
+  };
+
+  const interceptLinkAdd = (el, root) => {
+    const formOf = (event) => event.target instanceof Element ? event.target.closest("form.kanban-link-add") : null;
+    root.addEventListener("submit", (event) => {
+      if (formOf(event) === null) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+    root.addEventListener("click", (event) => {
+      const form = formOf(event);
+      if (form === null || !event.target.closest("button")) return;
+      event.preventDefault();
+      addLink(el, form);
+    }, true);
+    root.addEventListener("keydown", (event) => {
+      const form = formOf(event);
+      if (form === null || event.key !== "Enter" || event.isComposing || !(event.target instanceof HTMLInputElement)) return;
+      event.preventDefault();
+      addLink(el, form);
+    }, true);
+  };
+
+  // kit の shadow DOM への差し込みは、Done 見出しのアーカイブとカード詳細のコメントの 2 か所。リンクの追加はイベントだけを拾う。kit が描き直すたびに入れ直す。
+  const enhance = (el) => {
+    const root = el.shadowRoot;
+    root.adoptedStyleSheets = [...root.adoptedStyleSheets, boardSheet];
+    interceptLinkAdd(el, root);
+    root.addEventListener("click", (event) => {
+      if (event.target instanceof Element && event.target.closest(".kanban-card")) {
+        reveal.add(el);
+        refresh();
+      }
+    });
+    let frame = 0;
+    const refresh = () => {
+      if (frame !== 0) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        ensureArchive(el, root, el.id);
+        ensureComments(el, root, el.id);
+      });
+    };
+    new MutationObserver(refresh).observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-card"] });
+    listeners.add(refresh);
+    refresh();
   };
 
   const db = (await window.claude?.use("db")) ?? null;
   if (db !== null) {
     const user = await window.claude.use("user");
-    const self = { id: (await user?.id()) ?? localWriter() };
-    serveDraftSync({ self, transport: () => dbTransport(db, self) });
+    self = { id: (await user?.id()) ?? localWriter() };
+    serveDraftSync({ self, transport: () => dbTransport(db) });
   }
   await import(KIT);
-  let frame = 0;
-  renderLater = () => {
-    cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(() => render(db !== null));
-  };
-  for (const board of Object.keys(BOARDS)) {
-    const el = document.getElementById(board);
+  for (const el of kanbans) {
     await el.api.ready;
-    hideFields(el);
+    enhance(el);
   }
-  document.addEventListener("dpk-change", renderLater);
-  document.addEventListener("dpk-navigate", renderLater);
-  renderLater();
+  document.addEventListener("dpk-change", changed);
 </script>
