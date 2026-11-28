@@ -1,11 +1,11 @@
 ---
 name: product-manage
-description: プロジェクトのタスク管理元から本人がやるタスクを選び、Personal Task Board に積むときに使う
+description: プロジェクトのタスク管理元から本人がやるタスクを選び、パーソナルダッシュボードに積むときに使う
 ---
 
 # product-manage
 
-カレントのプロジェクトのタスク管理元から、本人がやるタスクを 5 件ほど選び、Personal Task Board に積む。盤面の読み書きは `~/.agents/references/task-board.md` に従う。
+カレントのプロジェクトのタスク管理元から、本人がやるタスクを 5 件ほど選び、パーソナルダッシュボードに積む。盤面の読み書きは `~/.agents/references/task-board.md` に従う。
 
 1. `./.agents/state/TASK_ORIGIN.md` を読む。タスク管理元 (Jira、Linear、GitHub Issues など)、読むツール、対象の絞り込み (プロジェクト、担当者、ラベルなど) が書かれている。ファイルがなければ本人に聞いて作る。
 2. タスク管理元から、絞り込みに当たる未完了のタスクを読む。

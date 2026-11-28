@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>パーソナルダッシュボード</title>
 <style>
   html,
@@ -8,35 +13,6 @@
   dpk-app {
     display: block;
     height: 100%;
-  }
-  .ptb-view {
-    display: inline-flex;
-    position: relative;
-    padding: 2px;
-    border: 1px solid var(--dpk-rule);
-    border-radius: var(--dpk-radius-sm);
-    background: var(--dpk-paper-sunken);
-  }
-  .ptb-view input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .ptb-view label {
-    padding: 2px 10px;
-    border-radius: var(--dpk-radius-sm);
-    font-size: 12px;
-    color: var(--dpk-ink-soft);
-    cursor: pointer;
-  }
-  .ptb-view input:checked + label {
-    background: var(--dpk-paper-raised);
-    color: var(--dpk-ink);
-    box-shadow: 0 0 0 1px var(--dpk-rule-strong);
-  }
-  .ptb-view input:focus-visible + label {
-    outline: 2px solid currentColor;
-    outline-offset: 1px;
   }
   .ptb-deferred {
     display: inline-flex;
@@ -50,13 +26,11 @@
     display: none;
   }
 </style>
+</head>
+<body>
 
 <dpk-app lang="ja" storage-key="personal-task-board">
   <script type="application/json">{ "title": "パーソナルダッシュボード" }</script>
-  <div slot="header" class="ptb-view" role="radiogroup" aria-label="表示">
-    <input type="radio" name="ptb-view" id="ptb-view-kanban" value="kanban" checked /><label for="ptb-view-kanban">Kanban</label>
-    <input type="radio" name="ptb-view" id="ptb-view-list" value="list" /><label for="ptb-view-list">List</label>
-  </div>
   <label slot="header" class="ptb-deferred" hidden><input type="checkbox" id="ptb-show-deferred" /><span></span></label>
   <dpk-page name="board" label="タスク">
     <dpk-board-kanban id="personal-task-board" heading="タスク">
@@ -90,130 +64,37 @@
 </dpk-app>
 
 <script type="module">
-  import { serveDraftSync } from "https://cdn.jsdelivr.net/npm/dev-process-kit@0.4.2/dist/sync.js";
-
   const KIT = "https://cdn.jsdelivr.net/npm/dev-process-kit@0.4.2/dist/boards.js";
-  const ACTIONS = "actions";
-  // カードのコメントは kit の draft の外に置き、レビューコメント (kit の comment action) と混ぜない。
-  const NOTES = "notes";
   const ARCHIVED = "archived";
   const DONE = "done";
-  const VIEW_KEY = "ptb.view";
-  // カードの属性 (確認が必要・着手可能日・期日・担い手) も kit の外に置く。カードと属性の組ごとに 1 文書で、外すときは文書を消す。
-  const ATTRS = "attrs";
-  const ATTR_NAMES = ["check", "start", "due", "owner"];
-  const DEFERRED_KEY = "ptb.showDeferred";
+  // 担い手は assignee。進行中の列は担い手で分け、Agent のカードを下に置く。
+  const SPLIT = "doing";
+  const AGENT = "Agent";
   // 着手可能日の前に隠すのは、まだ手を付けていない列のカードだけである。
   const DEFERRABLE = ["todo", "backlog"];
-  // 進行中の列は担い手で分け、本人が進めるカード (担い手が未設定のカードを含む) を上、Agent に進めさせているカードを下に置く。
-  const SPLIT = "doing";
-  const OWNERS = ["self", "agent"];
+  const CHECK_TAG = "確認が必要";
+  const START_PREFIX = "着手可能 ";
+  const DUE_PREFIX = "期日 ";
+  const RECORDS_HEADING = "## 記録";
+  const DEFERRED_KEY = "ptb.showDeferred";
   const kanbans = [...document.querySelectorAll("dpk-page > dpk-board-kanban")];
-  // 列は各 Kanban の base JSON から読む。
-  const BOARDS = Object.fromEntries(
-    kanbans.map((el) => [
-      el.id,
-      {
-        page: el.parentElement.getAttribute("name"),
-        columns: JSON.parse(el.querySelector(":scope > script[type='application/json']").textContent).columns,
-      },
-    ]),
-  );
 
-  // 表示の切り替えは 2 枚の Kanban に同じ値を当てる。storage が使えない環境では毎回 Kanban から始める。
-  const readView = () => {
-    try {
-      return localStorage.getItem(VIEW_KEY) === "list" ? "list" : "kanban";
-    } catch {
-      return "kanban";
-    }
-  };
-  const applyView = (view) => {
-    for (const el of kanbans) el.dataset.view = view;
-    document.getElementById(`ptb-view-${view}`).checked = true;
-  };
-  applyView(readView());
-  document.querySelector(".ptb-view").addEventListener("change", (event) => {
-    applyView(event.target.value);
-    try {
-      localStorage.setItem(VIEW_KEY, event.target.value);
-    } catch {}
-  });
+  // 印と隠す処理は、要素の items() (draft を反映した列とカード) から作る。kit が描くカードの DOM には触らない。
+  const itemsOf = (el) => el.items().columns;
+  const cardsOf = (el) => itemsOf(el).flatMap((column) => column.cards.map((card) => ({ column: column.id, card })));
 
-  // kit と同じく、target の区切りごとに encodeURIComponent する。
-  const cardPath = (board, card) => [board, "card", card].map(encodeURIComponent).join("/");
-  const decode = (segment) => {
-    try {
-      return decodeURIComponent(segment);
-    } catch {
-      return segment;
-    }
-  };
-  const order = (a, b) => (a.createdAt === b.createdAt ? (a.id < b.id ? -1 : 1) : a.createdAt < b.createdAt ? -1 : 1);
-  const parseTarget = (t) => {
-    const id = t?.id ?? "";
-    for (const [board, { page }] of Object.entries(BOARDS)) {
-      if (id.startsWith(`${board}/`) && id.endsWith(`@${page}`))
-        return { board, path: id.slice(board.length + 1, -page.length - 1).split("/").map(decode).join("/") };
-    }
-    return undefined;
-  };
-
-  let actions = [];
-  let pending = 0;
-  let self = null;
-  let notes = [];
-  let noteCollection = null;
-  let notesError = "";
-  let attrs = [];
-  let attrCollection = null;
-  let attrsError = "";
-  const listeners = new Set();
-  const changed = () => {
-    for (const listener of listeners) listener();
-  };
-
-  // board.ts の fold と同じ規則で、db の action から 1 つの盤面の列とカードを出す (Kanban の api.state は盤面を返さない)。
-  const columnsOf = (board) => {
-    const columns = BOARDS[board].columns.map((c) => ({ id: c.id, cards: [] }));
-    const locate = (id) => {
-      for (const column of columns) {
-        const index = column.cards.findIndex((c) => c.id === id);
-        if (index !== -1) return { column, index, card: column.cards[index] };
-      }
-      return undefined;
-    };
-    const numbers = () => columns.flatMap((c) => c.cards.map((x) => x.number));
-    for (const a of actions) {
-      const t = parseTarget(a.target);
-      if (t === undefined || t.board !== board) continue;
-      const p = a.payload ?? {};
-      if (a.type === "ADD_CARD") {
-        const column = columns.find((c) => `column/${c.id}` === t.path);
-        const number = typeof p.number === "number" ? p.number : Math.max(0, ...numbers()) + 1;
-        if (column && String(p.title ?? "").trim() !== "" && !locate(p.id) && !numbers().includes(number)) column.cards.push({ id: p.id, number });
-        continue;
-      }
-      const found = a.type === "MOVE_CARD" && t.path.startsWith("card/") ? locate(t.path.slice(5)) : undefined;
-      if (found === undefined) continue;
-      const to = columns.find((c) => c.id === p.column);
-      const before = p.before ?? null;
-      if (!to || before === found.card.id || (before !== null && !to.cards.some((c) => c.id === before))) continue;
-      found.column.cards.splice(found.index, 1);
-      const at = before === null ? -1 : to.cards.findIndex((c) => c.id === before);
-      if (at === -1) to.cards.push(found.card);
-      else to.cards.splice(at, 0, found.card);
-    }
-    return columns;
-  };
-
-  const notesOf = (board, card) => notes.filter((n) => n.board === board && n.card === card).sort(order);
-
-  // 日付は Asia/Tokyo の暦日 (YYYY-MM-DD) で持ち、文字列のまま比べる。
-  const tokyoDate = (now) => {
-    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
+  const tokyoStamp = (now) => {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(now);
     const part = (type) => parts.find((p) => p.type === type)?.value ?? "";
-    return `${part("year")}-${part("month")}-${part("day")}`;
+    return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}`;
   };
   const isDate = (v) => {
     if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
@@ -221,24 +102,24 @@
     const d = new Date(`${v}T00:00:00Z`);
     return year >= 2000 && year <= 2100 && !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
   };
-  const attrId = (board, card, attr) => `${board}~${card}~${attr}`;
-  // attrs は閲覧者の誰でも書けるので、board.ts の isAttr と同じ形のものだけを使う。
-  const isAttr = (a) =>
-    typeof a?.board === "string" &&
-    typeof a.card === "string" &&
-    ATTR_NAMES.includes(a.attr) &&
-    a.id === attrId(a.board, a.card, a.attr) &&
-    (a.attr === "check" ? a.value === true : a.attr === "owner" ? OWNERS.includes(a.value) : isDate(a.value)) &&
-    typeof a.author?.id === "string" &&
-    typeof a.updatedAt === "string";
-  const attrsOf = (board, card) => {
-    const result = { check: false };
-    for (const a of attrs) if (a.board === board && a.card === card) result[a.attr] = a.attr === "check" ? true : a.value;
-    return result;
-  };
-  let today = tokyoDate(new Date());
-  const isDeferred = (column, a) => DEFERRABLE.includes(column) && a.start !== undefined && a.start > today;
+  // 同じ接頭辞の日付タグが複数あれば、末尾 (最後に足したもの) を採る。draft の ADD_CARD_TAG は末尾に積まれる。
+  const dateTags = (tags, prefix) => tags.filter((tag) => tag.startsWith(prefix) && isDate(tag.slice(prefix.length)));
+  const tagDate = (tags, prefix) => dateTags(tags, prefix).at(-1)?.slice(prefix.length);
+  // 予約タグは属性の欄で操作する。カードの表面と詳細のタグの行では、汎用のタグとして出さない。
+  const isReserved = (tag) =>
+    tag === CHECK_TAG ||
+    (tag.startsWith(START_PREFIX) && isDate(tag.slice(START_PREFIX.length))) ||
+    (tag.startsWith(DUE_PREFIX) && isDate(tag.slice(DUE_PREFIX.length)));
   const shortDate = (date) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
+  const viewOf = (card) => {
+    const tags = card.tags ?? [];
+    return {
+      start: tagDate(tags, START_PREFIX),
+      due: tagDate(tags, DUE_PREFIX),
+      agent: (card.assignee ?? "").trim() === AGENT,
+    };
+  };
+  let today = tokyoStamp(new Date()).slice(0, 10);
 
   const readShowDeferred = () => {
     try {
@@ -250,118 +131,84 @@
   let showDeferred = readShowDeferred();
   const deferredToggle = document.getElementById("ptb-show-deferred");
   deferredToggle.checked = showDeferred;
+
+  // 印と隠す処理は、kit が描くカードの DOM には触らず、CSS だけで行う。
+  const cardSel = (id) => `.kanban-card[data-card="${CSS.escape(id)}"]`;
+  const slotSel = (column, id) => `.kanban-column[data-column="${CSS.escape(column)}"] .kanban-card-slot:has(> ${cardSel(id)})`;
+  const isDeferred = (column, view) => DEFERRABLE.includes(column) && view.start !== undefined && view.start > today;
+
+  // 期日の色は Done とアーカイブ以外のカードに付ける。過ぎていれば超過、当日なら今日である。
+  const TONE_SUFFIX = { overdue: " 超過", today: " 今日" };
+  const dueTone = (column, due) => {
+    if (due === undefined || column === DONE || column === ARCHIVED) return "";
+    if (due < today) return "overdue";
+    return due === today ? "today" : "";
+  };
+
+  const KIT_IDLE = `:not([aria-pressed="true"], :focus-visible)`;
+  const attrCss = (el) => {
+    const rules = [];
+    const perColumn = new Map();
+    for (const { column, card } of cardsOf(el)) {
+      const view = viewOf(card);
+      const sel = cardSel(card.id);
+      const tags = card.tags ?? [];
+      const tone = dueTone(column, view.due);
+      // 確認が必要のカードは、題の上のバッジと amber の枠で目立たせる。期日の帯は inset の box-shadow なので、両方が見える。
+      // 枠・背景・帯は、kit が選択・フォーカスを示しているカードには付けない。kit の表示を上書きしないため。
+      if (tags.includes(CHECK_TAG)) {
+        rules.push(`${sel}::before { content: "${CHECK_TAG}"; }`);
+        rules.push(`${sel}${KIT_IDLE} { border-color: light-dark(#d97706, #f59e0b); background: light-dark(#fffbeb, rgb(245 158 11 / 0.14)); }`);
+      }
+      // 着手可能日と期日は、汎用のタグの代わりに専用の印を出す。
+      const marks = [];
+      if (view.start !== undefined) marks.push(`着手可能 ${shortDate(view.start)}`);
+      if (view.due !== undefined) marks.push(`期日 ${shortDate(view.due)}${TONE_SUFFIX[tone] ?? ""}`);
+      if (marks.length > 0) rules.push(`${sel}::after { content: "${marks.join("  ")}"; }`);
+      if (tone !== "") {
+        rules.push(`${sel} { --ptb-mark: var(--ptb-${tone}); --ptb-mark-weight: 600; }`);
+        rules.push(`${sel}${KIT_IDLE} { box-shadow: inset 3px 0 0 var(--ptb-${tone}); }`);
+      }
+      // 予約タグを汎用のタグとして出さない。位置は card.tags の並びと同じなので :nth-child で指せる。
+      const at = tags.flatMap((tag, index) => (isReserved(tag) ? [`:nth-child(${index + 1})`] : []));
+      if (at.length > 0) {
+        rules.push(`${sel} > .kanban-card-meta > .dpk-pill:is(${at.join(", ")}) { display: none; }`);
+        rules.push(`aside.kanban-detail[data-card="${CSS.escape(card.id)}"] .kanban-tag-row > .dpk-pill:is(${at.join(", ")}) { display: none; }`);
+      }
+      if (column === SPLIT && view.agent) rules.push(`${slotSel(SPLIT, card.id)} { order: 2; }`);
+      if (isDeferred(column, view)) {
+        perColumn.set(column, (perColumn.get(column) ?? 0) + 1);
+        rules.push(showDeferred ? `${slotSel(column, card.id)} { opacity: 0.55; }` : `${slotSel(column, card.id)} { display: none; }`);
+      }
+    }
+    for (const [column, count] of perColumn) rules.push(`.kanban-column[data-column="${CSS.escape(column)}"] .kanban-column-head::after { content: "着手前 ${count}"; }`);
+    return rules.join("\n");
+  };
+  // 隠すカードの枚数は 2 枚の盤面で 1 つの切り替えにまとめる。
+  const updateDeferred = () => {
+    const count = kanbans.reduce((sum, el) => sum + cardsOf(el).filter(({ column, card }) => isDeferred(column, viewOf(card))).length, 0);
+    const label = deferredToggle.closest("label");
+    deferredToggle.checked = showDeferred;
+    label.hidden = count === 0;
+    if (count === 0) return;
+    const text = `着手前 ${count} 枚を表示`;
+    if (label.querySelector("span").textContent !== text) label.querySelector("span").textContent = text;
+  };
   deferredToggle.addEventListener("change", () => {
     showDeferred = deferredToggle.checked;
     try {
       localStorage.setItem(DEFERRED_KEY, showDeferred ? "1" : "0");
     } catch {}
-    changed();
+    refreshAll();
   });
-  const deferredCount = () =>
-    kanbans.reduce((sum, el) => sum + columnsOf(el.id).reduce((n, c) => n + c.cards.filter((x) => isDeferred(c.id, attrsOf(el.id, x.id))).length, 0), 0);
-  const updateDeferredToggle = () => {
-    const count = deferredCount();
-    const label = deferredToggle.closest("label");
-    label.hidden = count === 0;
-    const text = `着手前 ${count} 枚を表示`;
-    if (label.querySelector("span").textContent !== text) label.querySelector("span").textContent = text;
-  };
 
-  // 印と隠す処理は、属性から作る CSS だけで行う。kit が描くカードの DOM には触らない。
-  const cardSel = (card) => `.kanban-card[data-card="${CSS.escape(card)}"]`;
-  const attrCss = (board) => {
-    const rules = [];
-    for (const column of columnsOf(board)) {
-      let hidden = 0;
-      for (const { id } of column.cards) {
-        const a = attrsOf(board, id);
-        const sel = cardSel(id);
-        if (a.check) rules.push(`${sel}::before { content: "確認が必要"; }`);
-        const marks = [];
-        let tone = "";
-        if (a.start !== undefined && a.start > today) marks.push(`着手可能 ${shortDate(a.start)}`);
-        if (a.due !== undefined) {
-          const open = column.id !== DONE && column.id !== ARCHIVED;
-          if (open && a.due < today) tone = "overdue";
-          else if (open && a.due === today) tone = "today";
-          marks.push(`期日 ${shortDate(a.due)}${tone === "overdue" ? " 超過" : tone === "today" ? " 今日" : ""}`);
-        }
-        if (marks.length > 0) rules.push(`${sel}::after { content: "${marks.join("  ")}"; }`);
-        if (tone !== "") rules.push(`${sel} { --ptb-date: var(--ptb-${tone}); --ptb-date-weight: 600; }`);
-        if (column.id === SPLIT && a.owner === "agent") rules.push(`.kanban-card-slot:has(> ${sel}) { order: 2; }`);
-        if (isDeferred(column.id, a)) {
-          hidden++;
-          rules.push(showDeferred ? `${sel} { opacity: 0.55; }` : `.kanban-card-slot:has(> ${sel}) { display: none; }`);
-        }
-      }
-      if (hidden > 0) rules.push(`.kanban-column[data-column="${CSS.escape(column.id)}"] .kanban-column-head::after { content: "着手前 ${hidden}"; }`);
-    }
-    return rules.join("\n");
-  };
-
-  const localWriter = () => {
-    try {
-      const saved = localStorage.getItem("personal-task-board:writer");
-      if (saved) return saved;
-      const id = `browser-${crypto.randomUUID()}`;
-      localStorage.setItem("personal-task-board:writer", id);
-      return id;
-    } catch {
-      return `browser-${crypto.randomUUID()}`;
-    }
-  };
-
-  // 消してよいのは、このページを開いてから自分で足した action と、レビューコメント (addressed と Delete で消える) だけ。Clear all と古い action の Delete・Undo は db に反映せず、盤面を db の内容に戻す。
-  // ページの追加・削除・改名は db に入れない。ページは board.html が決める。
-  const PAGE_ACTIONS = ["ADD_PAGE", "REMOVE_PAGE", "RENAME_PAGE"];
-  const dbTransport = (db) => {
-    const collection = db.collection(ACTIONS);
-    const mine = new Set();
-    let emit = () => {};
-    let seq = 0;
-    const write = async (ops) => {
-      let ignored = false;
-      for (const op of ops) {
-        if (op.kind === "append" && !PAGE_ACTIONS.includes(op.action.type)) {
-          await collection.doc(op.action.id).set({ ...op.action, author: self });
-          mine.add(op.action.id);
-        } else if (op.kind === "remove" && (mine.has(op.id) || actions.some((a) => a.id === op.id && a.type === "comment"))) {
-          await collection.doc(op.id).delete();
-          mine.delete(op.id);
-        } else ignored = true;
-      }
-      if (ignored) setTimeout(emit, 0);
-    };
-    return {
-      listen(_cursor, onUpdate, onError) {
-        emit = () => onUpdate({ kind: "snapshot", cursor: String(++seq), actions });
-        return collection.onSnapshot((snap) => {
-          actions = snap.docs.map((doc) => ({ ...doc.data() })).sort(order);
-          emit();
-          changed();
-        }, onError);
-      },
-      async push(ops) {
-        pending++;
-        changed();
-        try {
-          await write(ops);
-        } finally {
-          pending--;
-          changed();
-        }
-      },
-    };
-  };
-
-  // アーカイブは Done のカードを隠した列へ移すだけ (board.ts archive と同じ action)。戻すときは kit の Undo を使う。
+  // アーカイブは Done のカードを隠した列へ MOVE_CARD で移す。kit の draft に積まれ、レビューで base に反映される。
+  // 対象は base ではなく、draft を反映した要素の items() の Done 列から出す。draft で Done から戻したカードを積んだり、
+  // draft で Done に移したカードを漏らしたりしないためである。タグの絞り込みで DOM から外れたカードも移せる。
   // 確認が必要なカードは、本人の確認が済むまで Done に残す。
-  const archivable = (board) => (columnsOf(board).find((c) => c.id === DONE)?.cards ?? []).filter((card) => !attrsOf(board, card.id).check);
-  const archiveDone = (el, board) => {
-    for (const card of archivable(board)) el.dispatchElementAction("MOVE_CARD", ["card", card.id], { column: ARCHIVED, before: null });
-  };
-
-  const ensureArchive = (el, root, board) => {
+  const doneCards = (el) => itemsOf(el).find((column) => column.id === DONE)?.cards ?? [];
+  const archivable = (el) => doneCards(el).filter((card) => !(card.tags ?? []).includes(CHECK_TAG));
+  const ensureArchive = (el, root) => {
     const head = root.querySelector(`.kanban-column[data-column="${DONE}"] > .kanban-column-head`);
     if (head === null) return;
     let button = head.querySelector(":scope > .ptb-archive");
@@ -373,74 +220,228 @@
       button.addEventListener("pointerdown", (event) => event.stopPropagation());
       button.addEventListener("click", (event) => {
         event.stopPropagation();
-        archiveDone(el, board);
+        for (const card of archivable(el)) el.dispatchElementAction("MOVE_CARD", ["card", card.id], { column: ARCHIVED, before: null });
       });
       head.append(button);
     }
-    const all = columnsOf(board).find((c) => c.id === DONE)?.cards.length ?? 0;
-    const done = archivable(board).length;
-    // 書き込み中は db の盤面がページの表示より古いので押させない。
-    const disabled = self === null || done === 0 || pending > 0;
-    if (button.disabled !== disabled) button.disabled = disabled;
+    const all = doneCards(el).length;
+    const done = archivable(el).length;
+    if (button.disabled !== (done === 0)) button.disabled = done === 0;
     const kept = all - done === 0 ? "" : ` (確認が必要な ${all - done} 枚は残す)`;
     const title = all === 0 ? "Done にカードが無い" : `Done の ${done} 枚をアーカイブ${kept}`;
     if (button.title !== title) button.title = title;
   };
 
-  const when = (iso) => {
-    const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  // description の `## 記録` 節の末尾に 1 行足す。ほかの節は本人が書いたまま残す。
+  const appendRecord = (description, at, author, text) => {
+    const line = `- ${at} ${author}: ${text.split("\n")[0] ?? ""}`;
+    const rest = text.split("\n").slice(1);
+    const lines = (description ?? "").split("\n");
+    const heading = lines.findIndex((l) => l.trim() === RECORDS_HEADING);
+    const add = [line, ...rest.map((l) => `    ${l}`)];
+    if (heading === -1) {
+      const kept = (description ?? "").split("\n").filter((l) => l !== "");
+      return [...kept, ...(kept.length === 0 ? [] : [""]), RECORDS_HEADING, ...add].join("\n");
+    }
+    let end = lines.length;
+    for (let i = heading + 1; i < lines.length; i++) if (/^#{1,6} /.test((lines[i] ?? "").trim())) {
+      end = i;
+      break;
+    }
+    let at2 = end;
+    while (at2 > heading + 1 && (lines[at2 - 1] ?? "").trim() === "") at2--;
+    return [...lines.slice(0, at2), ...add, ...lines.slice(at2)].join("\n");
   };
-  const authorName = (author) =>
-    author?.id !== undefined && author.id === self?.id ? "自分" : (author?.name ?? (author?.id?.startsWith("agent:") ? author.id : "本人"));
 
-  const buildComments = (board) => {
+  // 記録欄は kit の詳細の説明の入力欄 (dpk-inline-edit multiline) の値を読む。kit は詳細に必ずこの欄を描く。
+  const currentDescription = (root, card) => {
+    const field = root.querySelector(`aside.kanban-detail[data-card="${CSS.escape(card)}"] dpk-inline-edit[multiline]`);
+    if (typeof field?.value !== "string") throw new Error("カードの詳細に説明の入力欄が無い");
+    return field.value;
+  };
+
+  // 属性 (確認が必要・着手可能日・期日・担い手) は、詳細の専用の欄で変える。操作は kit の draft に積まれ、レビューで base に反映される。
+  const cardOf = (el, id) => cardsOf(el).find((entry) => entry.card.id === id)?.card;
+  const setCheck = (el, card, on) => {
+    const current = cardOf(el, card);
+    if (current === undefined) return false;
+    if ((current.tags ?? []).includes(CHECK_TAG) === on) return true;
+    return el.dispatchElementAction(on ? "ADD_CARD_TAG" : "REMOVE_CARD_TAG", ["card", card], { tag: CHECK_TAG });
+  };
+  const setDate = (el, card, prefix, value) => {
+    const current = cardOf(el, card);
+    if (current === undefined) return false;
+    const olds = [...new Set(dateTags(current.tags ?? [], prefix))];
+    const next = value === undefined ? undefined : `${prefix}${value}`;
+    if (olds.length === (next === undefined ? 0 : 1) && (next === undefined || olds[0] === next)) return true;
+    let ok = true;
+    for (const tag of olds) if (!el.dispatchElementAction("REMOVE_CARD_TAG", ["card", card], { tag })) ok = false;
+    if (next !== undefined && !el.dispatchElementAction("ADD_CARD_TAG", ["card", card], { tag: next })) ok = false;
+    return ok;
+  };
+  const setOwner = (el, card, who) => {
+    // 自分は assignee を外す。kit は空の assignee を「無し」として扱う。
+    const assignee = who === "agent" ? AGENT : "";
+    if ((cardOf(el, card)?.assignee ?? "").trim() === assignee) return true;
+    return el.dispatchElementAction("SET_CARD_ASSIGNEE", ["card", card], { assignee });
+  };
+
+  const buildAttrs = (el) => {
+    const section = document.createElement("section");
+    section.className = "kanban-detail-field ptb-attrs";
+    const error = document.createElement("p");
+    error.className = "ptb-error";
+    const run = (write) => {
+      error.textContent = "";
+      if (!write(section.dataset.ptbCard)) error.textContent = "変えられなかった。詳細を開き直す";
+    };
+    const check = document.createElement("button");
+    check.type = "button";
+    check.className = "ptb-check";
+    check.setAttribute("aria-pressed", "false");
+    check.textContent = CHECK_TAG;
+    check.addEventListener("click", () => run((card) => setCheck(el, card, check.getAttribute("aria-pressed") !== "true")));
+    section.append(check);
+    for (const [attr, name, prefix] of [["start", "着手可能日", START_PREFIX], ["due", "期日", DUE_PREFIX]]) {
+      const row = document.createElement("div");
+      row.className = "ptb-date";
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "date";
+      input.min = "2000-01-01";
+      input.max = "2100-12-31";
+      input.dataset.attr = attr;
+      label.append(name, input);
+      const clear = document.createElement("button");
+      clear.type = "button";
+      clear.className = "ptb-clear";
+      clear.textContent = "解除";
+      clear.setAttribute("aria-label", `${name}を解除`);
+      // Chrome の date 入力は年を 1 桁打つたびに change を出すので、入力が止まるか欄を離れたときに 1 回だけ積む。
+      const stored = () => {
+        const current = cardOf(el, section.dataset.ptbCard);
+        if (current === undefined) return "";
+        const view = viewOf(current);
+        return ((attr === "start" ? view.start : view.due) ?? "");
+      };
+      let timer = 0;
+      const commit = () => {
+        clearTimeout(timer);
+        timer = 0;
+        const value = input.value;
+        if (value === "" || !isDate(value)) return;
+        run((card) => setDate(el, card, prefix, value));
+      };
+      input.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(commit, 600);
+      });
+      input.addEventListener("blur", () => {
+        commit();
+        // 打ちかけのまま欄を離れたら、draft を反映した値に戻す。
+        clearTimeout(timer);
+        timer = 0;
+        if (input.value !== stored()) input.value = stored();
+      });
+      clear.addEventListener("click", () => {
+        clearTimeout(timer);
+        input.value = "";
+        run((card) => setDate(el, card, prefix, undefined));
+      });
+      row.append(label, clear);
+      section.append(row);
+    }
+    const owner = document.createElement("label");
+    const who = document.createElement("select");
+    who.dataset.attr = "owner";
+    for (const [value, name] of [["self", "自分"], ["agent", AGENT]]) who.append(new Option(name, value));
+    owner.append("担い手", who);
+    who.addEventListener("change", () => run((card) => setOwner(el, card, who.value)));
+    section.append(owner, error);
+    // 入力中のキーを kit のショートカットへ渡さない。
+    for (const type of ["keydown", "keyup", "keypress"]) section.addEventListener(type, (event) => event.stopPropagation());
+    return section;
+  };
+
+  const ensureAttrs = (el, root) => {
+    const detail = root.querySelector("aside.kanban-detail[data-card]");
+    const body = detail?.querySelector(".kanban-detail-body");
+    if (!body) return;
+    const card = detail.dataset.card;
+    let section = body.querySelector(":scope > .ptb-attrs");
+    if (section === null) {
+      section = buildAttrs(el);
+      const title = body.querySelector(":scope > .kanban-detail-title");
+      if (title === null) body.append(section);
+      else title.after(section);
+    }
+    const switched = section.dataset.ptbCard !== card;
+    if (switched) {
+      // 前のカードで打ちかけた日付は、前のカードに積んでから切り替える。
+      for (const input of section.querySelectorAll("input[type='date']")) input.blur();
+      section.dataset.ptbCard = card;
+      section.querySelector(".ptb-error").textContent = "";
+      // 詳細が盤面の下に積まれる幅では、開いた詳細が画面の外に出るので、見える位置まで送る。
+      detail.scrollIntoView({ block: "nearest" });
+    }
+    const current = cardOf(el, card);
+    if (current === undefined) return;
+    const view = viewOf(current);
+    const check = section.querySelector(".ptb-check");
+    const on = (current.tags ?? []).includes(CHECK_TAG);
+    const pressed = on ? "true" : "false";
+    if (check.getAttribute("aria-pressed") !== pressed) check.setAttribute("aria-pressed", pressed);
+    const text = on ? "確認済みにする" : "確認が必要にする";
+    if (check.textContent !== text) check.textContent = text;
+    const values = { start: view.start ?? "", due: view.due ?? "", owner: view.agent ? "agent" : "self" };
+    // 入力中の欄は、他の更新が届いても書き換えない。
+    for (const input of section.querySelectorAll("[data-attr]")) {
+      if (input === root.activeElement && input.type === "date") continue;
+      const value = values[input.dataset.attr];
+      // Chrome の date 入力は打ちかけの間 value が "" なので、カードを切り替えたら比べずに入れ直す。
+      if (switched || input.value !== value) input.value = value;
+    }
+  };
+
+  const buildComposer = (el, board) => {
     const section = document.createElement("section");
     section.className = "kanban-detail-field ptb-comments";
     const label = document.createElement("span");
     label.className = "dpk-label";
-    label.textContent = "コメント";
-    const list = document.createElement("ol");
+    label.textContent = "記録を足す";
     const form = document.createElement("div");
     form.className = "ptb-composer";
     const input = document.createElement("textarea");
     input.rows = 2;
     input.placeholder = "状況やメモを書く";
-    input.setAttribute("aria-label", "カードのコメント");
+    input.setAttribute("aria-label", "カードの記録");
     const send = document.createElement("button");
     send.type = "button";
     send.textContent = "送る";
     const error = document.createElement("p");
     error.className = "ptb-error";
     form.append(input, send, error);
-    const load = document.createElement("p");
-    load.className = "ptb-error ptb-comments-load";
-    section.append(label, load, list, form);
-    // 送り直しで同じコメントを 2 つ作らないよう、書けるまで同じ文書に書く。
-    let ref = null;
-    section.ptbReset = () => {
-      ref = null;
-      input.value = "";
-      error.textContent = "";
-    };
-    const submit = async () => {
+    section.append(label, form);
+    const submit = () => {
       const text = input.value.trim();
       if (text === "" || send.disabled) return;
       const card = section.dataset.ptbCard;
-      ref ??= noteCollection.doc();
-      send.disabled = true;
+      let description;
       try {
-        await ref.set({ id: ref.id, board, card, body: text, author: { id: self.id }, createdAt: new Date().toISOString() });
-        if (section.dataset.ptbCard === card) section.ptbReset();
-      } catch (e) {
-        // 送る間に別のカードへ移ったら、そのカードの入力を消さない。
-        if (section.dataset.ptbCard === card)
-          error.textContent = e?.code === "quota_exceeded" ? "送れなかった: db の上限に達した" : `送れなかった: ${e?.message ?? String(e)}`;
-      } finally {
-        send.disabled = notesError !== "";
+        description = appendRecord(currentDescription(el.shadowRoot, card), tokyoStamp(new Date()), "本人", text);
+      } catch {
+        error.textContent = "記録を足せなかった。カードの詳細を開き直す";
+        return;
       }
+      const ok = el.dispatchElementAction("SET_CARD_DESCRIPTION", ["card", card], { description });
+      if (!ok) {
+        error.textContent = "送れなかった。もう一度試す";
+        return;
+      }
+      input.value = "";
+      error.textContent = "";
     };
-    // sandbox に allow-forms が無いと form の submit は発火しないので、button の click で送る。
+    // allow-forms の無い sandbox でも送れるように、form の submit は使わず button の click で送る。
     send.addEventListener("click", submit);
     // 入力中のキーを kit のショートカットへ渡さない。
     for (const type of ["keydown", "keyup", "keypress"]) form.addEventListener(type, (event) => event.stopPropagation());
@@ -453,191 +454,34 @@
     return section;
   };
 
-  // 1 つの属性の文書には、前の書き込みが済んでから次を書く。書くかどうかは、db から戻る前の自分の書き込みも含めた最新の値で決める。
-  const writing = new Map();
-  const written = new Map();
-  const latestAttr = (board, card, attr) => {
-    const id = attrId(board, card, attr);
-    return written.has(id) ? (written.get(id) ?? undefined) : attrsOf(board, card)[attr];
-  };
-  const writeAttr = (board, card, attr, value) => {
-    const id = attrId(board, card, attr);
-    written.set(id, value);
-    const run = async () => {
-      const ref = attrCollection.doc(id);
-      if (value === null) await ref.delete();
-      else await ref.set({ id, board, card, attr, value, author: { id: self.id }, updatedAt: new Date().toISOString() });
-    };
-    const next = (writing.get(id) ?? Promise.resolve()).catch(() => {}).then(run);
-    writing.set(id, next);
-    const settle = () => {
-      if (writing.get(id) !== next) return;
-      writing.delete(id);
-      written.delete(id);
-    };
-    next.then(settle, settle);
-    return next;
-  };
-
-  const buildAttrs = (board) => {
-    const section = document.createElement("section");
-    section.className = "kanban-detail-field ptb-attrs";
-    const error = document.createElement("p");
-    error.className = "ptb-error";
-    const fail = (e) => {
-      error.textContent = e?.code === "quota_exceeded" ? "書けなかった: db の上限に達した" : `書けなかった: ${e?.message ?? String(e)}`;
-    };
-    const write = (attr, value) => {
-      error.textContent = "";
-      writeAttr(board, section.dataset.ptbCard, attr, value).catch(fail);
-    };
-    const check = document.createElement("label");
-    check.className = "ptb-check";
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.dataset.attr = "check";
-    check.append(box, "確認が必要");
-    box.addEventListener("change", () => write("check", box.checked ? true : null));
-    section.append(check);
-    for (const [attr, name] of [["start", "着手可能日"], ["due", "期日"]]) {
-      const row = document.createElement("div");
-      row.className = "ptb-date";
-      const label = document.createElement("label");
-      const input = document.createElement("input");
-      input.type = "date";
-      input.min = "2000-01-01";
-      input.max = "2100-12-31";
-      input.dataset.attr = attr;
-      label.append(name, input);
-      const clear = document.createElement("button");
-      clear.type = "button";
-      clear.textContent = "解除";
-      clear.setAttribute("aria-label", `${name}を解除`);
-      // Chrome の date 入力は年を 1 桁打つたびに change を出すので、入力が止まるか欄を離れたときに 1 回だけ書く。
-      let timer = 0;
-      const commit = () => {
-        clearTimeout(timer);
-        timer = 0;
-        const value = input.value;
-        if (value === "" || !isDate(value) || value === (latestAttr(board, section.dataset.ptbCard, attr) ?? "")) return;
-        write(attr, value);
-      };
-      input.addEventListener("input", () => {
-        clearTimeout(timer);
-        timer = setTimeout(commit, 600);
-      });
-      input.addEventListener("blur", commit);
-      clear.addEventListener("click", () => {
-        clearTimeout(timer);
-        input.value = "";
-        if (latestAttr(board, section.dataset.ptbCard, attr) !== undefined) write(attr, null);
-      });
-      row.append(label, clear);
-      section.append(row);
-    }
-    const owner = document.createElement("label");
-    const who = document.createElement("select");
-    who.dataset.attr = "owner";
-    for (const [value, name] of [["self", "自分"], ["agent", "Agent"]]) who.append(new Option(name, value));
-    owner.append("担い手", who);
-    who.addEventListener("change", () => write("owner", who.value));
-    section.append(owner, error);
-    for (const type of ["keydown", "keyup", "keypress"]) section.addEventListener(type, (event) => event.stopPropagation());
-    section.ptbReset = () => {
-      error.textContent = "";
-    };
-    return section;
-  };
-
-  const ensureAttrs = (root, board) => {
+  const ensureComposer = (el, root) => {
     const detail = root.querySelector("aside.kanban-detail[data-card]");
     const body = detail?.querySelector(".kanban-detail-body");
-    if (!body || attrCollection === null) return;
-    const card = detail.dataset.card;
-    let section = body.querySelector(":scope > .ptb-attrs");
-    if (section === null) {
-      section = buildAttrs(board);
-      const title = body.querySelector(":scope > .kanban-detail-title");
-      if (title === null) body.append(section);
-      else title.after(section);
-    }
-    const switched = section.dataset.ptbCard !== card;
-    if (switched) {
-      // 前のカードで打ちかけた日付は、前のカードに書いてから切り替える。
-      for (const input of section.querySelectorAll("input")) input.blur();
-      section.dataset.ptbCard = card;
-      section.ptbReset();
-    }
-    const a = attrsOf(board, card);
-    // 入力中の欄は、他者の更新が届いても書き換えない。
-    for (const input of section.querySelectorAll("[data-attr]")) {
-      if (input === root.activeElement && input.type === "date") continue;
-      if (input.type === "checkbox") input.checked = a.check;
-      else if (input.dataset.attr === "owner") input.value = a.owner ?? "self";
-      // Chrome の date 入力は打ちかけの間 value が "" なので、カードを切り替えたら比べずに入れ直す。
-      else if (switched || input.value !== (a[input.dataset.attr] ?? "")) input.value = a[input.dataset.attr] ?? "";
-      input.disabled = attrsError !== "";
-    }
-    if (attrsError !== "") section.querySelector(".ptb-error").textContent = attrsError;
-  };
-
-  const reveal = new Set();
-
-  const ensureComments = (el, root, board) => {
-    const detail = root.querySelector("aside.kanban-detail[data-card]");
-    const body = detail?.querySelector(".kanban-detail-body");
-    if (!body || noteCollection === null) return;
+    if (!body) return;
     const card = detail.dataset.card;
     let section = body.querySelector(":scope > .ptb-comments");
     if (section === null) {
-      section = buildComments(board);
+      section = buildComposer(el, el.id);
       body.append(section);
-    }
-    // 860px 以下では詳細が盤面の下に積まれ、kit は preventScroll で focus するので、押したカードの詳細を画面に入れる。
-    if (section.dataset.ptbCard !== card || reveal.has(el)) {
-      reveal.delete(el);
-      const rect = detail.getBoundingClientRect();
-      if (rect.top >= innerHeight || rect.bottom <= 0) detail.scrollIntoView({ block: "start" });
     }
     if (section.dataset.ptbCard !== card) {
       section.dataset.ptbCard = card;
-      delete section.dataset.sig;
-      section.ptbReset();
+      section.querySelector("textarea").value = "";
+      section.querySelector(".ptb-error").textContent = "";
     }
-    section.querySelector(".ptb-comments-load").textContent = notesError;
-    section.querySelector("button").disabled = notesError !== "";
-    const comments = notesOf(board, card);
-    const sig = `#${comments.map((c) => `${c.id}:${c.body ?? ""}`).join("\n")}`;
-    if (section.dataset.sig === sig) return;
-    section.dataset.sig = sig;
-    const list = section.querySelector("ol");
-    list.replaceChildren(
-      ...comments.map((c) => {
-        const li = document.createElement("li");
-        const meta = document.createElement("span");
-        meta.className = "ptb-comment-meta";
-        meta.textContent = `${when(c.createdAt)} ${authorName(c.author)}`;
-        const text = document.createElement("p");
-        text.textContent = String(c.body ?? "");
-        li.append(meta, text);
-        return li;
-      }),
-    );
-    list.hidden = comments.length === 0;
   };
 
   const boardSheet = new CSSStyleSheet();
   boardSheet.replaceSync(`
     dpk-dialog-panel::part(header),
-    .kanban-detail-field:has(> .kanban-statuses),
     .kanban-detail-field:has(> dpk-inline-edit:not([multiline])),
-    .kanban-assignee,
+    .kanban-detail-field:has(> .kanban-statuses),
     .kanban-column[data-column="${ARCHIVED}"],
     .diagram-stats { display: none !important; }
 
-    :host([data-view="list"]) .kanban-board { flex-direction: column; align-items: stretch; overflow-x: visible; }
-    :host([data-view="list"]) .kanban-column { width: auto; max-width: none; flex: none; }
-    :host([data-view="list"]) .kanban-cards { min-height: 40px; }
+    .kanban-card:is(.is-added, .is-moved) { border-style: solid; border-color: color-mix(in oklab, var(--_card-tone) 24%, var(--dpk-rule)); background: color-mix(in oklab, var(--_card-tone) 6%, var(--dpk-paper-raised)); }
+    .kanban-card:is(.is-added, .is-moved)[tabindex]:hover { border-color: color-mix(in oklab, var(--_card-tone) 45%, var(--dpk-rule)); }
+    .kanban-card:is(.is-added, .is-moved):is([aria-pressed="true"], :focus-visible) { border-color: var(--dpk-blue); }
 
     .kanban-card { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; row-gap: var(--dpk-card-gap, 6px); align-items: center; }
     .kanban-card > .dpk-card-head { display: contents; }
@@ -646,6 +490,8 @@
     .kanban-card .dpk-card-key { order: 2; }
     .kanban-card > .kanban-card-meta { order: 3; }
     .kanban-card > .kanban-card-links { order: 4; grid-column: 1 / -1; }
+    .kanban-card::before { order: -1; grid-column: 1 / -1; justify-self: start; padding: 0 9px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 20px; letter-spacing: 0.02em; background: light-dark(#b45309, #fbbf24); color: light-dark(#fff, #1c1917); }
+    .kanban-card::after { order: 5; grid-column: 1 / -1; font-size: 11px; font-weight: var(--ptb-mark-weight, 400); color: var(--ptb-mark, var(--dpk-ink-soft)); }
 
     .kanban-detail { grid-template-rows: minmax(0, 1fr) auto; }
     @media (max-width: 860px) { .kanban-detail { position: relative; } }
@@ -655,35 +501,30 @@
     .kanban-detail-field:has(> dpk-inline-edit[multiline]) { order: 1; }
     .kanban-detail-field:has(> .kanban-tag-row) { order: 2; }
     .kanban-detail-field:has(.kanban-link-add) { order: 3; }
-    .ptb-comments { order: 4; }
-    .ptb-attrs { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 12px; color: var(--dpk-ink-soft); }
-    .ptb-attrs label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .ptb-attrs { order: 0; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 12px; }
+    .ptb-attrs label { display: inline-flex; align-items: center; gap: 5px; color: var(--dpk-ink-soft); }
+    .ptb-attrs .ptb-check { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px solid light-dark(#d97706, #f59e0b); background: transparent; color: light-dark(#92400e, #fcd34d); cursor: pointer; }
+    .ptb-attrs .ptb-check[aria-pressed="true"] { border-color: transparent; background: light-dark(#b45309, #fbbf24); color: light-dark(#fff, #1c1917); font-weight: 600; }
     .ptb-attrs .ptb-date { display: inline-flex; align-items: center; gap: 4px; }
-    .ptb-attrs select { font: inherit; font-size: 12px; padding: 1px 4px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
-    .ptb-attrs input[type="date"] { font: inherit; font-size: 12px; padding: 1px 4px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
-    .ptb-attrs button { font: inherit; font-size: 12px; padding: 1px 6px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule); background: transparent; color: var(--dpk-ink-soft); cursor: pointer; }
-    .ptb-attrs .ptb-error { flex-basis: 100%; margin: 0; color: var(--dpk-danger); }
+    .ptb-attrs input[type="date"], .ptb-attrs select { font: inherit; font-size: 12px; padding: 1px 4px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
+    .ptb-attrs .ptb-clear { font: inherit; font-size: 12px; padding: 1px 6px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule); background: transparent; color: var(--dpk-ink-soft); cursor: pointer; }
+    .ptb-attrs .ptb-error { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--dpk-danger); }
     .ptb-attrs .ptb-error:empty { display: none; }
-
-    :host { --ptb-overdue: var(--dpk-danger); --ptb-today: #b45309; }
-    .kanban-card::before { order: -1; grid-column: 1 / -1; justify-self: start; padding: 0 6px; border-radius: var(--dpk-radius-sm); font-size: 11px; font-weight: 600; line-height: 18px; color: var(--dpk-paper); background: #c2410c; }
-    .kanban-card::after { order: 5; grid-column: 1 / -1; font-size: 11px; color: var(--ptb-date, var(--dpk-ink-soft)); font-weight: var(--ptb-date-weight, 400); }
-    .kanban-column-head::after { font-size: 11px; color: var(--dpk-ink-faint); }
-    .kanban-column[data-column="${SPLIT}"] .kanban-cards::after { content: "Agent"; order: 1; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--dpk-ink-faint); background: linear-gradient(var(--dpk-rule-strong), var(--dpk-rule-strong)) no-repeat right center / calc(100% - 4.5em) 1px; }
-    .ptb-comments ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-    .ptb-comments li { display: grid; gap: 2px; }
-    .ptb-comments li p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; color: var(--dpk-ink); }
-    .ptb-comment-meta { font-size: 11px; color: var(--dpk-ink-faint); }
-    .ptb-comments .ptb-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: end; margin-top: 6px; }
+    .ptb-comments { order: 4; display: grid; gap: 6px; }
+    .ptb-comments .ptb-composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: end; }
     .ptb-comments textarea { font: inherit; font-size: 13px; resize: vertical; min-height: 2.5em; padding: 4px 6px; border: 1px solid var(--dpk-rule-strong); border-radius: var(--dpk-radius-sm); background: var(--dpk-paper); color: var(--dpk-ink); }
     .ptb-comments .ptb-error { grid-column: 1 / -1; margin: 0; font-size: 12px; color: var(--dpk-danger); }
     .ptb-comments .ptb-error:empty { display: none; }
     .ptb-comments button, .ptb-archive { font: inherit; font-size: 12px; padding: 2px 8px; border-radius: var(--dpk-radius-sm); border: 1px solid var(--dpk-rule-strong); background: var(--dpk-paper); color: var(--dpk-ink); cursor: pointer; }
     .ptb-archive { margin-left: auto; flex: none; }
     .ptb-archive:disabled { cursor: default; color: var(--dpk-ink-faint); }
+
+    :host { --ptb-overdue: var(--dpk-danger); --ptb-today: light-dark(#b45309, #fbbf24); }
+    .kanban-column[data-column="${SPLIT}"] .kanban-cards::after { content: "Agent"; order: 1; display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--dpk-ink-faint); background: linear-gradient(var(--dpk-rule-strong), var(--dpk-rule-strong)) no-repeat right center / calc(100% - 4.5em) 1px; }
+    .kanban-column-head::after { margin-left: 6px; font-size: 11px; color: var(--dpk-ink-faint); }
   `);
 
-  // kit のリンクの追加は form の submit で動き、allow-forms の無い sandbox では発火しない。Add の click と Enter で同じ action を書く。
+  // kit のリンクの追加は form の submit で動き、allow-forms の無い sandbox では発火しない。どの sandbox でも動くように、Add の click と Enter で同じ action を書く。
   const addLink = (el, form) => {
     const card = form.closest("aside.kanban-detail[data-card]")?.dataset.card;
     const url = form.querySelector('[data-role="link-url"]');
@@ -706,7 +547,7 @@
   };
 
   const interceptLinkAdd = (el, root) => {
-    const formOf = (event) => event.target instanceof Element ? event.target.closest("form.kanban-link-add") : null;
+    const formOf = (event) => (event.target instanceof Element ? event.target.closest("form.kanban-link-add") : null);
     root.addEventListener("submit", (event) => {
       if (formOf(event) === null) return;
       event.preventDefault();
@@ -726,81 +567,69 @@
     }, true);
   };
 
-  // kit の shadow DOM への差し込みは、Done 見出しのアーカイブとカード詳細の属性・コメントの 3 か所。属性の印と隠す処理は stylesheet だけで行う。リンクの追加はイベントだけを拾う。kit が描き直すたびに入れ直す。
+  // タグの絞り込みに日付ごとの項目を並べない。絞り込みは別の shadow DOM (dpk-tag-filter) にあるので、そこへ stylesheet を足す。
+  const filterCss = (el) => {
+    const dates = [...new Set(cardsOf(el).flatMap(({ card }) => (card.tags ?? []).filter((tag) => isReserved(tag) && tag !== CHECK_TAG)))];
+    return dates.length === 0 ? "" : `button.dpk-tag:is(${dates.map((tag) => `[data-tag="${CSS.escape(tag)}"]`).join(", ")}) { display: none; }`;
+  };
+  const ensureFilterSheet = (root, sheet) => {
+    const filter = root.querySelector("dpk-tag-filter")?.shadowRoot;
+    if (filter && !filter.adoptedStyleSheets.includes(sheet)) filter.adoptedStyleSheets = [...filter.adoptedStyleSheets, sheet];
+  };
+
+  // kit の shadow DOM への差し込みは、Done 見出しのアーカイブ、カード詳細の属性の欄と記録欄の 3 か所。印と隠す処理は stylesheet だけで行う。
+  const enhancers = [];
   const enhance = (el) => {
     const root = el.shadowRoot;
     const attrSheet = new CSSStyleSheet();
+    const filterSheet = new CSSStyleSheet();
     root.adoptedStyleSheets = [...root.adoptedStyleSheets, boardSheet, attrSheet];
     interceptLinkAdd(el, root);
-    root.addEventListener("click", (event) => {
-      if (event.target instanceof Element && event.target.closest(".kanban-card")) {
-        reveal.add(el);
-        refresh();
-      }
-    });
     let frame = 0;
     const refresh = () => {
       if (frame !== 0) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        ensureArchive(el, root, el.id);
-        ensureAttrs(root, el.id);
-        ensureComments(el, root, el.id);
-        const css = attrCss(el.id);
+        ensureArchive(el, root);
+        ensureAttrs(el, root);
+        ensureComposer(el, root);
+        updateDeferred();
+        const css = attrCss(el);
         if (attrSheet.ptbCss !== css) {
           attrSheet.replaceSync(css);
           attrSheet.ptbCss = css;
         }
+        ensureFilterSheet(root, filterSheet);
+        const filter = filterCss(el);
+        if (filterSheet.ptbCss !== filter) {
+          filterSheet.replaceSync(filter);
+          filterSheet.ptbCss = filter;
+        }
       });
     };
     new MutationObserver(refresh).observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-card"] });
-    listeners.add(refresh);
+    enhancers.push(refresh);
     refresh();
   };
+  const refreshAll = () => {
+    for (const refresh of enhancers) refresh();
+  };
 
-  const db = (await window.claude?.use("db")) ?? null;
-  if (db !== null) {
-    const user = await window.claude.use("user");
-    self = { id: (await user?.id()) ?? localWriter() };
-    serveDraftSync({ self, transport: () => dbTransport(db) });
-    noteCollection = db.collection(NOTES);
-    noteCollection.onSnapshot(
-      (snap) => {
-        notes = snap.docs.map((doc) => ({ ...doc.data() }));
-        changed();
-      },
-      (e) => {
-        notesError = `コメントを読めなかった: ${e?.message ?? String(e)}`;
-        changed();
-      },
-    );
-    attrCollection = db.collection(ATTRS);
-    attrCollection.onSnapshot(
-      (snap) => {
-        attrs = snap.docs.map((doc) => ({ ...doc.data() })).filter(isAttr);
-        changed();
-      },
-      (e) => {
-        attrsError = `属性を読めなかった: ${e?.message ?? String(e)}`;
-        changed();
-      },
-    );
-  }
-  // 日付が変わったら、隠すカードと期日の印を描き直す。db には書かない。
+  // 日付が変わったら、隠すカードと期日の色を描き直す。
   const recheckToday = () => {
-    const next = tokyoDate(new Date());
+    const next = tokyoStamp(new Date()).slice(0, 10);
     if (next === today) return;
     today = next;
-    changed();
+    refreshAll();
   };
   setInterval(recheckToday, 60_000);
   document.addEventListener("visibilitychange", recheckToday);
-  listeners.add(updateDeferredToggle);
+  document.addEventListener("dpk-change", refreshAll);
   await import(KIT);
   for (const el of kanbans) {
     await el.api.ready;
     enhance(el);
   }
-  document.addEventListener("dpk-change", changed);
-  updateDeferredToggle();
 </script>
+</body>
+</html>

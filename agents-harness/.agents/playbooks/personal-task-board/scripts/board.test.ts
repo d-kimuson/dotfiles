@@ -1,602 +1,860 @@
 import assert from "node:assert/strict"
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { test } from "node:test"
-import {
-  type Action,
-  type Attr,
-  ATTR_NAMES,
-  BOARDS,
-  DEFERRABLE,
-  OWNERS,
-  SPLIT,
-  type Intent,
-  type Note,
-  attrId,
-  attrsOf,
-  cardId,
-  checkSession,
-  isAttr,
-  isDeferred,
-  findCard,
-  fold,
-  parseDescription,
-  plan,
-  planMigration,
-  planNoteMigration,
-  readActions,
-  readAttrs,
-  readNotes,
-  renderBoard,
-  sessionFromEnv,
-  tokyoDate,
-} from "./board.ts"
+import { fileURLToPath } from "node:url"
+import { applyReview, cardId, changesForIntents, foldDump, renderText } from "./board.ts"
+import { authorLabel, CHECK_TAG, DUE_PREFIX, mergeRecords, readCard, START_PREFIX, tokyoDate, tokyoStamp, writeCard, type Note } from "./card.ts"
+import { applyEdits, editsBetween, htmlFromRead } from "./folio.ts"
+import { applyIntents, checkSession, normalizeKey, sessionFromEnv, type Intent } from "./intents.ts"
+import { emptyKanban, parsePage, renderPage, validateKanban, type Card, type Kanban, type Page } from "./page.ts"
+import { addressedHas, mergeAddressed, parseAddressed, parseBrief, parseTargetId, replay, type DraftAction } from "./replay.ts"
 
-const now = new Date("2026-11-27T10:00:00.000Z")
-const later = new Date("2026-11-27T10:05:00.000Z")
-const archiveAt = new Date("2026-11-28T00:00:00.000Z")
+const here = dirname(fileURLToPath(import.meta.url))
+const TEMPLATE = readFileSync(join(here, "..", "assets", "board.html"), "utf8")
+const now = new Date("2026-11-29T01:00:00.000Z")
+const today = "2026-11-29"
 
-// ページ上の編集が db に入ったときの実際の形 (dev-process-kit 0.4.2 の SyncHost が push したもの)。number が無い。
-const userAdd: Action = {
-  id: "uwjz3rxk:1",
-  type: "ADD_CARD",
+const empty = (): Page => parsePage(TEMPLATE)
+const boardOf = (page: Page, id: "personal-task-board" | "personal-learning" = "personal-task-board"): Kanban => page.boards[id]
+const columnOf = (kanban: Kanban, id: string) => {
+  const column = kanban.columns.find((c) => c.id === id)
+  assert.ok(column !== undefined, `列 ${id} が無い`)
+  return column
+}
+const cardOf = (kanban: Kanban, id: string): Card => {
+  for (const column of kanban.columns) {
+    const card = column.cards.find((c) => c.id === id)
+    if (card !== undefined) return card
+  }
+  throw new Error(`カード ${id} が無い`)
+}
+const card = (id: string, number: number, title: string, extra: Partial<Card> = {}): Card => ({ id, number, title, ...extra })
+const action = (over: Partial<DraftAction> & Pick<DraftAction, "id" | "type">): DraftAction => ({
   target: { type: "element", id: "personal-task-board/column/todo@board" },
-  payload: { id: "ui-card", title: "UI で足したカード" },
-  createdAt: "2026-11-27T09:00:00.000Z",
-  author: { id: "u_tester" },
-}
-const pageAction = (id: string, type: string, path: string, payload: Record<string, unknown>, createdAt: string): Action => ({
-  id,
-  type,
-  target: { type: "element", id: `personal-task-board/${path}@board` },
-  payload,
-  createdAt,
-  author: { id: "u_tester" },
+  payload: {},
+  createdAt: "2026-11-29T00:00:00.000Z",
+  ...over,
 })
-const run = (actions: Action[], intents: Intent[], writer: string, at = now) => {
-  const result = plan(actions, intents, { writer, now: at })
-  return [...actions, ...result.actions]
-}
+const brief = (draft: DraftAction[], addressed: string): string =>
+  [
+    "# Review draft — タスク",
+    "",
+    "## Requested changes (1)",
+    "",
+    "## Not applicable to the current base (1)",
+    "",
+    "## Change log: addressed",
+    "",
+    "When you regenerate the page, set `\"addressed\"` at the top of its change log.",
+    "",
+    "```text",
+    addressed,
+    "```",
+    "",
+    "## Canonical draft (JSON)",
+    "",
+    "```json",
+    JSON.stringify(draft, null, 2),
+    "```",
+    "",
+  ].join("\n")
 
-test("列は board.html の各 Kanban と同じ", () => {
-  const html = readFileSync(new URL("../assets/board.html", import.meta.url), "utf8")
-  for (const b of BOARDS) {
-    const json = new RegExp(`<dpk-board-kanban id="${b.id}"[^>]*>\\s*<script type="application/json">([\\s\\S]*?)</script>`).exec(html)?.[1]
-    assert.ok(json !== undefined, b.id)
-    const columns = (JSON.parse(json) as { columns: { id: string; label: string; color: string; cards: unknown[] }[] }).columns
-    assert.deepEqual(
-      columns.map(({ id, label, color, cards }) => ({ id, label, color, cards: cards.length })),
-      b.columns.map((c) => ({ ...c, cards: 0 })),
-    )
-    assert.match(html, new RegExp(`<dpk-page name="${b.page}"`))
-  }
-})
-
-test("属性の規則は board.html と同じ", () => {
-  const html = readFileSync(new URL("../assets/board.html", import.meta.url), "utf8")
-  const constant = (name: string): unknown => {
-    const literal = new RegExp(`const ${name} = (.+?);`).exec(html)?.[1]
-    assert.ok(literal !== undefined, name)
-    return JSON.parse(literal)
-  }
-  assert.deepEqual(constant("DEFERRABLE"), DEFERRABLE)
-  assert.deepEqual(constant("OWNERS"), [...OWNERS])
-  assert.equal(constant("SPLIT"), SPLIT)
-  assert.deepEqual(constant("ATTR_NAMES"), [...ATTR_NAMES])
-})
-
-test("カードの追加・移動・詳細の追記を action にして畳み込み、description に状況の履歴を残さない", () => {
-  const key = "https://example.com/issues/1"
-  const id = cardId(key)
-  const first = run([userAdd], [{ op: "add", key, column: "todo", title: "課題 1", detail: "背景", links: [{ url: key }] }], "cc-a")
-  const second = run(first, [{ op: "move", key, column: "doing" }, { op: "detail", card: id, text: "方針: A 案" }], "cc-b", later)
-  const board = fold(second)
-  const found = findCard(board, id)
-  assert.equal(found?.column, "doing")
-  assert.equal(found?.card.description, "背景\n\n方針: A 案")
-  assert.deepEqual(found?.card.links, [{ url: key, label: null }])
-  assert.equal(findCard(board, "ui-card")?.card.number, 1)
-  assert.equal(found?.card.number, 2)
-  assert.deepEqual(board.stale, [])
-  assert.ok(second.slice(1).every((a) => /^[A-Za-z0-9_-]+:[0-9]{3}$/.test(a.id)))
-})
-
-test("blocked へは理由が要り、理由は Pending の理由の節に置き、blocked から出ると消える", () => {
-  const base = run([], [{ op: "add", key: "k", column: "doing", title: "K", detail: "説明" }], "cc-a")
-  assert.throws(() => plan(base, [{ op: "move", key: "k", column: "blocked" }], { writer: "cc-b", now }))
-  const blocked = run(base, [{ op: "move", key: "k", column: "blocked", reason: "レビュー待ち" }], "cc-b", later)
-  assert.equal(findCard(fold(blocked), cardId("k"))?.card.description, "説明\n\n## Pending の理由\nレビュー待ち")
-  const resumed = run(blocked, [{ op: "move", key: "k", column: "doing" }], "cc-c", new Date("2026-11-27T10:10:00.000Z"))
-  assert.equal(findCard(fold(resumed), cardId("k"))?.card.description, "説明")
-})
-
-test("今日やる列にも移せ、学習カードは別の盤面に積む", () => {
-  const actions = run(
-    [],
-    [
-      { op: "add", key: "t", column: "today", title: "今日のタスク" },
-      { op: "add", key: "l", board: "personal-learning", column: "backlog", title: "学ぶこと" },
-    ],
-    "cc-a",
+test("テンプレートの base は空の列で、render と parse が往復する", () => {
+  const page = empty()
+  assert.deepEqual(
+    boardOf(page).columns.map((c) => [c.id, c.cards.length]),
+    [["todo", 0], ["today", 0], ["doing", 0], ["blocked", 0], ["done", 0], ["archived", 0]],
   )
-  const board = fold(actions)
-  assert.equal(findCard(board, cardId("t"))?.column, "today")
-  assert.equal(findCard(board, cardId("l"))?.board, "personal-learning")
-  assert.equal(findCard(board, cardId("l"))?.card.number, 1)
-  assert.ok(actions.some((a) => a.target.id === "personal-learning/column/backlog@learning"))
-  assert.throws(() => plan([], [{ op: "add", key: "x", board: "personal-learning", column: "todo", title: "X" }], { writer: "cc-a", now }))
-})
-
-test("セッションの参照は、ローカルは description に重複なく足し、web は URL のリンクにする", () => {
-  const web = "https://claude.ai/code/session_01AbC"
-  const base = run([], [{ op: "add", key: "k", column: "doing", title: "K", sessions: ["claude-code 11111111-2222-3333-4444-555555555555"] }], "cc-a")
-  const next = run(
-    base,
-    [
-      { op: "session", key: "k", session: "codex 019a-thread" },
-      { op: "session", key: "k", session: "claude-code 11111111-2222-3333-4444-555555555555" },
-      { op: "session", key: "k", session: web },
-    ],
-    "cc-b",
-    later,
-  )
-  const card = findCard(fold(next), cardId("k"))?.card
-  assert.deepEqual(parseDescription(card?.description ?? null).sessions, ["claude-code 11111111-2222-3333-4444-555555555555", "codex 019a-thread"])
-  assert.deepEqual(card?.links, [{ url: web, label: "session" }])
-  assert.throws(() => checkSession("cursor abc"))
-  assert.throws(() => checkSession("https://claude.ai/code/cse_x"))
-})
-
-test("同じキーのカードは 2 回積まない", () => {
-  const intents = [{ op: "add" as const, key: "slack:C1/p1", column: "todo", title: "返事を書く" }]
-  const first = plan([], intents, { writer: "cc-a", now })
-  const second = plan(first.actions, intents, { writer: "cc-b", now })
-  assert.equal(second.actions.length, 0)
-  assert.equal(second.skipped.length, 1)
-})
-
-test("別々のセッションが同時に別のカードを更新しても、どちらの更新も残る", () => {
-  const base = run(
-    [],
-    [
-      { op: "add", key: "a", column: "todo", title: "A" },
-      { op: "add", key: "b", column: "todo", title: "B" },
-    ],
-    "cc-0",
-  )
-  // 2 つのセッションが同じ盤面を読み、互いを知らずに書く。
-  const s1 = plan(base, [{ op: "move", key: "a", column: "doing" }, { op: "detail", key: "a", text: "A の方針" }], { writer: "cc-1", now: later })
-  const s2 = plan(base, [{ op: "move", key: "b", column: "blocked", reason: "B 待ち" }], { writer: "cc-2", now: later })
-  const board = fold([...base, ...s2.actions, ...s1.actions])
-  assert.equal(findCard(board, cardId("a"))?.column, "doing")
-  assert.equal(findCard(board, cardId("b"))?.column, "blocked")
-  assert.match(findCard(board, cardId("a"))?.card.description ?? "", /A の方針/)
-  assert.match(findCard(board, cardId("b"))?.card.description ?? "", /B 待ち/)
-})
-
-test("同じ id の ADD_CARD が競合しても 1 枚にまとまり、後のものは stale になる", () => {
-  const intents = [{ op: "add" as const, key: "same", column: "todo", title: "X" }]
-  const s1 = plan([], intents, { writer: "cc-1", now })
-  const s2 = plan([], intents, { writer: "cc-2", now })
-  const board = fold([...s1.actions, ...s2.actions])
-  assert.equal(board.columns.flatMap((c) => c.cards).length, 1)
-  assert.deepEqual(board.stale, [{ id: "cc-2:001", type: "ADD_CARD" }])
-})
-
-const note = (id: string, card: string, body: string, createdAt: string, author: Note["author"] = { id: "u_tester" }): Note => ({
-  id,
-  board: "personal-task-board",
-  card,
-  body,
-  author,
-  createdAt,
-})
-
-test("kit の comment action はレビューコメントとして読み、カードのコメントには出さない", () => {
-  const comment = pageAction("uwjz3rxk:2", "comment", "card/ui-card", { body: "本人の指示" }, "2026-11-27T09:01:00.000Z")
-  const board = fold([userAdd, comment])
-  assert.deepEqual(board.reviews, [
-    { id: "uwjz3rxk:2", board: "personal-task-board", path: "card/ui-card", body: "本人の指示", author: { id: "u_tester" }, createdAt: "2026-11-27T09:01:00.000Z" },
+  const withCard = applyIntents(page, [
+    { op: "add", key: "https://example.com/a", column: "todo", title: "往復する", detail: "説明", tags: ["作業"], links: [{ url: "https://example.com/x" }] },
   ])
-  const text = renderBoard(board, [])
-  assert.match(text, /## レビューコメント \(本人から Agent への指示\)\n- uwjz3rxk:2 personal-task-board\/card\/ui-card \S+ 本人: 本人の指示/)
-  assert.doesNotMatch(text, /    > /)
+  const rendered = renderPage(TEMPLATE, withCard.page)
+  const parsed = parsePage(rendered)
+  assert.deepEqual(parsed.boards, withCard.page.boards)
+  // 番号は base に明示する (省略すると並び替えで変わる)。
+  assert.equal(parsed.boards["personal-task-board"].columns[0]?.cards[0]?.number, 1)
 })
 
-test("無いカードへの更新は action を作らない", () => {
-  const result = plan([], [{ op: "detail", key: "none", text: "x" }], { writer: "cc-a", now })
-  assert.equal(result.actions.length, 0)
-  assert.equal(result.skipped.length, 1)
+test("`<` を含む値でも script を閉じず、往復する", () => {
+  const page = empty()
+  const id = cardId("https://example.com/b")
+  const text = "<script>alert(1)</script><!-- --> </script>"
+  const next = applyIntents(page, [{ op: "add", key: "https://example.com/b", column: "todo", title: "a < b", detail: text }])
+  const rendered = renderPage(TEMPLATE, next.page)
+  assert.ok(!rendered.includes("<script>alert(1)"), "生の <script> が HTML に出ている")
+  assert.ok(rendered.includes("\\u003cscript>"), "`<` を \\u003c にしていない")
+  const parsed = parsePage(rendered)
+  assert.equal(cardOf(boardOf(parsed), id).title, "a < b")
+  assert.equal(readCard(cardOf(boardOf(parsed), id)).detail, text)
 })
 
-test("1 回の plan で 10 個以上の action を作っても、作った順に再生される", () => {
-  const intents = [1, 2, 3].map((n) => ({
-    op: "add" as const,
-    key: `k${n}`,
-    column: "todo",
-    title: `課題 ${n}`,
-    detail: "背景",
-    tags: ["作業"],
-    links: [{ url: `https://example.com/${n}` }, { url: `https://example.com/${n}/pr` }],
-  }))
-  const result = plan([], intents, { writer: "cc-a", now })
-  assert.ok(result.actions.length >= 10)
-  const board = fold(result.actions)
-  assert.deepEqual(board.stale, [])
-  for (const n of [1, 2, 3]) {
-    const card = findCard(board, cardId(`k${n}`))
-    assert.equal(card?.card.number, n)
-    assert.equal(card?.card.links.length, 2)
-  }
+test("change log は base の後ろに置き、addressed と revisions を往復する", () => {
+  const page = empty()
+  page.changes = { addressed: "w:1-3,x:2", revisions: [{ revision: "2026-11-29.1", changes: [{ title: "追加", target: "card:a@board" }] }] }
+  const rendered = renderPage(TEMPLATE, page)
+  assert.deepEqual(parsePage(rendered).changes, page.changes)
+  // app の base の後ろ、dpk-app の中に置く。
+  assert.ok(rendered.indexOf('"title"') < rendered.indexOf("data-dpk-changes"))
+  assert.ok(rendered.indexOf("data-dpk-changes") < rendered.indexOf("</dpk-app>"))
+  // 書き直しても字下げは変わらず、change log を消しても空行を残さない。
+  assert.equal(renderPage(rendered, page), rendered)
+  assert.equal(renderPage(rendered, empty()), renderPage(TEMPLATE, empty()))
 })
 
-test("URL の key は表記ゆれをそろえて同じカード id にする", () => {
-  const id = cardId("https://example.com/issues/12")
-  assert.equal(cardId("https://EXAMPLE.com/issues/12/"), id)
-  assert.equal(cardId(" https://example.com/issues/12#comment-3 "), id)
-  assert.notEqual(cardId("https://example.com/issues/13"), id)
-  assert.equal(cardId("session:x"), cardId(" session:x "))
+test("kit と同じ入力を拒む", () => {
+  const ok = { columns: [{ id: "todo", label: "Todo", cards: [] }] }
+  assert.deepEqual(validateKanban(ok).columns[0]?.id, "todo")
+  // 未知のキー
+  assert.throws(() => validateKanban({ columns: [], extra: true }), /board\.extra: 未知の項目/)
+  assert.throws(() => validateKanban({ columns: [{ id: "todo", label: "Todo", nope: 1 }] }), /nope: 未知の項目/)
+  // 列とカードの id の重複
+  assert.throws(() => validateKanban({ columns: [{ id: "todo", label: "Todo" }, { id: "todo", label: "Again" }] }), /列の id が重なっている/)
+  assert.throws(
+    () => validateKanban({ columns: [{ id: "todo", label: "Todo", cards: [{ id: "a", title: "A" }] }, { id: "done", label: "Done", cards: [{ id: "a", title: "B" }] }] }),
+    /カードの id が重なっている/,
+  )
+  // 番号の重複
+  assert.throws(
+    () => validateKanban({ columns: [{ id: "todo", label: "Todo", cards: [{ id: "a", number: 2, title: "A" }, { id: "b", number: 2, title: "B" }] }] }),
+    /カードの番号が重なっている/,
+  )
+  // 空の題
+  assert.throws(() => validateKanban({ columns: [{ id: "todo", label: "Todo", cards: [{ id: "a", title: "" }] }] }), /title: 文字列 \(1 文字以上\)/)
+  // 同じカードに同じ URL
+  assert.throws(
+    () =>
+      validateKanban({
+        columns: [{ id: "todo", label: "Todo", cards: [{ id: "a", title: "A", links: [{ url: "https://example.com" }, { url: "https://example.com" }] }] }],
+      }),
+    /同じ URL を 2 つ持っている/,
+  )
+  // http(s) でないリンク
+  assert.throws(() => validateKanban({ columns: [{ id: "todo", label: "Todo", cards: [{ id: "a", title: "A", links: [{ url: "ftp://example.com" }] }] }] }), /http\(s\) の URL/)
+  // kit の base は空文字のタグを許す。
+  assert.deepEqual(validateKanban({ columns: [{ id: "todo", label: "Todo", cards: [{ id: "a", title: "A", tags: [""] }] }] }).columns[0]?.cards[0]?.tags, [""])
+  // 番号は省略でき、盤面の順に最大番号 + 1 が振られる。
+  const numbered = validateKanban({ columns: [{ id: "todo", label: "Todo", cards: [{ id: "a", number: 4, title: "A" }, { id: "b", title: "B" }] }] })
+  assert.equal(numbered.columns[0]?.cards[1]?.number, 5)
 })
 
-test("dump に actions が無ければ失敗し、--empty のときだけ空の盤面にする", () => {
-  const dir = mkdtempSync(join(tmpdir(), "board-"))
-  assert.throws(() => readActions(dir))
-  assert.deepEqual(readActions(dir, { allowEmpty: true }), [])
-  mkdirSync(join(dir, "actions"))
-  assert.deepEqual(readActions(dir), [])
-})
-
-test("カード以外へのレビューコメントも宛先と本文つきで出し、カードの無いコメントも落とさない", () => {
-  const onColumn = pageAction("uwjz3rxk:3", "comment", "column/todo", { body: "列への指示" }, "2026-11-27T09:02:00.000Z")
-  const text = renderBoard(fold([userAdd, onColumn]), [note("u:9", "gone", "消えたカードへのメモ", "2026-11-27T09:03:00.000Z")])
-  assert.match(text, /## レビューコメント .*\n- uwjz3rxk:3 personal-task-board\/column\/todo .* 本人: 列への指示/)
-  assert.match(text, /## カードの無いコメント\n- personal-task-board\/gone .* 本人: 消えたカードへのメモ/)
-})
-
-test("書き手の時計が遅れていても、読んだ action より後に再生される", () => {
-  const ahead: Action = { ...userAdd, createdAt: "2026-11-27T10:02:00.000Z" }
-  const result = plan([ahead], [{ op: "move", card: "ui-card", column: "doing" }], { writer: "cc-a", now })
-  const board = fold([ahead, ...result.actions])
-  assert.deepEqual(board.stale, [])
-  assert.equal(findCard(board, "ui-card")?.column, "doing")
-})
-
-test("移行は「## 状況」節を落とし、Pending のカードは最後の状況を Pending の理由にする", () => {
-  const legacy = [
-    userAdd,
-    pageAction("cc-old:1", "ADD_CARD", "column/blocked", { id: "b", title: "B" }, "2026-11-27T09:01:00.000Z"),
-    pageAction("cc-old:2", "SET_CARD_DESCRIPTION", "card/b", { description: "説明\n\n## 状況\n- 2026-11-27 09:01Z 積んだ\n- 2026-11-27 09:02Z PR のレビュー待ち" }, "2026-11-27T09:02:00.000Z"),
-    pageAction("cc-old:3", "SET_CARD_DESCRIPTION", "card/ui-card", { description: "## 状況の整理\n\n本文\n\n## 状況\n- 2026-11-27 09:03Z 着手" }, "2026-11-27T09:03:00.000Z"),
+test("replay は kit と同じく適用できない action を stale にし、番号を振る", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 3, "A")]
+  const actions: DraftAction[] = [
+    action({ id: "w:1", type: "ADD_CARD", payload: { id: "b", title: " B " } }),
+    action({ id: "w:2", type: "ADD_CARD", payload: { id: "b", title: "重複" } }),
+    action({ id: "w:3", type: "ADD_CARD", payload: { id: "c", title: "   " } }),
+    action({ id: "w:4", type: "ADD_CARD", payload: { id: "d", title: "番号が重なる", number: 4 } }),
+    action({ id: "w:5", type: "ADD_CARD", target: { type: "element", id: "personal-task-board/column/nope@board" }, payload: { id: "e", title: "E" } }),
+    action({ id: "w:6", type: "MOVE_CARD", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { column: "doing", before: null } }),
+    action({ id: "w:7", type: "MOVE_CARD", target: { type: "element", id: "personal-task-board/card/b@board" }, payload: { column: "nope", before: null } }),
+    action({ id: "w:8", type: "MOVE_CARD", target: { type: "element", id: "personal-task-board/card/b@board" }, payload: { column: "doing", before: "missing" } }),
+    action({ id: "w:9", type: "MOVE_CARD", target: { type: "element", id: "personal-task-board/card/b@board" }, payload: { column: "doing", before: "b" } }),
+    action({ id: "w:10", type: "ADD_CARD_TAG", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { tag: "x" } }),
+    action({ id: "w:11", type: "ADD_CARD_TAG", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { tag: "x" } }),
+    action({ id: "w:12", type: "REMOVE_CARD_TAG", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { tag: "nope" } }),
+    action({ id: "w:13", type: "ADD_CARD_LINK", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { url: "ftp://example.com" } }),
+    action({ id: "w:14", type: "SET_CARD_TITLE", target: { type: "element", id: "personal-task-board/card/missing@board" }, payload: { title: "x" } }),
+    action({ id: "w:15", type: "SOMETHING_NEW", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: {} }),
+    action({ id: "w:16", type: "comment", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { body: "本文" } }),
   ]
-  const created = planMigration(legacy, { writer: "cc-m", now })
-  const board = fold([...legacy, ...created])
-  assert.equal(findCard(board, "b")?.card.description, "説明\n\n## Pending の理由\nPR のレビュー待ち")
-  assert.equal(findCard(board, "ui-card")?.card.description, "## 状況の整理\n\n本文")
-  assert.deepEqual(planMigration([...legacy, ...created], { writer: "cc-n", now: later }), [])
+  const out = replay(boardOf(page), "personal-task-board", actions)
+  const status = Object.fromEntries(out.results.map((r) => [r.id, r.status === "stale" ? r.reason : r.status]))
+  assert.deepEqual(status, {
+    "w:1": "applied",
+    "w:2": "constraint-violated",
+    "w:3": "constraint-violated",
+    "w:4": "constraint-violated",
+    "w:5": "target-missing",
+    "w:6": "applied",
+    "w:7": "constraint-violated",
+    "w:8": "constraint-violated",
+    "w:9": "constraint-violated",
+    "w:10": "applied",
+    "w:11": "constraint-violated",
+    "w:12": "constraint-violated",
+    "w:13": "constraint-violated",
+    "w:14": "target-missing",
+    "w:15": "unsupported-action-type",
+    "w:16": "comment",
+  })
+  // 番号なしの ADD_CARD は最大番号 + 1。題は trim する。
+  assert.deepEqual(cardOf(out.board, "b"), { id: "b", number: 4, title: "B" })
+  assert.equal(cardOf(out.board, "a").tags?.join(","), "x")
+  assert.equal(columnOf(out.board, "doing").cards[0]?.id, "a")
 })
 
-test("description の本人が書いた見出しと行は、Pending の理由とセッションの節に吸い込まず説明に残す", () => {
-  const d = parseDescription("説明\n\n## ブロック理由\n待ち\n\n## メモ\n本人のメモ\n\n## セッション\n- codex abc\n本人の行")
-  assert.equal(d.blocked, "待ち")
-  assert.deepEqual(d.sessions, ["codex abc"])
-  assert.match(d.detail, /## メモ\n本人のメモ/)
-  assert.match(d.detail, /本人の行/)
-})
-
-const numbersOf = (board: ReturnType<typeof fold>) =>
-  Object.fromEntries(board.columns.flatMap((c) => c.cards.map((x) => [x.id, { number: x.number, column: c.id }])))
-
-test("アーカイブは Done のカードを隠した列へ移すだけで、action を消さず、番号を変えない", () => {
-  const base = run(
-    [userAdd],
-    [
-      { op: "add", key: "a", column: "doing", title: "A" },
-      { op: "add", key: "d", column: "done", title: "D", tags: ["作業"] },
-      { op: "add", key: "l", board: "personal-learning", column: "done", title: "L" },
-    ],
-    "cc-a",
-  )
-  const comment = pageAction("uwjz3rxk:6", "comment", `card/${cardId("d")}`, { body: "済んだ?" }, "2026-11-27T10:01:30.000Z")
-  const notes = [note("uwjz3rxk:7", cardId("d"), "済んだ", "2026-11-27T10:01:40.000Z")]
-  const before = fold([...base, comment])
-  const only = plan([...base, comment], [{ op: "archive", board: "personal-task-board" }], { writer: "cc-b", now: later })
-  assert.deepEqual(only.actions.map((a) => [a.type, a.target.id, a.payload]), [
-    ["MOVE_CARD", `personal-task-board/card/${cardId("d")}@board`, { column: "archived", before: null }],
+test("replay の編集は base を置き換え、空の description と assignee はキーごと消す", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A", { description: "古い", assignee: "Agent", tags: ["x"], links: [{ url: "https://example.com" }] })]
+  const target = { type: "element", id: "personal-task-board/card/a@board" }
+  const out = replay(boardOf(page), "personal-task-board", [
+    action({ id: "w:1", type: "SET_CARD_DESCRIPTION", target, payload: { description: "   " } }),
+    action({ id: "w:2", type: "SET_CARD_ASSIGNEE", target, payload: { assignee: "" } }),
+    action({ id: "w:3", type: "REMOVE_CARD_TAG", target, payload: { tag: "x" } }),
+    action({ id: "w:4", type: "REMOVE_CARD_LINK", target, payload: { url: "https://example.com" } }),
+    action({ id: "w:5", type: "SET_CARD_TITLE", target, payload: { title: " 新しい題 " } }),
   ])
-  const after = run([...base, comment], [{ op: "archive" }], "cc-b", later)
-  const board = fold(after)
-  assert.deepEqual(board.stale, [])
-  assert.equal(findCard(board, cardId("d"))?.column, "archived")
-  assert.equal(findCard(board, cardId("l"))?.column, "archived")
-  for (const [id, v] of Object.entries(numbersOf(before))) assert.equal(numbersOf(board)[id]?.number, v.number, id)
-  // show は既定でアーカイブを出さず、--archived で説明・タグ・コメントごと出す。
-  assert.doesNotMatch(renderBoard(board, notes), /TASK-3/)
-  assert.doesNotMatch(renderBoard(board, notes), /カードの無いコメント/)
-  assert.match(renderBoard(board, notes, { archived: true }), /TASK-3 \S+ D \[作業\][\s\S]*> .* 本人: 済んだ/)
-  // アーカイブした後に足したカードは次の番号を取り、同じキーでは積み直さない。
-  const next = plan(after, [{ op: "add", key: "n", column: "todo", title: "N" }, { op: "add", key: "d", column: "todo", title: "D" }], { writer: "cc-c", now: archiveAt })
-  assert.equal(findCard(fold([...after, ...next.actions]), cardId("n"))?.card.number, 4)
-  assert.match(next.skipped[0] ?? "", /既にある \(archived/)
-  assert.throws(() => plan(after, [{ op: "move", key: "a", column: "archived" }], { writer: "cc-c", now: archiveAt }))
+  assert.deepEqual(cardOf(out.board, "a"), { id: "a", number: 1, title: "新しい題" })
+  assert.ok(out.results.every((r) => r.status === "applied"))
 })
 
-// 各書き手の action は順に届く。どの書き手がどこまで届いたかの全ての組み合わせで、盤面を確かめる。
-const prefixes = (writers: Action[][]): Action[][] => {
-  const [head, ...tail] = writers
-  if (head === undefined) return [[]]
-  return tail.length === 0
-    ? head.map((_, i) => head.slice(0, i)).concat([head])
-    : prefixes(tail).flatMap((rest) => [...head.map((_, i) => head.slice(0, i)), head].map((h) => [...h, ...rest]))
-}
-
-test("アーカイブ・Agent の追加と移動・ページの追加がどう重なっても、カードは失われず番号は変わらず重ならない", () => {
-  const base = run(
-    [],
-    [
-      { op: "add", key: "d1", column: "done", title: "D1" },
-      { op: "add", key: "d2", column: "done", title: "D2" },
-      { op: "add", key: "p", column: "doing", title: "P" },
-    ],
-    "cc-0",
-  )
-  const initial = numbersOf(fold(base))
-  for (const [archiveAtMs, agentAtMs] of [
-    [later, archiveAt],
-    [archiveAt, later],
-  ] as const) {
-    const archive = plan(base, [{ op: "archive" }], { writer: "cc-ar", now: archiveAtMs }).actions
-    const agent = plan(base, [{ op: "add", key: "x", column: "todo", title: "X" }, { op: "move", key: "p", column: "blocked", reason: "待ち" }], { writer: "cc-ag", now: agentAtMs }).actions
-    const page = [pageAction("uwjz3rxk:9", "ADD_CARD", "column/todo", { id: "ui-new", title: "ページで足した" }, "2026-11-27T10:03:00.000Z")]
-    const another = plan(base, [{ op: "add", key: "y", column: "today", title: "Y" }], { writer: "cc-an", now: agentAtMs }).actions
-    for (const present of prefixes([archive, agent, page, another])) {
-      const board = fold([...base, ...present])
-      assert.deepEqual(board.stale, [])
-      const numbers = numbersOf(board)
-      for (const [id, v] of Object.entries(initial)) assert.equal(numbers[id]?.number, v.number, id)
-      const all = Object.values(numbers).map((v) => v.number)
-      assert.equal(new Set(all).size, all.length)
-      const added = present.filter((a) => a.type === "ADD_CARD").map((a) => String(a.payload.id))
-      for (const id of added) assert.ok(numbers[id] !== undefined, id)
-    }
-  }
+test("addressed は writer ごとの範囲で、増える方向にだけまとめる", () => {
+  assert.equal(mergeAddressed(undefined, ["w:1"]), "w:1")
+  assert.equal(mergeAddressed("w:1-3", ["w:5", "w:4"]), "w:1-5")
+  assert.equal(mergeAddressed("w:1-5", ["w:2"]), "w:1-5")
+  assert.equal(mergeAddressed("w:1-2,x:1", ["w:3", "y:2"]), "w:1-3,x:1,y:1-2")
+  assert.equal(mergeAddressed(undefined, ["w:1", "w:2", "w:4"], ["w:3"]), "w:1-2,w:4")
+  assert.equal(mergeAddressed("w:1-2", ["w:4"], ["w:3", "w:5"]), "w:1-2,w:4")
+  assert.equal(mergeAddressed(undefined, ["w:2"], ["w:1"]), "w:2")
+  // UUID 形式の id は範囲に入れない (kit と同じ)。
+  assert.equal(mergeAddressed(undefined, ["tgmdkw1b:44", "9d1e0a5c-0000-4000-8000-000000000000"]), "tgmdkw1b:1-44")
+  assert.equal(addressedHas("w:1-5", "w:3"), true)
+  assert.equal(addressedHas("w:1-5", "w:6"), false)
+  assert.deepEqual([...parseAddressed("w:1-3,w:2-4").get("w") ?? []], [[1, 4]])
+  assert.throws(() => mergeAddressed("w:1-", ["w:2"]), /addressed/)
+  assert.throws(() => mergeAddressed("w:3-1", ["w:2"]), /逆になっている/)
 })
 
-test("セッションの参照を環境変数から出す", () => {
-  assert.equal(sessionFromEnv({ CLAUDE_CODE_REMOTE: "true", CLAUDE_CODE_REMOTE_SESSION_ID: "cse_01AbC", CLAUDE_CODE_SESSION_ID: "x" }), "https://claude.ai/code/session_01AbC")
-  assert.equal(sessionFromEnv({ CLAUDE_CODE_SESSION_ID: "1111" }), "claude-code 1111")
-  assert.equal(sessionFromEnv({ CODEX_THREAD_ID: "019a" }), "codex 019a")
+test("brief から draft・addressed・コメントを読む", () => {
+  const draft = [
+    action({ id: "w:1", type: "MOVE_CARD", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { column: "doing", before: null } }),
+    action({ id: "w:2", type: "comment", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { body: "ここを直す" } }),
+  ]
+  const parsed = parseBrief(brief(draft, "w:1-2"))
+  assert.equal(parsed.addressed, "w:1-2")
+  assert.equal(parsed.draft.length, 2)
+  assert.deepEqual(parsed.comments.map((c) => c.payload?.body), ["ここを直す"])
+  // review.json (draft の配列) も読む。
+  assert.equal(parseBrief(JSON.stringify(draft)).draft.length, 2)
+})
+
+test("intent は 2 回当てても 1 回と同じで、記録も増えない", () => {
+  const page = empty()
+  columnOf(boardOf(page), "doing").cards = [card("a", 2, "動かす")]
+  columnOf(boardOf(page), "done").cards = [card("d", 3, "終わった")]
+  const intents: Intent[] = [
+    { op: "add", key: "https://example.com/new", column: "todo", title: "新しい", tags: ["作業"], due: "2026-12-05", owner: "agent" },
+    { op: "move", card: "a", column: "today" },
+    { op: "detail", card: "a", text: "追記" },
+    { op: "comment", card: "a", text: "1 行目\n2 行目", at: "2026-11-29 10:00" },
+    { op: "check", card: "a", on: true, text: "本人に確かめる", at: "2026-11-29 10:01" },
+    { op: "start", card: "a", date: "2026-12-01" },
+    { op: "due", card: "a", date: "2026-12-10" },
+    { op: "owner", card: "a", who: "agent" },
+    { op: "link", card: "a", url: "https://example.com/pr", label: "PR" },
+    { op: "session", card: "a", session: "claude-code abc" },
+    { op: "archive" },
+  ]
+  const once = applyIntents(page, intents, { now })
+  const twice = applyIntents(once.page, intents, { now })
+  assert.deepEqual(twice.page, once.page)
+  // 2 回目は「既にある」として飛ばす。
+  assert.ok(twice.skipped.length >= 9, `skip が少ない: ${JSON.stringify(twice.skipped)}`)
+  const view = readCard(cardOf(boardOf(once.page), "a"))
+  assert.equal(view.pending, undefined)
+  assert.equal(view.records.length, 2)
+  assert.equal(view.records[0]?.text, "1 行目\n2 行目")
+  assert.equal(view.check, true)
+  assert.equal(view.start, "2026-12-01")
+  assert.equal(view.due, "2026-12-10")
+  assert.equal(view.owner, "agent")
+  assert.deepEqual(view.sessions, ["claude-code abc"])
+  assert.equal(cardOf(boardOf(once.page), "d").id, "d")
+  assert.deepEqual(columnOf(boardOf(once.page), "archived").cards.map((c) => c.id), ["d"])
+  const added = cardOf(boardOf(once.page), cardId("https://example.com/new"))
+  assert.equal(added.number, 4)
+  assert.deepEqual(added.tags, ["作業", `${DUE_PREFIX}2026-12-05`])
+  assert.equal(added.assignee, "Agent")
+})
+
+test("衝突からの回復: 新しい base に同じ intents を当て直せる", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  const intents: Intent[] = [
+    { op: "comment", card: "a", text: "記録", at: "2026-11-29 09:00" },
+    { op: "add", key: "https://example.com/b", column: "today", title: "B" },
+  ]
+  const mine = applyIntents(page, intents, { now })
+  // その間に別のセッションが 1 枚足して公開した。
+  const theirs = applyIntents(page, [{ op: "add", key: "https://example.com/z", column: "todo", title: "Z" }], { now })
+  const retry = applyIntents(theirs.page, intents, { now })
+  assert.equal(columnOf(boardOf(retry.page), "todo").cards.length, 2)
+  assert.deepEqual(columnOf(boardOf(retry.page), "today").cards.map((c) => c.id), [cardId("https://example.com/b")])
+  const view = readCard(cardOf(boardOf(retry.page), "a"))
+  assert.equal(view.records.length, 1)
+  // 当てる前と後で、同じ intents の結果が同じになる。
+  assert.deepEqual(view, readCard(cardOf(boardOf(mine.page), "a")))
+  // 同じ intents をもう一度当てても増えない。
+  assert.deepEqual(applyIntents(retry.page, intents, { now }).page, retry.page)
+})
+
+test("レビューは `## 記録` を和集合にし、addressed を次の値にする", () => {
+  const page = empty()
+  const old = writeCard(card("a", 1, "A"), {
+    detail: "説明",
+    records: [{ at: "2026-11-28 10:00", author: "本人", text: "古い記録" }],
+    sessions: [],
+    check: false,
+    owner: "self",
+    warnings: [],
+  })
+  columnOf(boardOf(page), "todo").cards = [old]
+  const next = writeCard(old, {
+    detail: "説明を直した",
+    records: [{ at: "2026-11-29 10:00", author: "本人", text: "新しい記録" }],
+    sessions: [],
+    check: false,
+    owner: "self",
+    warnings: [],
+  })
+  const draft = [
+    action({ id: "w:1", type: "SET_CARD_DESCRIPTION", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { description: next.description ?? "" } }),
+  ]
+  const output = applyReview(page, brief(draft, "w:1"), { now })
+  const view = readCard(cardOf(boardOf(output.page), "a"))
+  assert.equal(view.detail, "説明を直した")
+  assert.deepEqual(view.records.map((n) => n.text), ["古い記録", "新しい記録"])
+  assert.equal(output.addressed, "w:1")
+  assert.equal(output.page.changes.addressed, "w:1")
+  assert.equal(output.page.changes.revisions?.length, 1)
+  // brief の addressed が計算と違えば書かない。
+  assert.throws(() => applyReview(page, brief(draft, "w:1-9"), { now }), /addressed/)
+  // --keep の action は当てず、addressed にも入れず、draft に残す。
+  const kept = applyReview(page, brief(draft, "w:1"), { keep: ["w:1"], now })
+  assert.equal(readCard(cardOf(boardOf(kept.page), "a")).detail, "説明")
+  assert.equal(kept.addressed, "")
+  assert.equal(kept.results[0]?.reason, "kept")
+})
+
+test("レビューで同じ action を 2 回流しても記録は増えない", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  const draft = [action({ id: "w:1", type: "ADD_CARD_TAG", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { tag: "作業" } })]
+  const once = applyReview(page, brief(draft, "w:1"), { now })
+  const twice = applyReview(once.page, brief(draft, "w:1"), { now })
+  assert.deepEqual(cardOf(boardOf(twice.page), "a").tags, ["作業"])
+  assert.equal(readCard(cardOf(boardOf(twice.page), "a")).records.length, 0)
+})
+
+test("blocked へは理由が要り、理由は Pending の理由の節に入り、出ると消える", () => {
+  const page = empty()
+  columnOf(boardOf(page), "doing").cards = [card("a", 1, "A")]
+  assert.throws(() => applyIntents(page, [{ op: "move", card: "a", column: "blocked" }]), /reason/)
+  const blocked = applyIntents(page, [{ op: "move", card: "a", column: "blocked", reason: "本人の返事待ち" }])
+  assert.equal(readCard(cardOf(boardOf(blocked.page), "a")).pending, "本人の返事待ち")
+  const out = applyIntents(blocked.page, [{ op: "move", card: "a", column: "today" }])
+  assert.equal(readCard(cardOf(boardOf(out.page), "a")).pending, undefined)
+})
+
+test("確認が必要・着手可能日・期日はタグ、担い手は assignee で表す", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  const out = applyIntents(page, [
+    { op: "check", card: "a", on: true },
+    { op: "start", card: "a", date: "2026-12-01" },
+    { op: "due", card: "a", date: "2026-12-05" },
+    { op: "owner", card: "a", who: "agent" },
+  ])
+  const got = cardOf(boardOf(out.page), "a")
+  assert.deepEqual(got.tags, [CHECK_TAG, `${START_PREFIX}2026-12-01`, `${DUE_PREFIX}2026-12-05`])
+  assert.equal(got.assignee, "Agent")
+  const view = readCard(got)
+  assert.equal(view.check, true)
+  assert.equal(view.start, "2026-12-01")
+  assert.equal(view.due, "2026-12-05")
+  assert.equal(view.owner, "agent")
+  // 日付を変えると古いタグを外す。解除するとタグも消える。
+  const moved = applyIntents(out.page, [{ op: "due", card: "a", date: "2026-12-09" }])
+  assert.deepEqual(cardOf(boardOf(moved.page), "a").tags, [CHECK_TAG, `${START_PREFIX}2026-12-01`, `${DUE_PREFIX}2026-12-09`])
+  const cleared = applyIntents(moved.page, [{ op: "due", card: "a", date: null }, { op: "start", card: "a", date: null }])
+  assert.deepEqual(cardOf(boardOf(cleared.page), "a").tags, [CHECK_TAG])
+  // 書式の崩れたタグは警告にして、カードは落とさない。
+  const broken = readCard(card("b", 2, "B", { tags: [`${DUE_PREFIX}2026/12/01`, `${DUE_PREFIX}2026-12-02`] }))
+  assert.equal(broken.due, "2026-12-02")
+  assert.ok(broken.warnings.some((w) => w.includes("読めない")))
+  assert.ok(broken.warnings.some((w) => w.includes("2 個ある")))
+  // 日付のタグが 2 個あれば、ページと同じく末尾 (最後に足したもの) を採る。
+  assert.equal(readCard(card("c", 3, "C", { tags: [`${DUE_PREFIX}2026-12-05`, "作業", `${DUE_PREFIX}2026-12-20`] })).due, "2026-12-20")
+})
+
+test("アーカイブは確認が必要なカードを Done に残す", () => {
+  const page = empty()
+  columnOf(boardOf(page), "done").cards = [
+    card("a", 1, "A"),
+    writeCard(card("b", 2, "B"), { detail: "", records: [], sessions: [], check: true, owner: "self", warnings: [] }),
+  ]
+  const out = applyIntents(page, [{ op: "archive" }])
+  assert.deepEqual(columnOf(boardOf(out.page), "archived").cards.map((c) => c.id), ["a"])
+  assert.deepEqual(columnOf(boardOf(out.page), "done").cards.map((c) => c.id), ["b"])
+  assert.ok(out.skipped.some((s) => s.reason.includes("確認が必要")))
+})
+
+test("セッションは description に重複なく足し、web のセッションはリンクにする", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  const url = "https://claude.ai/code/session_abc"
+  const out = applyIntents(page, [
+    { op: "session", card: "a", session: "claude-code xyz" },
+    { op: "session", card: "a", session: "claude-code xyz" },
+    { op: "session", card: "a", session: url },
+  ])
+  const got = cardOf(boardOf(out.page), "a")
+  assert.deepEqual(readCard(got).sessions, ["claude-code xyz"])
+  assert.deepEqual(got.links, [{ url }])
+  assert.throws(() => checkSession("claude abc def"), /session/)
+  assert.equal(normalizeKey("https://Example.com/x/#frag"), "https://example.com/x")
+  assert.equal(sessionFromEnv({ CLAUDE_CODE_SESSION_ID: "s1" }), "claude-code s1")
   assert.equal(sessionFromEnv({ PI_SESSION_ID: "p1" }), "pi p1")
-  assert.equal(sessionFromEnv({ COMMANDCODE_SCRATCHPAD: "/tmp/commandcode-1000/proj/abc123/scratchpad" }), "command-code abc123")
   assert.equal(sessionFromEnv({}), undefined)
-  for (const env of [{ CLAUDE_CODE_SESSION_ID: "1111" }, { COMMANDCODE_SCRATCHPAD: "/tmp/commandcode-1000/proj/abc123/scratchpad" }])
-    assert.equal(checkSession(sessionFromEnv(env) ?? ""), sessionFromEnv(env))
 })
 
-test("plan は未知の op と盤面を拒み、空の label を付けず、本人の「## 状況」節を残す", () => {
-  assert.throws(() => plan([userAdd], [{ op: "status", card: "ui-card" } as unknown as Intent], { writer: "cc-a", now }), /unknown op: status/)
-  assert.throws(() => plan([userAdd], [{ op: "archive", board: "nope" } as unknown as Intent], { writer: "cc-a", now }), /unknown board: nope/)
-  assert.throws(() => plan([], [{ op: "add", key: "k", board: "nope", column: "todo", title: "T" } as unknown as Intent], { writer: "cc-a", now }), /unknown board: nope/)
-  const link = plan([userAdd], [{ op: "link", card: "ui-card", url: "https://example.com/a", label: " " }], { writer: "cc-a", now })
-  assert.deepEqual(link.actions[0]?.payload, { url: "https://example.com/a" })
-  const own = pageAction("u:2", "SET_CARD_DESCRIPTION", "card/ui-card", { description: "説明\n\n## 状況\n本人のメモ" }, "2026-11-27T10:00:30.000Z")
-  const result = plan([userAdd, own], [{ op: "session", card: "ui-card", session: "codex t1" }], { writer: "cc-a", now })
-  assert.equal(findCard(fold([userAdd, own, ...result.actions]), "ui-card")?.card.description, "説明\n\n## 状況\n本人のメモ\n\n## セッション\n- codex t1")
+test("記録は日時順の和集合で、同じ行は 1 つにする", () => {
+  const a: Note = { at: "2026-11-29 10:00", author: "本人", text: "後" }
+  const b: Note = { at: "2026-11-28 10:00", author: "Claude Code", text: "先" }
+  assert.deepEqual(mergeRecords([a], [b, a]).map((n) => n.text), ["先", "後"])
 })
 
-test("comment は action を作らず、カードへの note を 1 つ作る", () => {
-  const result = plan([userAdd], [{ op: "comment", card: "ui-card", text: "  方針: A を採る\n理由は B  " }], { writer: "cc-a", now })
-  assert.deepEqual(result.actions, [])
-  assert.deepEqual(result.notes, [
-    {
-      id: "cc-a:001",
-      board: "personal-task-board",
-      card: "ui-card",
-      body: "方針: A を採る\n理由は B",
-      author: { id: "agent:claude-code", name: "Claude Code" },
-      createdAt: now.toISOString(),
-    },
-  ])
-  assert.deepEqual(fold([userAdd, ...result.actions]).reviews, [])
-})
-
-test("comment は無いカードを飛ばし、空の text を拒む", () => {
-  const missing = plan([userAdd], [{ op: "comment", key: "none", text: "x" }], { writer: "cc-a", now })
-  assert.deepEqual(missing, { actions: [], notes: [], attrs: [], skipped: [`comment ${cardId("none")}: カードが無い`] })
-  assert.throws(() => plan([userAdd], [{ op: "comment", card: "ui-card", text: " \n " }], { writer: "cc-a", now }), /comment: text が空/)
-})
-
-test("show はページと Agent のコメントを時刻の順に混ぜて出し、複数行の本文の 2 行目以降を字下げする", () => {
-  const agent = plan([userAdd], [{ op: "comment", card: "ui-card", text: "Agent のメモ" }], { writer: "cc-a", now: new Date("2026-11-27T09:02:30.000Z") }).notes
-  const notes = [note("u:3", "ui-card", "後のコメント", "2026-11-27T09:03:00.000Z"), ...agent, note("u:2", "ui-card", "1 行目\n2 行目", "2026-11-27T09:02:00.000Z")]
-  const text = renderBoard(fold([userAdd]), notes)
-  assert.ok(
-    text.includes(
-      [
-        "    > 2026-11-27T09:02:00.000Z 本人: 1 行目",
-        "    >   2 行目",
-        "    > 2026-11-27T09:02:30.000Z Claude Code: Agent のメモ",
-        "    > 2026-11-27T09:03:00.000Z 本人: 後のコメント",
-      ].join("\n"),
-    ),
-    text,
-  )
-})
-
-test("Agent が actions に書いたコメントは別の節に出し、移行で同じ id の note に写して action を消す", () => {
-  const legacy: Action = { ...pageAction("cc-old:002", "comment", "card/ui-card", { body: "状況" }, "2026-11-27T09:05:00.000Z"), author: { id: "agent:claude-code", name: "Claude Code" } }
-  const review = pageAction("u:4", "comment", "card/ui-card", { body: "直して" }, "2026-11-27T09:06:00.000Z")
-  const onColumn: Action = { ...legacy, id: "cc-old:003", target: { type: "element", id: "personal-task-board/column/todo@board" } }
-  const actions = [userAdd, legacy, review, onColumn]
-  assert.match(renderBoard(fold(actions), []), /## Agent が actions に書いたコメント .*\n- cc-old:002 personal-task-board\/card\/ui-card \S+ Claude Code: 状況/)
-  const result = planNoteMigration(actions, [])
-  assert.deepEqual(result, {
-    notes: [{ id: "cc-old:002", board: "personal-task-board", card: "ui-card", body: "状況", author: { id: "agent:claude-code", name: "Claude Code" }, createdAt: "2026-11-27T09:05:00.000Z" }],
-    deletes: ["cc-old:002"],
-    skipped: ["cc-old:003: カード宛てでない (personal-task-board/column/todo@board)"],
-  })
-  // note を書いた後に止まっても、再実行は action を消すだけにする。
-  assert.deepEqual(planNoteMigration(actions, result.notes), { notes: [], deletes: ["cc-old:002"], skipped: result.skipped })
-  const rest = actions.filter((a) => !result.deletes.includes(a.id))
-  assert.deepEqual(planNoteMigration(rest, result.notes).deletes, [])
-  const text = renderBoard(fold(rest), result.notes)
-  assert.match(text, /    > 2026-11-27T09:05:00.000Z Claude Code: 状況/)
-  assert.doesNotMatch(text, /- cc-old:002/)
-  assert.match(text, /- u:4 .* 本人: 直して/)
-})
-
-test("dump に notes が無ければコメントの無い盤面として読む", () => {
-  const dir = mkdtempSync(join(tmpdir(), "board-"))
-  assert.deepEqual(readNotes(dir), [])
-})
-
-test("kit が区切りごとに符号化した target のカードを読む", () => {
-  const add: Action = { ...userAdd, payload: { id: "日本語-card", title: "日本語の id" } }
-  const comment: Action = {
-    ...pageAction("u:2", "comment", "", { body: "本文" }, "2026-11-27T09:01:00.000Z"),
-    target: { type: "element", id: `personal-task-board/card/${encodeURIComponent("日本語-card")}@board` },
-  }
-  const move: Action = { ...comment, id: "u:3", type: "MOVE_CARD", payload: { column: "doing", before: null }, createdAt: "2026-11-27T09:02:00.000Z" }
-  const board = fold([add, comment, move])
-  assert.equal(findCard(board, "日本語-card")?.column, "doing")
-  assert.deepEqual(board.reviews.map((r) => r.path), ["card/日本語-card"])
-  const planned = plan([add], [{ op: "comment", card: "日本語-card", text: "x" }], { writer: "cc-a", now })
-  assert.equal(planned.notes[0]?.card, "日本語-card")
-})
-
-test("移行は前の呼び名「## ブロック理由」の節を「## Pending の理由」に直す", () => {
-  const legacy = [
-    userAdd,
-    pageAction("cc-old:1", "ADD_CARD", "column/blocked", { id: "b", title: "B" }, "2026-11-27T09:01:00.000Z"),
-    pageAction("cc-old:2", "SET_CARD_DESCRIPTION", "card/b", { description: "説明\n\n## ブロック理由\n本人の確認待ち\n\n## セッション\n- codex abc" }, "2026-11-27T09:02:00.000Z"),
-  ]
-  const created = planMigration(legacy, { writer: "cc-m", now })
-  assert.equal(created.length, 1)
-  const board = fold([...legacy, ...created])
-  assert.equal(findCard(board, "b")?.card.description, "説明\n\n## Pending の理由\n本人の確認待ち\n\n## セッション\n- codex abc")
-  assert.deepEqual(planMigration([...legacy, ...created], { writer: "cc-n", now: later }), [])
-})
-
-const attr = (card: string, name: Attr["attr"], value: true | string, board: Attr["board"] = "personal-task-board"): Attr => ({
-  id: attrId(board, card, name),
-  board,
-  card,
-  attr: name,
-  value,
-  author: { id: "u_tester" },
-  updatedAt: "2026-11-27T09:00:00.000Z",
-})
-
-test("今日は Asia/Tokyo の暦日で決まる", () => {
-  assert.equal(tokyoDate(new Date("2026-11-28T14:59:59.000Z")), "2026-11-28")
-  assert.equal(tokyoDate(new Date("2026-11-28T15:00:00.000Z")), "2026-11-29")
-})
-
-test("着手可能日で隠すのは未着手の列で、着手可能日が今日より後のカードだけ", () => {
-  const today = "2026-11-28"
-  assert.equal(isDeferred("todo", { check: false, start: "2026-11-29" }, today), true)
-  assert.equal(isDeferred("backlog", { check: false, start: "2026-11-29" }, today), true)
-  assert.equal(isDeferred("todo", { check: false, start: "2026-11-28" }, today), false)
-  for (const column of ["today", "doing", "blocked", "done"]) assert.equal(isDeferred(column, { check: false, start: "2026-12-01" }, today), false, column)
-})
-
-test("属性を立てる・変える・外す writes は、dump の文書と if_version で決まる", () => {
-  const id = attrId("personal-task-board", "ui-card", "due")
-  const at = (attrs: Attr[], intent: Intent) => plan([userAdd], [intent], { writer: "cc-a", now, attrs })
-  const created = at([], { op: "due", card: "ui-card", date: "2026-12-05" })
-  assert.equal(created.attrs.length, 1)
-  assert.deepEqual(created.attrs[0], {
-    op: "set",
-    attr: { id, board: "personal-task-board", card: "ui-card", attr: "due", value: "2026-12-05", author: { id: "agent:claude-code", name: "Claude Code" }, updatedAt: now.toISOString() },
-  })
-  assert.deepEqual(at([], { op: "due", card: "ui-card", date: null }).attrs, [])
-  assert.deepEqual(at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: "2026-12-05" }).attrs, [])
-  assert.throws(() => at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: "2026-12-06" }), /if_version を付けて plan し直す/)
-  assert.throws(() => at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: null }), /if_version/)
-  const changed = at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: "2026-12-06", if_version: 3 })
-  assert.equal(changed.attrs[0]?.op === "set" && changed.attrs[0].if_version, 3)
-  assert.deepEqual(at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: null, if_version: 2 }).attrs, [{ op: "delete", doc_id: id, if_version: 2 }])
-  assert.throws(() => at([], { op: "due", card: "ui-card", date: "2026-02-30" }), /YYYY-MM-DD/)
-  assert.deepEqual(at([], { op: "start", key: "none", date: "2026-12-01" }).skipped, [`start ${cardId("none")}: カードが無い`])
-  const moved = at([attr("ui-card", "start", "2026-12-01")], { op: "start", card: "ui-card", date: "2026-12-03", if_version: 1 })
-  assert.deepEqual(moved.attrs.map((w) => (w.op === "set" ? [w.attr.attr, w.attr.value, w.if_version] : [])), [["start", "2026-12-03", 1]])
-  assert.throws(() => at([], { op: "start", key: "none", date: "12/03" }), /YYYY-MM-DD/)
-  assert.throws(() => at([], { op: "owner", key: "none", who: "boss" } as unknown as Intent), /who は/)
-})
-
-test("check を立てると属性と note が出て、text が無ければ拒む", () => {
-  const result = plan([userAdd], [{ op: "check", card: "ui-card", on: true, text: "画面を見てほしい" }], { writer: "cc-a", now })
-  assert.deepEqual(result.attrs.map((w) => (w.op === "set" ? [w.attr.id, w.attr.value, w.if_version] : [])), [[attrId("personal-task-board", "ui-card", "check"), true, undefined]])
-  assert.deepEqual(result.notes.map((n) => n.body), ["確認が必要: 画面を見てほしい"])
-  assert.throws(() => plan([userAdd], [{ op: "check", card: "ui-card", on: true }], { writer: "cc-a", now }), /text/)
-  const again = plan([userAdd], [{ op: "check", card: "ui-card", on: true, text: "もう一度" }], { writer: "cc-a", now, attrs: [attr("ui-card", "check", true)] })
-  assert.deepEqual([again.attrs, again.notes.length], [[], 1])
-  const off = plan([userAdd], [{ op: "check", card: "ui-card", on: false, if_version: 1 }], { writer: "cc-a", now, attrs: [attr("ui-card", "check", true)] })
-  assert.deepEqual([off.attrs, off.notes], [[{ op: "delete", doc_id: attrId("personal-task-board", "ui-card", "check"), if_version: 1 }], []])
-})
-
-test("add の start と due は属性になり、別の属性は別の文書になる", () => {
-  const result = plan([], [{ op: "add", key: "k", column: "todo", title: "t", start: "2026-12-01", due: "2026-12-10" }], { writer: "cc-a", now })
-  const ids = result.attrs.map((w) => (w.op === "set" ? [w.attr.id, w.if_version] : []))
-  assert.deepEqual(ids, [
-    [attrId("personal-task-board", cardId("k"), "start"), undefined],
-    [attrId("personal-task-board", cardId("k"), "due"), undefined],
-  ])
-  assert.throws(() => plan([userAdd], [{ op: "due", card: "ui-card", date: "2026-12-01" }, { op: "due", card: "ui-card", date: "2026-12-02" }], { writer: "cc-a", now }), /2 回/)
-})
-
-test("archive は確認が必要な Done のカードを残す", () => {
-  const actions = run([userAdd, pageAction("u:2", "ADD_CARD", "column/done", { id: "other", title: "o" }, "2026-11-27T09:01:00.000Z")], [{ op: "move", card: "ui-card", column: "done" }], "cc-a")
-  const result = plan(actions, [{ op: "archive" }], { writer: "cc-b", now: archiveAt, attrs: [attr("ui-card", "check", true)] })
-  assert.deepEqual(result.actions.map((a) => a.target.id), ["personal-task-board/card/other@board"])
-  assert.deepEqual(result.skipped, ["archive ui-card: 確認が必要なので残す"])
-})
-
-test("show は今日と属性の印を出し、カードの無い属性を別の節に出す", () => {
-  const actions = [userAdd, pageAction("u:2", "ADD_CARD", "column/doing", { id: "late", title: "遅れ" }, "2026-11-27T09:01:00.000Z"), pageAction("u:3", "ADD_CARD", "column/done", { id: "fin", title: "済み" }, "2026-11-27T09:02:00.000Z")]
-  const attrs = [attr("ui-card", "start", "2026-12-01"), attr("ui-card", "check", true), attr("late", "due", "2026-11-27"), attr("late", "start", "2026-12-01"), attr("fin", "due", "2026-11-01"), attr("gone", "due", "2026-11-30")]
-  const text = renderBoard(fold(actions), [], { attrs, today: "2026-11-28" })
-  assert.match(text, /^今日 \(Asia\/Tokyo\): 2026-11-28/)
-  assert.match(text, /- TASK-1 ui-card UI で足したカード \(確認が必要, 着手可能 2026-12-01, ページでは隠れる\)/)
-  assert.match(text, /- TASK-2 late 遅れ \(着手可能 2026-12-01, 期日 2026-11-27 超過\)/)
-  assert.match(text, /- TASK-3 fin 済み \(期日 2026-11-01\)$/m)
-  assert.match(text, /## カードの無い属性\n- personal-task-board~gone~due 2026-11-30/)
-  assert.match(renderBoard(fold(actions), [], { attrs: [attr("late", "due", "2026-11-28")], today: "2026-11-28" }), /期日 2026-11-28 今日/)
-  const backlog = run([], [{ op: "add", key: "later", board: "personal-learning", column: "backlog", title: "後で" }], "cc-a")
-  const learning = (start: string) => renderBoard(fold(backlog), [], { attrs: [attr(cardId("later"), "start", start, "personal-learning")], today: "2026-11-28" })
-  assert.match(learning("2026-11-29"), /後で \(着手可能 2026-11-29, ページでは隠れる\)/)
-  assert.match(learning("2026-11-28"), /後で$/m)
-})
-
-test("readAttrs は形の崩れた属性を飛ばし、attrsOf がカードごとにまとめる", () => {
-  const dir = mkdtempSync(join(tmpdir(), "board-attrs-"))
+test("移行は dump のカード・番号・記録・属性を base に畳む", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ptb-migrate-"))
+  mkdirSync(join(dir, "actions"))
+  mkdirSync(join(dir, "notes"))
   mkdirSync(join(dir, "attrs"))
-  const good = attr("ui-card", "due", "2026-12-05")
-  writeFileSync(join(dir, "attrs", "a.json"), JSON.stringify(good))
-  writeFileSync(join(dir, "attrs", "b.json"), JSON.stringify({ ...attr("ui-card", "start", "2026-12-01"), value: "12/1" }))
-  writeFileSync(join(dir, "attrs", "c.json"), JSON.stringify({ ...attr("ui-card", "check", true), id: "wrong" }))
-  assert.deepEqual(readAttrs(dir), [good])
-  assert.equal(isAttr({ ...attr("ui-card", "check", true), value: "yes" } as unknown as Attr), false)
-  assert.deepEqual(attrsOf([good, attr("ui-card", "check", true), attr("other", "start", "2026-12-01")], "personal-task-board", "ui-card"), { check: true, due: "2026-12-05" })
+  const put = (collection: string, name: string, value: unknown): void => writeFileSync(join(dir, collection, name), JSON.stringify(value))
+  put("actions", "a1.json", {
+    id: "w:1",
+    type: "ADD_CARD",
+    target: { type: "element", id: "personal-task-board/column/todo@board" },
+    payload: { id: "a", title: "A" },
+    createdAt: "2026-11-27T00:00:00.000Z",
+  })
+  put("actions", "a2.json", {
+    id: "w:2",
+    type: "ADD_CARD",
+    target: { type: "element", id: "personal-task-board/column/done@board" },
+    payload: { id: "b", title: "B" },
+    createdAt: "2026-11-27T00:00:01.000Z",
+  })
+  put("actions", "a3.json", {
+    id: "w:3",
+    type: "SET_CARD_DESCRIPTION",
+    target: { type: "element", id: "personal-task-board/card/a@board" },
+    payload: { description: "説明\n\n## セッション\n- claude-code s1" },
+    createdAt: "2026-11-27T00:00:02.000Z",
+  })
+  put("notes", "n1.json", { board: "personal-task-board", card: "a", body: "記録", author: { id: "agent:claude-code" }, createdAt: "2026-11-28T13:53:03.254Z" })
+  put("attrs", "at1.json", { board: "personal-task-board", card: "a", attr: "owner", value: "agent" })
+  put("attrs", "at2.json", { board: "personal-task-board", card: "b", attr: "due", value: "2026-12-05" })
+  const { page, warnings } = foldDump(dir)
+  assert.deepEqual(warnings, [])
+  const got = cardOf(boardOf(page), "a")
+  assert.equal(got.number, 1)
+  const view = readCard(got)
+  assert.equal(view.detail, "説明")
+  assert.deepEqual(view.sessions, ["claude-code s1"])
+  assert.deepEqual(view.records, [{ at: "2026-11-28 22:53", author: "Claude Code", text: "記録" }])
+  assert.equal(view.owner, "agent")
+  const done = cardOf(boardOf(page), "b")
+  assert.equal(done.number, 2)
+  assert.deepEqual(done.tags, [`${DUE_PREFIX}2026-12-05`])
+  // 畳んだページはそのまま HTML にして読み直せる。
+  const html = renderPage(TEMPLATE, page)
+  assert.deepEqual(parsePage(html).boards, page.boards)
 })
 
-test("担い手は self か agent の属性で、add と owner intent で設定・変更・解除でき、show に出る", () => {
-  const added = plan([], [{ op: "add", key: "k", column: "doing", title: "t", owner: "agent" }], { writer: "cc-a", now })
-  assert.deepEqual(added.attrs.map((w) => (w.op === "set" ? [w.attr.id, w.attr.value] : [])), [[attrId("personal-task-board", cardId("k"), "owner"), "agent"]])
-  const set = plan([userAdd], [{ op: "owner", card: "ui-card", who: "agent" }], { writer: "cc-a", now })
-  assert.equal(set.attrs[0]?.op === "set" && set.attrs[0].attr.value, "agent")
-  const existing = [attr("ui-card", "owner", "agent")]
-  assert.throws(() => plan([userAdd], [{ op: "owner", card: "ui-card", who: "self" }], { writer: "cc-a", now, attrs: existing }), /if_version/)
-  const changed = plan([userAdd], [{ op: "owner", card: "ui-card", who: "self", if_version: 4 }], { writer: "cc-a", now, attrs: existing })
-  assert.deepEqual(changed.attrs[0]?.op === "set" && [changed.attrs[0].attr.value, changed.attrs[0].if_version], ["self", 4])
-  assert.deepEqual(plan([userAdd], [{ op: "owner", card: "ui-card", who: null, if_version: 4 }], { writer: "cc-a", now, attrs: existing }).attrs, [
-    { op: "delete", doc_id: attrId("personal-task-board", "ui-card", "owner"), if_version: 4 },
+test("show はタグ・担い手・記録・アーカイブを人が読める形で出す", () => {
+  const page = empty()
+  columnOf(boardOf(page), "archived").cards = [card("z", 9, "アーカイブ済み")]
+  columnOf(boardOf(page), "todo").cards = [
+    writeCard(card("a", 1, "A"), {
+      detail: "説明",
+      records: [{ at: "2026-11-29 10:00", author: "本人", text: "1 行目\n2 行目" }],
+      sessions: ["pi s1"],
+      check: true,
+      start: "2026-12-01",
+      due: today,
+      owner: "agent",
+      warnings: [],
+    }),
+  ]
+  const text = renderText(page, { today })
+  assert.match(text, /- TASK-1 a A \(確認が必要, 担い手 Agent, 着手可能 2026-12-01, 期日 2026-11-29 今日\)/)
+  assert.match(text, /    > 2026-11-29 10:00 本人: 1 行目\n    >   2 行目/)
+  assert.match(text, /    - pi s1/)
+  assert.match(text, /アーカイブ 1 枚は --archived で出す/)
+  assert.match(renderText(page, { today, archived: true }), /TASK-9 z アーカイブ済み/)
+})
+
+test("空の盤面は列だけを持ち、board.html の列の定義と一致する", () => {
+  for (const board of ["personal-task-board", "personal-learning"] as const) {
+    assert.deepEqual(emptyKanban(board).columns.map((c) => c.id), empty().boards[board].columns.map((c) => c.id))
+  }
+  assert.equal(authorLabel({ id: "agent:claude-code" }), "Claude Code")
+  assert.equal(authorLabel({ id: "u_1" }), "本人")
+  assert.equal(tokyoStamp(new Date("2026-11-28T13:53:03.254Z")), "2026-11-28 22:53")
+})
+
+test("writeCard は Agent 以外の assignee を残し、本人に戻したときだけ Agent を外す", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A", { assignee: "山田" })]
+  const target = { type: "element", id: "personal-task-board/card/a@board" }
+  // intent で説明を足しても、本人が入れた assignee は消えない。
+  const detailed = applyIntents(page, [{ op: "detail", card: "a", text: "追記" }])
+  assert.equal(cardOf(boardOf(detailed.page), "a").assignee, "山田")
+  // レビューの説明の更新でも、本人が kit の詳細で入れた assignee は消えない。
+  const draft = [
+    action({ id: "w:1", type: "SET_CARD_ASSIGNEE", target, payload: { assignee: "妻" } }),
+    action({ id: "w:2", type: "SET_CARD_DESCRIPTION", target, payload: { description: "説明" } }),
+  ]
+  const reviewed = applyReview(page, brief(draft, "w:1-2"), { now })
+  assert.equal(cardOf(boardOf(reviewed.page), "a").assignee, "妻")
+  // 担い手を Agent にすると Agent になり、null で戻すと Agent だけが外れる。
+  const agent = applyIntents(reviewed.page, [{ op: "owner", card: "a", who: "agent" }])
+  assert.equal(cardOf(boardOf(agent.page), "a").assignee, "Agent")
+  assert.equal(readCard(cardOf(boardOf(agent.page), "a")).owner, "agent")
+  const self = applyIntents(agent.page, [{ op: "owner", card: "a", who: null }])
+  assert.equal(cardOf(boardOf(self.page), "a").assignee, undefined)
+  // 元から Agent 以外の担い手が入っているカードは、本人に戻しても値を残す。
+  const kept = applyIntents(reviewed.page, [{ op: "owner", card: "a", who: "self" }])
+  assert.equal(cardOf(boardOf(kept.page), "a").assignee, "妻")
+})
+
+test("`## 記録` の書式外の行は捨てず、記録の続きか原文として書き戻す", () => {
+  const description = "本文\n\n## 記録\n本人が書いたメモ (形式外)\n- 2026-11-29 10:00 本人: 記録\n    字下げした続き\n形式外の続き"
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A", { description })]
+  const view = readCard(cardOf(boardOf(page), "a"))
+  assert.deepEqual(view.recordPreamble, ["本人が書いたメモ (形式外)"])
+  // 字下げした行は本文、字下げの無い行は extra に分かれる。
+  assert.deepEqual(view.records, [{ at: "2026-11-29 10:00", author: "本人", text: "記録\n字下げした続き", extra: ["形式外の続き"] }])
+  // intent を当てても、書式外の行は残る。
+  const out = applyIntents(page, [{ op: "detail", card: "a", text: "追記" }])
+  const written = readCard(cardOf(boardOf(out.page), "a"))
+  assert.deepEqual(written.recordPreamble, view.recordPreamble)
+  assert.deepEqual(written.records, view.records)
+  // もう 1 度当てても、行は増えも減りもしない。
+  const twice = applyIntents(out.page, [{ op: "comment", card: "a", text: "新しい記録", at: "2026-11-29 11:00" }])
+  const text = cardOf(boardOf(twice.page), "a").description ?? ""
+  for (const line of ["本人が書いたメモ (形式外)", "形式外の続き", "- 2026-11-29 10:00 本人: 記録", "- 2026-11-29 11:00 Claude Code: 新しい記録"]) assert.ok(text.includes(line), line)
+  const again = applyIntents(twice.page, [{ op: "comment", card: "a", text: "新しい記録", at: "2026-11-29 11:00" }])
+  assert.equal(cardOf(boardOf(again.page), "a").description, text)
+})
+
+test("本人が記録の下に足した行は、レビューでも comment の当て直しでも 2 重にならない", () => {
+  const description = "本文\n\n## 記録\n- 2026-11-27 10:00 Claude Code: 調べた"
+  const target = { type: "element", id: "personal-task-board/card/a@board" }
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A", { description })]
+  // 本人が記録の下に足した行を含む説明でレビューを当てる。
+  const draft = [action({ id: "w:1", type: "SET_CARD_DESCRIPTION", target, payload: { description: `${description}\n補足を本人が書いた` } })]
+  const reviewed = applyReview(page, brief(draft, "w:1"), { now })
+  const view = readCard(cardOf(boardOf(reviewed.page), "a"))
+  assert.deepEqual(view.records, [{ at: "2026-11-27 10:00", author: "Claude Code", text: "調べた", extra: ["補足を本人が書いた"] }])
+  assert.equal(cardOf(boardOf(reviewed.page), "a").description, `${description}\n補足を本人が書いた`)
+  // 同じ記録を comment で当て直しても、記録は増えない。
+  const again = applyIntents(reviewed.page, [{ op: "comment", card: "a", at: "2026-11-27 10:00", by: "Claude Code", text: "調べた" }])
+  assert.deepEqual(again.skipped.map((s) => s.reason), ["comment a: 既にある"])
+  assert.equal(cardOf(boardOf(again.page), "a").description, `${description}\n補足を本人が書いた`)
+})
+
+test("`## 記録` の字下げと空行は原文のまま往復する", () => {
+  const description = "## 記録\n本人のメモ\n  - 字下げした項目\n\n- 2026-11-27 10:00 本人: a\n     - 深い字下げ\n    - 2026-11-27 11:00 他人: b\n\n````\ncode\n````"
+  const card1 = card("a", 1, "A", { description })
+  const view = readCard(card1)
+  // 先頭の記録より前の行は、字下げも空行も原文のまま持つ。
+  assert.deepEqual(view.recordPreamble, ["本人のメモ", "  - 字下げした項目", ""])
+  // 続き行は書式が足す 4 文字分だけを外し、それより深い字下げは本文に残す。
+  // 字下げした行は、記録の書式に見えても続き行にして、記録を増やさない。
+  assert.deepEqual(view.records, [
+    { at: "2026-11-27 10:00", author: "本人", text: "a\n - 深い字下げ\n- 2026-11-27 11:00 他人: b", extra: ["", "````", "code", "````"] },
   ])
-  assert.deepEqual(plan([userAdd], [{ op: "owner", card: "ui-card", who: "agent" }], { writer: "cc-a", now, attrs: existing }).skipped, ["owner ui-card: 既に agent"])
-  assert.throws(() => plan([userAdd], [{ op: "owner", card: "ui-card", who: "bot" as "agent" }], { writer: "cc-a", now }), /who は self か agent か null/)
-  assert.equal(isAttr({ ...attr("ui-card", "owner", "agent"), value: "bot" }), false)
-  assert.deepEqual(attrsOf(existing, "personal-task-board", "ui-card"), { check: false, owner: "agent" })
-  const text = renderBoard(fold([userAdd]), [], { attrs: existing, today: "2026-11-28" })
-  assert.match(text, /- TASK-1 ui-card UI で足したカード \(担い手 Agent\)/)
-  assert.match(renderBoard(fold([userAdd]), [], { attrs: [attr("ui-card", "owner", "self")], today: "2026-11-28" }), /\(担い手 自分\)/)
+  // 書き戻して読み直しても、行は変わらない。
+  const written = writeCard(card1, view)
+  assert.equal(written.description, description)
+  assert.deepEqual(readCard(written), view)
+})
+
+test("リンクの URL は URL として読める http(s) だけを通し、公開前に base を検査する", () => {
+  const bad = ["https://", "http://a b", "https://[::1", "ftp://example.com"]
+  for (const url of bad) {
+    assert.throws(() => validateKanban({ columns: [{ id: "todo", label: "Todo", cards: [{ id: "a", title: "A", links: [{ url }] }] }] }), /URL/)
+  }
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  for (const url of bad) assert.throws(() => applyIntents(page, [{ op: "link", card: "a", url }]), /http\(s\) の URL でない/)
+  assert.throws(() => applyIntents(page, [{ op: "add", key: "k", column: "todo", title: "T", links: [{ url: "https://" }] }]), /http\(s\) の URL でない/)
+  const out = replay(boardOf(page), "personal-task-board", [
+    action({ id: "w:1", type: "ADD_CARD_LINK", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { url: "https://" } }),
+  ])
+  assert.equal(out.results[0]?.reason, "constraint-violated")
+  // renderPage は kit が開けない base を埋め込まない。
+  const broken = empty()
+  columnOf(boardOf(broken), "todo").cards = [card("a", 1, "A", { links: [{ url: "https://" }] })]
+  assert.throws(() => renderPage(TEMPLATE, broken), /URL/)
+  // 正しい URL はそのまま通る。
+  assert.equal(parsePage(renderPage(TEMPLATE, page)).boards["personal-task-board"].columns[0]?.cards.length, 1)
+})
+
+test("check intent は text を渡すとき at が要り、当て直しても記録が増えない", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  assert.throws(() => applyIntents(page, [{ op: "check", card: "a", on: true, text: "確認して" }]), /at/)
+  assert.throws(() => applyIntents(page, [{ op: "check", card: "a", on: true, text: "確認して", at: "2026-11-29" }]), /at/)
+  const intent: Intent = { op: "check", card: "a", on: true, text: "確認して", at: "2026-11-29 12:00" }
+  const once = applyIntents(page, [intent])
+  assert.deepEqual(readCard(cardOf(boardOf(once.page), "a")).records, [{ at: "2026-11-29 12:00", author: "Claude Code", text: "確認が必要: 確認して" }])
+  // 同じ intent を当て直しても、記録は増えない。
+  const twice = applyIntents(once.page, [intent])
+  assert.equal(readCard(cardOf(boardOf(twice.page), "a")).records.length, 1)
+  // text が無ければ at は要らず、記録も作らない。
+  const noText = applyIntents(page, [{ op: "check", card: "a", on: true }])
+  assert.equal(noText.skipped.length, 0)
+  assert.equal(readCard(cardOf(boardOf(noText.page), "a")).records.length, 0)
+})
+
+test("replay は kit と同じ順に検査し、列を対象にした SET_* は target-missing にする", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  const cardTarget = (id: string) => ({ type: "element", id: `personal-task-board/card/${id}@board` })
+  const columnTarget = { type: "element", id: "personal-task-board/column/todo@board" }
+  const out = replay(boardOf(page), "personal-task-board", [
+    action({ id: "w:1", type: "SET_CARD_TITLE", target: columnTarget, payload: { title: "x" } }),
+    action({ id: "w:2", type: "SET_CARD_TITLE", target: cardTarget("missing"), payload: { title: "  " } }),
+    action({ id: "w:3", type: "SET_CARD_TITLE", target: columnTarget, payload: { title: "  " } }),
+    action({ id: "w:4", type: "MOVE_CARD", target: cardTarget("missing"), payload: { column: "doing", before: null } }),
+    action({ id: "w:5", type: "ADD_CARD_TAG", target: cardTarget("missing"), payload: { tag: " " } }),
+    action({ id: "w:6", type: "ADD_CARD_LINK", target: cardTarget("a"), payload: { url: "https://example.com", label: "  " } }),
+    action({ id: "w:7", type: "ADD_CARD", target: { type: "element", id: "personal-task-board/column/nope@board" }, payload: { id: "z" } }),
+    action({ id: "w:8", type: "SOMETHING_NEW", target: columnTarget, payload: {} }),
+    action({ id: "w:9", type: "SET_CARD_TITLE", target: cardTarget("a"), payload: { title: " 新しい " } }),
+  ])
+  const status = Object.fromEntries(out.results.map((r) => [r.id, r.status === "stale" ? r.reason : r.status]))
+  assert.deepEqual(status, {
+    "w:1": "target-missing",
+    "w:2": "constraint-violated",
+    "w:3": "constraint-violated",
+    "w:4": "target-missing",
+    "w:5": "constraint-violated",
+    "w:6": "constraint-violated",
+    "w:7": "target-missing",
+    "w:8": "unsupported-action-type",
+    "w:9": "applied",
+  })
+  assert.equal(cardOf(out.board, "a").title, "新しい")
+  assert.deepEqual(cardOf(out.board, "a").links, undefined)
+})
+
+test("addressed は brief の値が計算値に含まれればよく、含まれなければ止める", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  page.changes = { addressed: "w:1-5" }
+  const draft = [action({ id: "w:6", type: "ADD_CARD_TAG", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { tag: "作業" } })]
+  // 別の端末の brief を先に反映していて、計算値の方が広い。
+  const out = applyReview(page, brief(draft, "w:6"), { now })
+  assert.equal(out.addressed, "w:1-6")
+  assert.throws(() => applyReview(page, brief(draft, "w:1-9"), { now }), /addressed/)
+})
+
+test("--keep で見送った ADD_CARD のカードを対象にする action も見送る", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  const target = (id: string) => ({ type: "element", id: `personal-task-board/card/${id}@board` })
+  const draft = [
+    action({ id: "w:1", type: "ADD_CARD", payload: { id: "x", title: "X" } }),
+    action({ id: "w:2", type: "MOVE_CARD", target: target("x"), payload: { column: "doing", before: null } }),
+    action({ id: "w:3", type: "ADD_CARD_TAG", target: target("x"), payload: { tag: "t" } }),
+    action({ id: "w:4", type: "ADD_CARD_TAG", target: target("a"), payload: { tag: "作業" } }),
+  ]
+  const out = applyReview(page, brief(draft, "w:1-4"), { keep: ["w:1"], now })
+  const status = Object.fromEntries(out.results.map((r) => [r.id, r.status === "stale" ? r.reason : r.status]))
+  assert.deepEqual(status, { "w:1": "kept", "w:2": "kept-add", "w:3": "kept-add", "w:4": "applied" })
+  // 見送ったカードは積まれず、ほかの変更だけが残る。
+  assert.ok(!boardOf(out.page).columns.some((c) => c.cards.some((x) => x.id === "x")))
+  assert.deepEqual(cardOf(boardOf(out.page), "a").tags, ["作業"])
+  // 見送った action は addressed に入らず、draft に残る。
+  assert.equal(out.addressed, "w:4")
+})
+
+test("--keep で見送った ADD_CARD のカードを payload.before に指す MOVE_CARD も見送る", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A"), card("b", 2, "B")]
+  const target = (id: string) => ({ type: "element", id: `personal-task-board/card/${id}@board` })
+  const draft = [
+    action({ id: "w:1", type: "ADD_CARD", payload: { id: "x", title: "X" } }),
+    // 見送るカードの前に差し込む移動。base に x が無いので stale になる。
+    action({ id: "w:2", type: "MOVE_CARD", target: target("a"), payload: { column: "doing", before: "x" } }),
+    // 見送ったカードの後ろへの移動は、位置が変わらないだけなので適用する。
+    action({ id: "w:3", type: "MOVE_CARD", target: target("b"), payload: { column: "doing", before: null } }),
+  ]
+  const out = applyReview(page, brief(draft, "w:1-3"), { keep: ["w:1"], now })
+  const status = Object.fromEntries(out.results.map((r) => [r.id, r.status === "stale" ? r.reason : r.status]))
+  assert.deepEqual(status, { "w:1": "kept", "w:2": "kept-add", "w:3": "applied" })
+  // 見送った移動は積まれず、ほかの移動だけが残る。
+  assert.deepEqual(columnOf(boardOf(out.page), "todo").cards.map((c) => c.id), ["a"])
+  assert.deepEqual(columnOf(boardOf(out.page), "doing").cards.map((c) => c.id), ["b"])
+  // 見送った action は addressed に入らず、draft に残る。
+  assert.equal(out.addressed, "w:3")
+})
+
+test("archive intent は確認が必要のカードがあっても、移したカードの変更を記録する", () => {
+  const page = empty()
+  const check = writeCard(card("b", 2, "B"), { detail: "", records: [], sessions: [], check: true, owner: "self", warnings: [] })
+  columnOf(boardOf(page), "done").cards = [card("a", 1, "A"), check]
+  const intents: Intent[] = [{ op: "archive" }]
+  const out = applyIntents(page, intents)
+  assert.ok(out.skipped.length > 0)
+  assert.deepEqual(
+    changesForIntents(page, out.page, intents, out.skipped).map((c) => c.title),
+    ["TASK-1 A: アーカイブ"],
+  )
+  // archive intent が 2 つあっても、同じ変更を 2 度記録しない。
+  const two: Intent[] = [{ op: "archive" }, { op: "archive" }]
+  const twice = applyIntents(page, two)
+  assert.equal(changesForIntents(page, twice.page, two, twice.skipped).length, 1)
+})
+
+test("add は同じ key のカードが別の盤面にあっても積まない", () => {
+  const learning = applyIntents(empty(), [{ op: "add", key: "k", board: "personal-learning", column: "backlog", title: "学習" }])
+  assert.equal(columnOf(boardOf(learning.page, "personal-learning"), "backlog").cards.length, 1)
+  const again = applyIntents(learning.page, [{ op: "add", key: "k", column: "todo", title: "重複" }])
+  assert.equal(again.skipped.length, 1)
+  assert.match(again.skipped[0]?.reason ?? "", /既にある/)
+  assert.equal(columnOf(boardOf(again.page), "todo").cards.length, 0)
+  assert.equal(columnOf(boardOf(again.page, "personal-learning"), "backlog").cards.length, 1)
+})
+
+test("change log の revisions は直近 20 件だけを残す", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  page.changes = {
+    revisions: Array.from({ length: 20 }, (_, i) => ({ revision: `2026-11-01.${i + 1}`, changes: [{ title: `古い ${i + 1}` }] })),
+  }
+  const draft = [action({ id: "w:1", type: "ADD_CARD_TAG", target: { type: "element", id: "personal-task-board/card/a@board" }, payload: { tag: "作業" } })]
+  const revisions = applyReview(page, brief(draft, "w:1"), { now }).page.changes.revisions ?? []
+  assert.equal(revisions.length, 20)
+  assert.equal(revisions[0]?.revision, "2026-11-01.2")
+  assert.match(revisions.at(-1)?.changes[0]?.title ?? "", /タグを追加/)
+})
+
+test("区切りごとに符号化した target の id を読み、盤面とページの食い違いは捨てる", () => {
+  assert.deepEqual(parseTargetId("personal-task-board/card/a%2Fb%40c@board"), { board: "personal-task-board", kind: "card", id: "a/b@c" })
+  assert.deepEqual(parseTargetId("personal-learning/column/backlog@learning"), { board: "personal-learning", kind: "column", id: "backlog" })
+  assert.equal(parseTargetId("personal-task-board/card/a@learning"), undefined)
+  assert.equal(parseTargetId("personal-task-board/card/a"), undefined)
+  assert.equal(parseTargetId("nope/card/a@board"), undefined)
+  assert.equal(parseTargetId("personal-task-board/card/%E0%A4%A@board"), undefined)
+  assert.equal(parseTargetId(undefined), undefined)
+})
+
+test("本人が書いた見出しは説明に残し、書き戻しても残る", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A", { description: "説明\n\n## メモ\n本人のメモ" })]
+  const view = readCard(cardOf(boardOf(page), "a"))
+  assert.match(view.detail, /## メモ\n本人のメモ/)
+  const out = applyIntents(page, [{ op: "detail", card: "a", text: "追記" }])
+  const written = readCard(cardOf(boardOf(out.page), "a"))
+  assert.match(written.detail, /## メモ\n本人のメモ/)
+  assert.match(written.detail, /追記/)
+})
+
+test("`## ブロック理由` は `## Pending の理由` として読み、書き戻すと見出しをそろえる", () => {
+  const legacy = card("a", 1, "A", { description: "説明\n\n## ブロック理由\n待ち" })
+  const view = readCard(legacy)
+  assert.equal(view.pending, "待ち")
+  const written = writeCard(legacy, view)
+  assert.match(written.description ?? "", /## Pending の理由\n待ち/)
+  assert.ok(!(written.description ?? "").includes("ブロック理由"))
+  assert.equal(readCard(written).pending, "待ち")
+})
+
+test("Asia/Tokyo の日付は 23:59 と 00:00 で切り替わる", () => {
+  assert.equal(tokyoStamp(new Date("2026-11-29T14:59:00.000Z")), "2026-11-29 23:59")
+  assert.equal(tokyoDate(new Date("2026-11-29T14:59:59.999Z")), "2026-11-29")
+  assert.equal(tokyoStamp(new Date("2026-11-29T15:00:00.000Z")), "2026-11-30 00:00")
+  assert.equal(tokyoDate(new Date("2026-11-29T15:00:00.000Z")), "2026-11-30")
+})
+
+test("未知の op はカードを探す前に拒む", () => {
+  const page = empty()
+  const unknown = (card?: string): Intent => ({ op: "nope", ...(card === undefined ? {} : { card }) }) as unknown as Intent
+  assert.throws(() => applyIntents(page, [unknown("missing")]), /unknown op: nope/)
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  assert.throws(() => applyIntents(page, [unknown("a")]), /unknown op: nope/)
+  assert.throws(() => applyIntents(page, [unknown()]), /unknown op: nope/)
+})
+
+test("記録の下の書式外の行は、同じ記録をまとめても繰り返しの行とコードブロックの閉じを落とさない", () => {
+  const extra = ["```", "npm i", "```", "同じ行", "同じ行"]
+  const note: Note = { at: "2026-11-27 10:00", author: "本人", text: "手順", extra }
+  assert.deepEqual(mergeRecords([note], [{ ...note, extra: [...extra] }]), [note])
+  assert.deepEqual(mergeRecords([note], [{ ...note, extra: [...extra, "足した行"] }])[0]?.extra, [...extra, "足した行"])
+})
+
+test("folio_read_document の結果の JSON からも、保存した HTML からも盤面を読む", () => {
+  const dir = mkdtempSync(join(tmpdir(), "ptb-folio-"))
+  const html = renderPage(TEMPLATE, empty())
+  writeFileSync(join(dir, "read.json"), JSON.stringify({ path: "/projects/x/board.html", format: "html", revision: 4, content: html }))
+  writeFileSync(join(dir, "page.html"), html)
+  writeFileSync(join(dir, "other.json"), JSON.stringify({ revision: 4 }))
+  assert.equal(htmlFromRead(join(dir, "read.json")), html)
+  assert.equal(htmlFromRead(join(dir, "page.html")), html)
+  assert.throws(() => htmlFromRead(join(dir, "other.json")), /folio_read_document/)
+})
+
+test("folio の draft の状態から反映し、addressed 済みの action は当て直さない", () => {
+  const page = empty()
+  columnOf(boardOf(page), "todo").cards = [card("a", 1, "A")]
+  const target = { type: "element", id: "personal-task-board/card/a@board" }
+  const first = action({ id: "w:1", type: "SET_CARD_TITLE", target, payload: { title: "本人が直した題" } })
+  const state = (actions: DraftAction[]) =>
+    JSON.stringify({
+      path: "/projects/x/board.html",
+      groups: [
+        { storageKey: "personal-task-board", template: "board", actions: actions.map((a) => ({ ...a, author: { id: "u1" } })) },
+        { storageKey: "other", template: "board", actions: [action({ id: "z:1", type: "SET_CARD_TITLE", target, payload: { title: "別のページ" } })] },
+      ],
+    })
+  const once = applyReview(page, state([first]), { now })
+  assert.equal(cardOf(boardOf(once.page), "a").title, "本人が直した題")
+  assert.equal(once.addressed, "w:1")
+  assert.deepEqual(once.handled, [])
+  // Agent が題を直したあと、閲覧者がまだ開いておらず draft に w:1 が残っていても、w:1 は当て直さない。
+  columnOf(boardOf(once.page), "todo").cards = [{ ...cardOf(boardOf(once.page), "a"), title: "Agent が直した題" }]
+  const second = action({ id: "w:2", type: "ADD_CARD_TAG", target, payload: { tag: "作業" } })
+  const twice = applyReview(once.page, state([first, second]), { now })
+  assert.equal(cardOf(boardOf(twice.page), "a").title, "Agent が直した題")
+  assert.deepEqual(cardOf(boardOf(twice.page), "a").tags, ["作業"])
+  assert.deepEqual(twice.handled, ["w:1"])
+  assert.equal(twice.addressed, "w:1-2")
+})
+
+test("folio_edit_document の edits は、順に当てると前の HTML を後の HTML に変える", () => {
+  const before = ["<a>", "  {", "    x", "  }", "  {", "    y", "  }", "</a>", ""].join("\n")
+  const cases = [
+    ["<a>", "  {", "    x", "  }", "  {", "    z", "  }", "  {", "    w", "  }", "</a>", ""].join("\n"),
+    ["<a>", "  {", "    y", "  }", "</a>", ""].join("\n"),
+    ["<b>", "  {", "    x", "  }", "  {", "    y", "  }", "</b>", ""].join("\n"),
+  ]
+  for (const after of cases) assert.equal(applyEdits(before, editsBetween(before, after)), after)
+  // カードを前の列へ動かすと、前の置き換えが挿し込んだ行と元の行が同じになる。後の oldText は当てた後の本文で 1 か所に絞る。
+  const moveFrom = "<col a>\nc1\n</col>\n<col b>\nc2\ncard-X\n</col>\n"
+  const moveTo = "<col a>\nc1\ncard-X\n</col>\n<col b>\nc2\n</col>\n"
+  assert.equal(applyEdits(moveFrom, editsBetween(moveFrom, moveTo)), moveTo)
+  // 重なる出現も数える。
+  assert.equal(applyEdits("x\nx\nx\n", editsBetween("x\nx\nx\n", "x\nx\nz\nx\n")), "x\nx\nz\nx\n")
+  // folio_edit_document は 1 回に 50 件までしか受け付けない。
+  const many = Array.from({ length: 600 }, (_, i) => `line ${i}\n`)
+  const changed = many.map((line, i) => (i % 10 === 0 ? `changed ${i}\n` : line))
+  assert.throws(() => editsBetween(many.join(""), changed.join("")), /上限 50 件/)
+  assert.deepEqual(editsBetween(before, before), [])
+  // 盤面の HTML を apply した結果でも、送る量は文書全体より小さい。
+  const page = empty()
+  const html = renderPage(TEMPLATE, page)
+  const next = applyIntents(page, [{ op: "add", key: "k", column: "todo", title: "t" }], { now: new Date("2026-11-28T00:00:00Z") })
+  const out = renderPage(html, next.page)
+  const edits = editsBetween(html, out)
+  assert.equal(applyEdits(html, edits), out)
+  assert.ok(edits.reduce((sum, e) => sum + e.oldText.length + e.newText.length, 0) < out.length)
 })
