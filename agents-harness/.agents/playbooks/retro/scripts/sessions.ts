@@ -10,7 +10,7 @@ import { zstdDecompressSync } from "node:zlib"
 export type Agent = "claude" | "codex" | "pi" | "commandcode"
 export type Session = { agent: Agent; path: string; cwd?: string; messages: { at: string; text: string }[] }
 
-// Task Board のカードに付けるセッションの参照 (`<provider> <id>`)。id はログのファイル名の末尾の UUID。
+// パーソナルダッシュボードのカードに付けるセッションの参照 (`<provider> <id>`)。id はログのファイル名の末尾の UUID。
 const PROVIDERS: Record<Agent, string> = { claude: "claude-code", codex: "codex", pi: "pi", commandcode: "command-code" }
 export const sessionRef = (agent: Agent, path: string): string | undefined => {
   const id = path.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.jsonl(\.zst)?$/)?.[1]

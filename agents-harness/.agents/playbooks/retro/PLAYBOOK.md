@@ -20,5 +20,5 @@ description: 過去のセッションログを振り返り、ハーネスへの�
 3. Gap Report を dev-process-kit のページ (plain view) にして本人に渡す。1 項目は「起きたこと」「根拠の発言とログのパス」「提案」の 3 点。期待値 Gap の提案は User Scope Harness (`~/.agents` の実体) のどのファイルをどう変えるか、スキル不足の提案は学ぶトピック。項目ごとに grill の問い (採用 / 不採用) を付ける。
 4. 採用された項目を反映する。
    - 期待値 Gap: `~/.agents/guidelines/harness.md` に従って User Scope Harness を直す。
-   - スキル不足: `~/.agents/references/task-board.md` の「書く」で、学習バックログ (`"board": "personal-learning"`, `"column": "backlog"`) に `学習` タグで積む。`key` は `learning:<トピック>`、`detail` に根拠の発言とログのパス、`sessions` に根拠のセッションの `session:` の行の値を書く。
+   - スキル不足: `~/.agents/references/personal-dashboard.md` を読んで、学習バックログ (`"board": "personal-learning"`, `"column": "backlog"`) に `学習` タグで積む。`key` は `learning:<トピック>`、`detail` に根拠の発言とログのパス、`sessions` に根拠のセッションの `session:` の行の値を書く。
 5. `node ~/.agents/playbooks/retro/scripts/sessions.ts --mark` で今回の実行を記録する。

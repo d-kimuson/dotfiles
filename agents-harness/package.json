@@ -7,7 +7,7 @@
   },
   "scripts": {
     "agent-core:dev": "node .agents/scripts/agent-core.ts --root .",
-    "test": "node --test .agents/scripts .agents/playbooks/configure-harness/scripts .agents/playbooks/personal-task-board/scripts .agents/playbooks/retro/scripts"
+    "test": "node --test .agents/scripts .agents/playbooks/configure-harness/scripts .agents/playbooks/personal-dashboard/scripts .agents/playbooks/retro/scripts"
   },
   "packageManager": "pnpm@12.16.1+sha512.091d1dee7927575661b25dab3c2ae31cafc1c54d6b71ed6a6600cf0c1cb10434a447eae14015f1b23e2e6bedeed79df94a932e2164d2832280dce3fb32f656d1",
   "devDependencies": {

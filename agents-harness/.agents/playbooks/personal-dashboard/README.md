@@ -1,11 +1,11 @@
 # パーソナルダッシュボード
 
-仕事モデル (https://claude.ai/artifact/SDRamdob1iKXw1bpp2jLmu) のパーソナルダッシュボード。Software Factory の外で、本人がやることを学習も含めて 1 か所に集める。`/task-board` prompt は `personal-task-board` Playbook への alias。
+仕事モデル (https://claude.ai/artifact/SDRamdob1iKXw1bpp2jLmu) のパーソナルダッシュボード。Software Factory の外で、本人がやることを学習も含めて 1 か所に集める。`/personal-dashboard` prompt は `personal-dashboard` Playbook への alias。
 
 ## ファイル構成
 
 ```text
-personal-task-board/
+personal-dashboard/
 ├── PLAYBOOK.md         # Agent が実行する手順の入口
 ├── README.md           # 構成と設計判断
 ├── assets/
@@ -22,9 +22,9 @@ personal-task-board/
 
 ## 設計判断
 
-- 積む主体は、着手中のタスクを更新する Claude Code セッション (`AGENTS.md` のルール)、収集役 (`references/manage-user.md`)、`product-manage` (タスク管理元から拾ったタスク)、`retro` (学習バックログ)
+- 積む主体は、着手中のタスクを更新する全 Agent のセッション (`AGENTS.md` のルール)、収集役 (`references/manage-user.md`)、`product-manage` (タスク管理元から拾ったタスク)、`retro` (学習バックログ)
 - タスクはプロジェクト横断で 1 つの盤面に集め、プロジェクト名のタグで絞る。学習バックログは同じ文書の別ページの Kanban (`personal-learning`) に分けた。タスクの列に混ぜると、今日やることを選ぶときに学習のカードが邪魔になるため
-- 盤面の呼び名はページの題と同じ「パーソナルダッシュボード」に揃えた。Playbook の名前 `personal-task-board` と reference の `task-board.md` は旧名のまま残す
+- 盤面の呼び名はページの題と同じ「パーソナルダッシュボード」に揃え、Playbook・reference・prompt の名前も `personal-dashboard` にした。文書の中の盤面 id と kit の storage key は `personal-task-board` のまま残す。本人の未反映の draft と、draft の action の target id がこの値に結び付いているため
 - 列は Todo・今日やる・進行中・Pending・Done。Pending の列 id は `blocked` のまま残す。今日やるは本人が朝に選ぶ列で、Agent は動かさない
 - 盤面の正は、folio の文書の HTML の各 `<dpk-board-kanban>` が持つ base JSON に置いた。本人の操作は folio がサーバーに同期する draft に溜まり、Agent が `folio_get_draft_state` で読んで `board.ts review` で base に反映し、`addressed` を更新して書き戻す。kit は `addressed` に入った action を次の読み込みで draft から消すが、それまで draft に残るので、`board.ts review` は `addressed` 済みの action を当て直さない
 - 盤面は folio の文書に置く (5 回目に Claude Artifact から移した)。folio とのやりとりは MCP ツールを Agent が呼び、`board.ts` はローカルのファイルだけを扱う。folio 固有の入出力は `scripts/folio.ts` に閉じ込めた

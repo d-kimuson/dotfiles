@@ -8,7 +8,7 @@ Artifact db 自体は `~` を含む doc id をそのまま受け付け、その�
 
 ## Workaround
 
-`out_dir` に保存した文書の doc id は、ファイル名ではなくファイルの中身の `id` から読む。`agents-harness/.agents/playbooks/personal-task-board/scripts/board.ts` はこの読み方をしている。
+`out_dir` に保存した文書の doc id は、ファイル名ではなくファイルの中身の `id` から読む。
 
 ## Why Not Fixed
 

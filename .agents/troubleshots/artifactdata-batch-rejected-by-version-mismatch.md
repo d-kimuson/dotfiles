@@ -2,7 +2,7 @@
 
 ## Symptom
 
-`ArtifactData` の `batch` に既存文書への `delete` か `set` を含めると、`version_mismatch` で batch 全体が拒否され、どの write も適用されない。Personal Task Board の盤面 (Artifact db の `actions` collection) を掃除したときに起きた。
+`ArtifactData` の `batch` に既存文書への `delete` か `set` を含めると、`version_mismatch` で batch 全体が拒否され、どの write も適用されない。パーソナルダッシュボードの旧盤面 (Artifact db の `actions` collection) を掃除したときに起きた。
 
 ## Workaround
 

@@ -49,11 +49,9 @@ agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Playbook のプロンプ�
 
 - 作業 (ファイルの変更、調査、複数ステップのタスクなど) を伴うセッションでは、作業を始める前に `~/.agents/scripts/agent-core.ts playbooks use handoff` で手順を取得し、カレントディレクトリに handoff ファイル (`.agents/handoff/${identifier}/index.md`) を作る
 
-### Task Board
+### パーソナルダッシュボード
 
-- Claude Code のセッションだけが従う。サブエージェントと定期実行 (収集役など) は従わない。本人が始めた作業を伴うセッションでは、着手・方針の確定・Pending への移動・本人の確認か判断を待ってセッションを終えるとき・完了の要所で、そのタスクのパーソナルダッシュボードのカードを更新する。カードが無ければ着手時に積む
-- 手順は `~/.agents/references/task-board.md` の「Claude Code セッションの更新」に従う
-- パーソナルダッシュボードのページに本人が書いた変更とレビューコメントは、`task-board.md` の「レビューコメントに応える」に従う
+- 作業を伴うセッションでは、`~/.agents/references/personal-dashboard.md` を読んで従い、着手中のタスクのカードを作業しながら更新する
 
 ### Agent の呼び出し
 
