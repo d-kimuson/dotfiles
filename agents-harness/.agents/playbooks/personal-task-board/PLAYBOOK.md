@@ -10,4 +10,4 @@ description: 本人がやることを Personal Task Board に積む・動かす�
 - 盤面を見せる: `~/.agents/state/task-board/index.md` の URL を本人に渡す。無ければ `task-board.md` の「index.md が無いとき」で用意する
 - 積む・動かす: `task-board.md` の「書く」で行い、最後に URL を本人に渡す
 - Done を片付ける: 本人に頼まれたら `task-board.md` の「アーカイブ」で行う
-- brief やコメントを受け取ったとき: ページでの変更は既に盤面に入っている。反映し直さず、brief のコメントに答える。書き手が `Claude Code` のコメントは Agent が残した状況の記録なので答えない。カードへの依頼があれば `task-board.md` の「書く」で応える
+- brief (本人がページで Send to Claude を押したもの) を受け取ったとき: `task-board.md` の「レビューコメントに応える」で行う。ページでの変更は既に盤面に入っているので、反映し直さない

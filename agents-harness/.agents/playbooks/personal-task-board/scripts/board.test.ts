@@ -1,22 +1,36 @@
 import assert from "node:assert/strict"
-import { mkdirSync, mkdtempSync, readFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { test } from "node:test"
 import {
   type Action,
+  type Attr,
+  ATTR_NAMES,
   BOARDS,
+  DEFERRABLE,
+  OWNERS,
+  SPLIT,
   type Intent,
+  type Note,
+  attrId,
+  attrsOf,
   cardId,
   checkSession,
+  isAttr,
+  isDeferred,
   findCard,
   fold,
   parseDescription,
   plan,
   planMigration,
+  planNoteMigration,
   readActions,
+  readAttrs,
+  readNotes,
   renderBoard,
   sessionFromEnv,
+  tokyoDate,
 } from "./board.ts"
 
 const now = new Date("2026-11-27T10:00:00.000Z")
@@ -59,6 +73,19 @@ test("列は board.html の各 Kanban と同じ", () => {
   }
 })
 
+test("属性の規則は board.html と同じ", () => {
+  const html = readFileSync(new URL("../assets/board.html", import.meta.url), "utf8")
+  const constant = (name: string): unknown => {
+    const literal = new RegExp(`const ${name} = (.+?);`).exec(html)?.[1]
+    assert.ok(literal !== undefined, name)
+    return JSON.parse(literal)
+  }
+  assert.deepEqual(constant("DEFERRABLE"), DEFERRABLE)
+  assert.deepEqual(constant("OWNERS"), [...OWNERS])
+  assert.equal(constant("SPLIT"), SPLIT)
+  assert.deepEqual(constant("ATTR_NAMES"), [...ATTR_NAMES])
+})
+
 test("カードの追加・移動・詳細の追記を action にして畳み込み、description に状況の履歴を残さない", () => {
   const key = "https://example.com/issues/1"
   const id = cardId(key)
@@ -75,11 +102,11 @@ test("カードの追加・移動・詳細の追記を action にして畳み込
   assert.ok(second.slice(1).every((a) => /^[A-Za-z0-9_-]+:[0-9]{3}$/.test(a.id)))
 })
 
-test("blocked へは理由が要り、理由はブロック理由の節に置き、blocked から出ると消える", () => {
+test("blocked へは理由が要り、理由は Pending の理由の節に置き、blocked から出ると消える", () => {
   const base = run([], [{ op: "add", key: "k", column: "doing", title: "K", detail: "説明" }], "cc-a")
   assert.throws(() => plan(base, [{ op: "move", key: "k", column: "blocked" }], { writer: "cc-b", now }))
   const blocked = run(base, [{ op: "move", key: "k", column: "blocked", reason: "レビュー待ち" }], "cc-b", later)
-  assert.equal(findCard(fold(blocked), cardId("k"))?.card.description, "説明\n\n## ブロック理由\nレビュー待ち")
+  assert.equal(findCard(fold(blocked), cardId("k"))?.card.description, "説明\n\n## Pending の理由\nレビュー待ち")
   const resumed = run(blocked, [{ op: "move", key: "k", column: "doing" }], "cc-c", new Date("2026-11-27T10:10:00.000Z"))
   assert.equal(findCard(fold(resumed), cardId("k"))?.card.description, "説明")
 })
@@ -157,11 +184,24 @@ test("同じ id の ADD_CARD が競合しても 1 枚にまとまり、後のも
   assert.deepEqual(board.stale, [{ id: "cc-2:001", type: "ADD_CARD" }])
 })
 
-test("ページ上のコメントはカードごとに読める", () => {
-  const comment = pageAction("uwjz3rxk:2", "comment", "card/ui-card", { body: "本人のコメント" }, "2026-11-27T09:01:00.000Z")
-  assert.deepEqual(fold([userAdd, comment]).comments, [
-    { board: "personal-task-board", card: "ui-card", body: "本人のコメント", author: "u_tester", createdAt: "2026-11-27T09:01:00.000Z" },
+const note = (id: string, card: string, body: string, createdAt: string, author: Note["author"] = { id: "u_tester" }): Note => ({
+  id,
+  board: "personal-task-board",
+  card,
+  body,
+  author,
+  createdAt,
+})
+
+test("kit の comment action はレビューコメントとして読み、カードのコメントには出さない", () => {
+  const comment = pageAction("uwjz3rxk:2", "comment", "card/ui-card", { body: "本人の指示" }, "2026-11-27T09:01:00.000Z")
+  const board = fold([userAdd, comment])
+  assert.deepEqual(board.reviews, [
+    { id: "uwjz3rxk:2", board: "personal-task-board", path: "card/ui-card", body: "本人の指示", author: { id: "u_tester" }, createdAt: "2026-11-27T09:01:00.000Z" },
   ])
+  const text = renderBoard(board, [])
+  assert.match(text, /## レビューコメント \(本人から Agent への指示\)\n- uwjz3rxk:2 personal-task-board\/card\/ui-card \S+ 本人: 本人の指示/)
+  assert.doesNotMatch(text, /    > /)
 })
 
 test("無いカードへの更新は action を作らない", () => {
@@ -207,10 +247,11 @@ test("dump に actions が無ければ失敗し、--empty のときだけ空の�
   assert.deepEqual(readActions(dir), [])
 })
 
-test("カード以外に付いたコメントも宛先と本文つきで出す", () => {
-  const onColumn = pageAction("uwjz3rxk:3", "comment", "column/todo", { body: "列へのコメント" }, "2026-11-27T09:02:00.000Z")
-  const text = renderBoard(fold([userAdd, onColumn]))
-  assert.match(text, /## カード以外へのコメント\n- column\/todo .* u_tester: 列へのコメント/)
+test("カード以外へのレビューコメントも宛先と本文つきで出し、カードの無いコメントも落とさない", () => {
+  const onColumn = pageAction("uwjz3rxk:3", "comment", "column/todo", { body: "列への指示" }, "2026-11-27T09:02:00.000Z")
+  const text = renderBoard(fold([userAdd, onColumn]), [note("u:9", "gone", "消えたカードへのメモ", "2026-11-27T09:03:00.000Z")])
+  assert.match(text, /## レビューコメント .*\n- uwjz3rxk:3 personal-task-board\/column\/todo .* 本人: 列への指示/)
+  assert.match(text, /## カードの無いコメント\n- personal-task-board\/gone .* 本人: 消えたカードへのメモ/)
 })
 
 test("書き手の時計が遅れていても、読んだ action より後に再生される", () => {
@@ -221,7 +262,7 @@ test("書き手の時計が遅れていても、読んだ action より後に再
   assert.equal(findCard(board, "ui-card")?.column, "doing")
 })
 
-test("移行は「## 状況」節を落とし、ブロック中のカードは最後の状況をブロック理由にする", () => {
+test("移行は「## 状況」節を落とし、Pending のカードは最後の状況を Pending の理由にする", () => {
   const legacy = [
     userAdd,
     pageAction("cc-old:1", "ADD_CARD", "column/blocked", { id: "b", title: "B" }, "2026-11-27T09:01:00.000Z"),
@@ -230,12 +271,12 @@ test("移行は「## 状況」節を落とし、ブロック中のカードは�
   ]
   const created = planMigration(legacy, { writer: "cc-m", now })
   const board = fold([...legacy, ...created])
-  assert.equal(findCard(board, "b")?.card.description, "説明\n\n## ブロック理由\nPR のレビュー待ち")
+  assert.equal(findCard(board, "b")?.card.description, "説明\n\n## Pending の理由\nPR のレビュー待ち")
   assert.equal(findCard(board, "ui-card")?.card.description, "## 状況の整理\n\n本文")
   assert.deepEqual(planMigration([...legacy, ...created], { writer: "cc-n", now: later }), [])
 })
 
-test("description の本人が書いた見出しと行は、ブロック理由とセッションの節に吸い込まず説明に残す", () => {
+test("description の本人が書いた見出しと行は、Pending の理由とセッションの節に吸い込まず説明に残す", () => {
   const d = parseDescription("説明\n\n## ブロック理由\n待ち\n\n## メモ\n本人のメモ\n\n## セッション\n- codex abc\n本人の行")
   assert.equal(d.blocked, "待ち")
   assert.deepEqual(d.sessions, ["codex abc"])
@@ -256,7 +297,8 @@ test("アーカイブは Done のカードを隠した列へ移すだけで、ac
     ],
     "cc-a",
   )
-  const comment = pageAction("uwjz3rxk:6", "comment", `card/${cardId("d")}`, { body: "済んだ" }, "2026-11-27T10:01:30.000Z")
+  const comment = pageAction("uwjz3rxk:6", "comment", `card/${cardId("d")}`, { body: "済んだ?" }, "2026-11-27T10:01:30.000Z")
+  const notes = [note("uwjz3rxk:7", cardId("d"), "済んだ", "2026-11-27T10:01:40.000Z")]
   const before = fold([...base, comment])
   const only = plan([...base, comment], [{ op: "archive", board: "personal-task-board" }], { writer: "cc-b", now: later })
   assert.deepEqual(only.actions.map((a) => [a.type, a.target.id, a.payload]), [
@@ -269,8 +311,9 @@ test("アーカイブは Done のカードを隠した列へ移すだけで、ac
   assert.equal(findCard(board, cardId("l"))?.column, "archived")
   for (const [id, v] of Object.entries(numbersOf(before))) assert.equal(numbersOf(board)[id]?.number, v.number, id)
   // show は既定でアーカイブを出さず、--archived で説明・タグ・コメントごと出す。
-  assert.doesNotMatch(renderBoard(board), /TASK-3/)
-  assert.match(renderBoard(board, { archived: true }), /TASK-3 \S+ D \[作業\][\s\S]*> .* u_tester: 済んだ/)
+  assert.doesNotMatch(renderBoard(board, notes), /TASK-3/)
+  assert.doesNotMatch(renderBoard(board, notes), /カードの無いコメント/)
+  assert.match(renderBoard(board, notes, { archived: true }), /TASK-3 \S+ D \[作業\][\s\S]*> .* 本人: 済んだ/)
   // アーカイブした後に足したカードは次の番号を取り、同じキーでは積み直さない。
   const next = plan(after, [{ op: "add", key: "n", column: "todo", title: "N" }, { op: "add", key: "d", column: "todo", title: "D" }], { writer: "cc-c", now: archiveAt })
   assert.equal(findCard(fold([...after, ...next.actions]), cardId("n"))?.card.number, 4)
@@ -341,37 +384,70 @@ test("plan は未知の op と盤面を拒み、空の label を付けず、本�
   assert.equal(findCard(fold([userAdd, own, ...result.actions]), "ui-card")?.card.description, "説明\n\n## 状況\n本人のメモ\n\n## セッション\n- codex t1")
 })
 
-test("comment はカードへの comment action を 1 つ作り、ページのコメントと同じ形で読める", () => {
+test("comment は action を作らず、カードへの note を 1 つ作る", () => {
   const result = plan([userAdd], [{ op: "comment", card: "ui-card", text: "  方針: A を採る\n理由は B  " }], { writer: "cc-a", now })
-  assert.deepEqual(result.actions, [
+  assert.deepEqual(result.actions, [])
+  assert.deepEqual(result.notes, [
     {
       id: "cc-a:001",
-      type: "comment",
-      target: { type: "element", id: "personal-task-board/card/ui-card@board" },
-      payload: { body: "方針: A を採る\n理由は B" },
-      createdAt: now.toISOString(),
+      board: "personal-task-board",
+      card: "ui-card",
+      body: "方針: A を採る\n理由は B",
       author: { id: "agent:claude-code", name: "Claude Code" },
+      createdAt: now.toISOString(),
     },
   ])
-  assert.deepEqual(fold([userAdd, ...result.actions]).comments.map((c) => [c.card, c.author, c.body]), [["ui-card", "Claude Code", "方針: A を採る\n理由は B"]])
+  assert.deepEqual(fold([userAdd, ...result.actions]).reviews, [])
 })
 
 test("comment は無いカードを飛ばし、空の text を拒む", () => {
   const missing = plan([userAdd], [{ op: "comment", key: "none", text: "x" }], { writer: "cc-a", now })
-  assert.deepEqual(missing, { actions: [], skipped: [`comment ${cardId("none")}: カードが無い`] })
+  assert.deepEqual(missing, { actions: [], notes: [], attrs: [], skipped: [`comment ${cardId("none")}: カードが無い`] })
   assert.throws(() => plan([userAdd], [{ op: "comment", card: "ui-card", text: " \n " }], { writer: "cc-a", now }), /comment: text が空/)
 })
 
-test("show はコメントを時刻の順に出し、複数行の本文の 2 行目以降を字下げする", () => {
-  const second = pageAction("u:3", "comment", "card/ui-card", { body: "後のコメント" }, "2026-11-27T09:03:00.000Z")
-  const first = pageAction("u:2", "comment", "card/ui-card", { body: "1 行目\n2 行目" }, "2026-11-27T09:02:00.000Z")
-  const text = renderBoard(fold([userAdd, second, first]))
+test("show はページと Agent のコメントを時刻の順に混ぜて出し、複数行の本文の 2 行目以降を字下げする", () => {
+  const agent = plan([userAdd], [{ op: "comment", card: "ui-card", text: "Agent のメモ" }], { writer: "cc-a", now: new Date("2026-11-27T09:02:30.000Z") }).notes
+  const notes = [note("u:3", "ui-card", "後のコメント", "2026-11-27T09:03:00.000Z"), ...agent, note("u:2", "ui-card", "1 行目\n2 行目", "2026-11-27T09:02:00.000Z")]
+  const text = renderBoard(fold([userAdd]), notes)
   assert.ok(
     text.includes(
-      ["    > 2026-11-27T09:02:00.000Z u_tester: 1 行目", "    >   2 行目", "    > 2026-11-27T09:03:00.000Z u_tester: 後のコメント"].join("\n"),
+      [
+        "    > 2026-11-27T09:02:00.000Z 本人: 1 行目",
+        "    >   2 行目",
+        "    > 2026-11-27T09:02:30.000Z Claude Code: Agent のメモ",
+        "    > 2026-11-27T09:03:00.000Z 本人: 後のコメント",
+      ].join("\n"),
     ),
     text,
   )
+})
+
+test("Agent が actions に書いたコメントは別の節に出し、移行で同じ id の note に写して action を消す", () => {
+  const legacy: Action = { ...pageAction("cc-old:002", "comment", "card/ui-card", { body: "状況" }, "2026-11-27T09:05:00.000Z"), author: { id: "agent:claude-code", name: "Claude Code" } }
+  const review = pageAction("u:4", "comment", "card/ui-card", { body: "直して" }, "2026-11-27T09:06:00.000Z")
+  const onColumn: Action = { ...legacy, id: "cc-old:003", target: { type: "element", id: "personal-task-board/column/todo@board" } }
+  const actions = [userAdd, legacy, review, onColumn]
+  assert.match(renderBoard(fold(actions), []), /## Agent が actions に書いたコメント .*\n- cc-old:002 personal-task-board\/card\/ui-card \S+ Claude Code: 状況/)
+  const result = planNoteMigration(actions, [])
+  assert.deepEqual(result, {
+    notes: [{ id: "cc-old:002", board: "personal-task-board", card: "ui-card", body: "状況", author: { id: "agent:claude-code", name: "Claude Code" }, createdAt: "2026-11-27T09:05:00.000Z" }],
+    deletes: ["cc-old:002"],
+    skipped: ["cc-old:003: カード宛てでない (personal-task-board/column/todo@board)"],
+  })
+  // note を書いた後に止まっても、再実行は action を消すだけにする。
+  assert.deepEqual(planNoteMigration(actions, result.notes), { notes: [], deletes: ["cc-old:002"], skipped: result.skipped })
+  const rest = actions.filter((a) => !result.deletes.includes(a.id))
+  assert.deepEqual(planNoteMigration(rest, result.notes).deletes, [])
+  const text = renderBoard(fold(rest), result.notes)
+  assert.match(text, /    > 2026-11-27T09:05:00.000Z Claude Code: 状況/)
+  assert.doesNotMatch(text, /- cc-old:002/)
+  assert.match(text, /- u:4 .* 本人: 直して/)
+})
+
+test("dump に notes が無ければコメントの無い盤面として読む", () => {
+  const dir = mkdtempSync(join(tmpdir(), "board-"))
+  assert.deepEqual(readNotes(dir), [])
 })
 
 test("kit が区切りごとに符号化した target のカードを読む", () => {
@@ -383,7 +459,144 @@ test("kit が区切りごとに符号化した target のカードを読む", ()
   const move: Action = { ...comment, id: "u:3", type: "MOVE_CARD", payload: { column: "doing", before: null }, createdAt: "2026-11-27T09:02:00.000Z" }
   const board = fold([add, comment, move])
   assert.equal(findCard(board, "日本語-card")?.column, "doing")
-  assert.deepEqual(board.comments.map((c) => c.card), ["日本語-card"])
+  assert.deepEqual(board.reviews.map((r) => r.path), ["card/日本語-card"])
   const planned = plan([add], [{ op: "comment", card: "日本語-card", text: "x" }], { writer: "cc-a", now })
-  assert.equal(planned.actions[0]?.target.id, comment.target.id)
+  assert.equal(planned.notes[0]?.card, "日本語-card")
+})
+
+test("移行は前の呼び名「## ブロック理由」の節を「## Pending の理由」に直す", () => {
+  const legacy = [
+    userAdd,
+    pageAction("cc-old:1", "ADD_CARD", "column/blocked", { id: "b", title: "B" }, "2026-11-27T09:01:00.000Z"),
+    pageAction("cc-old:2", "SET_CARD_DESCRIPTION", "card/b", { description: "説明\n\n## ブロック理由\n本人の確認待ち\n\n## セッション\n- codex abc" }, "2026-11-27T09:02:00.000Z"),
+  ]
+  const created = planMigration(legacy, { writer: "cc-m", now })
+  assert.equal(created.length, 1)
+  const board = fold([...legacy, ...created])
+  assert.equal(findCard(board, "b")?.card.description, "説明\n\n## Pending の理由\n本人の確認待ち\n\n## セッション\n- codex abc")
+  assert.deepEqual(planMigration([...legacy, ...created], { writer: "cc-n", now: later }), [])
+})
+
+const attr = (card: string, name: Attr["attr"], value: true | string, board: Attr["board"] = "personal-task-board"): Attr => ({
+  id: attrId(board, card, name),
+  board,
+  card,
+  attr: name,
+  value,
+  author: { id: "u_tester" },
+  updatedAt: "2026-11-27T09:00:00.000Z",
+})
+
+test("今日は Asia/Tokyo の暦日で決まる", () => {
+  assert.equal(tokyoDate(new Date("2026-11-28T14:59:59.000Z")), "2026-11-28")
+  assert.equal(tokyoDate(new Date("2026-11-28T15:00:00.000Z")), "2026-11-29")
+})
+
+test("着手可能日で隠すのは未着手の列で、着手可能日が今日より後のカードだけ", () => {
+  const today = "2026-11-28"
+  assert.equal(isDeferred("todo", { check: false, start: "2026-11-29" }, today), true)
+  assert.equal(isDeferred("backlog", { check: false, start: "2026-11-29" }, today), true)
+  assert.equal(isDeferred("todo", { check: false, start: "2026-11-28" }, today), false)
+  for (const column of ["today", "doing", "blocked", "done"]) assert.equal(isDeferred(column, { check: false, start: "2026-12-01" }, today), false, column)
+})
+
+test("属性を立てる・変える・外す writes は、dump の文書と if_version で決まる", () => {
+  const id = attrId("personal-task-board", "ui-card", "due")
+  const at = (attrs: Attr[], intent: Intent) => plan([userAdd], [intent], { writer: "cc-a", now, attrs })
+  const created = at([], { op: "due", card: "ui-card", date: "2026-12-05" })
+  assert.equal(created.attrs.length, 1)
+  assert.deepEqual(created.attrs[0], {
+    op: "set",
+    attr: { id, board: "personal-task-board", card: "ui-card", attr: "due", value: "2026-12-05", author: { id: "agent:claude-code", name: "Claude Code" }, updatedAt: now.toISOString() },
+  })
+  assert.deepEqual(at([], { op: "due", card: "ui-card", date: null }).attrs, [])
+  assert.deepEqual(at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: "2026-12-05" }).attrs, [])
+  assert.throws(() => at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: "2026-12-06" }), /if_version を付けて plan し直す/)
+  assert.throws(() => at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: null }), /if_version/)
+  const changed = at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: "2026-12-06", if_version: 3 })
+  assert.equal(changed.attrs[0]?.op === "set" && changed.attrs[0].if_version, 3)
+  assert.deepEqual(at([attr("ui-card", "due", "2026-12-05")], { op: "due", card: "ui-card", date: null, if_version: 2 }).attrs, [{ op: "delete", doc_id: id, if_version: 2 }])
+  assert.throws(() => at([], { op: "due", card: "ui-card", date: "2026-02-30" }), /YYYY-MM-DD/)
+  assert.deepEqual(at([], { op: "start", key: "none", date: "2026-12-01" }).skipped, [`start ${cardId("none")}: カードが無い`])
+  const moved = at([attr("ui-card", "start", "2026-12-01")], { op: "start", card: "ui-card", date: "2026-12-03", if_version: 1 })
+  assert.deepEqual(moved.attrs.map((w) => (w.op === "set" ? [w.attr.attr, w.attr.value, w.if_version] : [])), [["start", "2026-12-03", 1]])
+  assert.throws(() => at([], { op: "start", key: "none", date: "12/03" }), /YYYY-MM-DD/)
+  assert.throws(() => at([], { op: "owner", key: "none", who: "boss" } as unknown as Intent), /who は/)
+})
+
+test("check を立てると属性と note が出て、text が無ければ拒む", () => {
+  const result = plan([userAdd], [{ op: "check", card: "ui-card", on: true, text: "画面を見てほしい" }], { writer: "cc-a", now })
+  assert.deepEqual(result.attrs.map((w) => (w.op === "set" ? [w.attr.id, w.attr.value, w.if_version] : [])), [[attrId("personal-task-board", "ui-card", "check"), true, undefined]])
+  assert.deepEqual(result.notes.map((n) => n.body), ["確認が必要: 画面を見てほしい"])
+  assert.throws(() => plan([userAdd], [{ op: "check", card: "ui-card", on: true }], { writer: "cc-a", now }), /text/)
+  const again = plan([userAdd], [{ op: "check", card: "ui-card", on: true, text: "もう一度" }], { writer: "cc-a", now, attrs: [attr("ui-card", "check", true)] })
+  assert.deepEqual([again.attrs, again.notes.length], [[], 1])
+  const off = plan([userAdd], [{ op: "check", card: "ui-card", on: false, if_version: 1 }], { writer: "cc-a", now, attrs: [attr("ui-card", "check", true)] })
+  assert.deepEqual([off.attrs, off.notes], [[{ op: "delete", doc_id: attrId("personal-task-board", "ui-card", "check"), if_version: 1 }], []])
+})
+
+test("add の start と due は属性になり、別の属性は別の文書になる", () => {
+  const result = plan([], [{ op: "add", key: "k", column: "todo", title: "t", start: "2026-12-01", due: "2026-12-10" }], { writer: "cc-a", now })
+  const ids = result.attrs.map((w) => (w.op === "set" ? [w.attr.id, w.if_version] : []))
+  assert.deepEqual(ids, [
+    [attrId("personal-task-board", cardId("k"), "start"), undefined],
+    [attrId("personal-task-board", cardId("k"), "due"), undefined],
+  ])
+  assert.throws(() => plan([userAdd], [{ op: "due", card: "ui-card", date: "2026-12-01" }, { op: "due", card: "ui-card", date: "2026-12-02" }], { writer: "cc-a", now }), /2 回/)
+})
+
+test("archive は確認が必要な Done のカードを残す", () => {
+  const actions = run([userAdd, pageAction("u:2", "ADD_CARD", "column/done", { id: "other", title: "o" }, "2026-11-27T09:01:00.000Z")], [{ op: "move", card: "ui-card", column: "done" }], "cc-a")
+  const result = plan(actions, [{ op: "archive" }], { writer: "cc-b", now: archiveAt, attrs: [attr("ui-card", "check", true)] })
+  assert.deepEqual(result.actions.map((a) => a.target.id), ["personal-task-board/card/other@board"])
+  assert.deepEqual(result.skipped, ["archive ui-card: 確認が必要なので残す"])
+})
+
+test("show は今日と属性の印を出し、カードの無い属性を別の節に出す", () => {
+  const actions = [userAdd, pageAction("u:2", "ADD_CARD", "column/doing", { id: "late", title: "遅れ" }, "2026-11-27T09:01:00.000Z"), pageAction("u:3", "ADD_CARD", "column/done", { id: "fin", title: "済み" }, "2026-11-27T09:02:00.000Z")]
+  const attrs = [attr("ui-card", "start", "2026-12-01"), attr("ui-card", "check", true), attr("late", "due", "2026-11-27"), attr("late", "start", "2026-12-01"), attr("fin", "due", "2026-11-01"), attr("gone", "due", "2026-11-30")]
+  const text = renderBoard(fold(actions), [], { attrs, today: "2026-11-28" })
+  assert.match(text, /^今日 \(Asia\/Tokyo\): 2026-11-28/)
+  assert.match(text, /- TASK-1 ui-card UI で足したカード \(確認が必要, 着手可能 2026-12-01, ページでは隠れる\)/)
+  assert.match(text, /- TASK-2 late 遅れ \(着手可能 2026-12-01, 期日 2026-11-27 超過\)/)
+  assert.match(text, /- TASK-3 fin 済み \(期日 2026-11-01\)$/m)
+  assert.match(text, /## カードの無い属性\n- personal-task-board~gone~due 2026-11-30/)
+  assert.match(renderBoard(fold(actions), [], { attrs: [attr("late", "due", "2026-11-28")], today: "2026-11-28" }), /期日 2026-11-28 今日/)
+  const backlog = run([], [{ op: "add", key: "later", board: "personal-learning", column: "backlog", title: "後で" }], "cc-a")
+  const learning = (start: string) => renderBoard(fold(backlog), [], { attrs: [attr(cardId("later"), "start", start, "personal-learning")], today: "2026-11-28" })
+  assert.match(learning("2026-11-29"), /後で \(着手可能 2026-11-29, ページでは隠れる\)/)
+  assert.match(learning("2026-11-28"), /後で$/m)
+})
+
+test("readAttrs は形の崩れた属性を飛ばし、attrsOf がカードごとにまとめる", () => {
+  const dir = mkdtempSync(join(tmpdir(), "board-attrs-"))
+  mkdirSync(join(dir, "attrs"))
+  const good = attr("ui-card", "due", "2026-12-05")
+  writeFileSync(join(dir, "attrs", "a.json"), JSON.stringify(good))
+  writeFileSync(join(dir, "attrs", "b.json"), JSON.stringify({ ...attr("ui-card", "start", "2026-12-01"), value: "12/1" }))
+  writeFileSync(join(dir, "attrs", "c.json"), JSON.stringify({ ...attr("ui-card", "check", true), id: "wrong" }))
+  assert.deepEqual(readAttrs(dir), [good])
+  assert.equal(isAttr({ ...attr("ui-card", "check", true), value: "yes" } as unknown as Attr), false)
+  assert.deepEqual(attrsOf([good, attr("ui-card", "check", true), attr("other", "start", "2026-12-01")], "personal-task-board", "ui-card"), { check: true, due: "2026-12-05" })
+})
+
+test("担い手は self か agent の属性で、add と owner intent で設定・変更・解除でき、show に出る", () => {
+  const added = plan([], [{ op: "add", key: "k", column: "doing", title: "t", owner: "agent" }], { writer: "cc-a", now })
+  assert.deepEqual(added.attrs.map((w) => (w.op === "set" ? [w.attr.id, w.attr.value] : [])), [[attrId("personal-task-board", cardId("k"), "owner"), "agent"]])
+  const set = plan([userAdd], [{ op: "owner", card: "ui-card", who: "agent" }], { writer: "cc-a", now })
+  assert.equal(set.attrs[0]?.op === "set" && set.attrs[0].attr.value, "agent")
+  const existing = [attr("ui-card", "owner", "agent")]
+  assert.throws(() => plan([userAdd], [{ op: "owner", card: "ui-card", who: "self" }], { writer: "cc-a", now, attrs: existing }), /if_version/)
+  const changed = plan([userAdd], [{ op: "owner", card: "ui-card", who: "self", if_version: 4 }], { writer: "cc-a", now, attrs: existing })
+  assert.deepEqual(changed.attrs[0]?.op === "set" && [changed.attrs[0].attr.value, changed.attrs[0].if_version], ["self", 4])
+  assert.deepEqual(plan([userAdd], [{ op: "owner", card: "ui-card", who: null, if_version: 4 }], { writer: "cc-a", now, attrs: existing }).attrs, [
+    { op: "delete", doc_id: attrId("personal-task-board", "ui-card", "owner"), if_version: 4 },
+  ])
+  assert.deepEqual(plan([userAdd], [{ op: "owner", card: "ui-card", who: "agent" }], { writer: "cc-a", now, attrs: existing }).skipped, ["owner ui-card: 既に agent"])
+  assert.throws(() => plan([userAdd], [{ op: "owner", card: "ui-card", who: "bot" as "agent" }], { writer: "cc-a", now }), /who は self か agent か null/)
+  assert.equal(isAttr({ ...attr("ui-card", "owner", "agent"), value: "bot" }), false)
+  assert.deepEqual(attrsOf(existing, "personal-task-board", "ui-card"), { check: false, owner: "agent" })
+  const text = renderBoard(fold([userAdd]), [], { attrs: existing, today: "2026-11-28" })
+  assert.match(text, /- TASK-1 ui-card UI で足したカード \(担い手 Agent\)/)
+  assert.match(renderBoard(fold([userAdd]), [], { attrs: [attr("ui-card", "owner", "self")], today: "2026-11-28" }), /\(担い手 自分\)/)
 })

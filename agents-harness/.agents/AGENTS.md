@@ -51,8 +51,9 @@ agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Playbook のプロンプ�
 
 ### Task Board
 
-- Claude Code のセッションだけが従う。サブエージェントと定期実行 (収集役など) は従わない。本人が始めた作業を伴うセッションでは、着手・方針の確定・ブロック・完了の要所で、そのタスクの Personal Task Board のカードを更新する。カードが無ければ着手時に積む
+- Claude Code のセッションだけが従う。サブエージェントと定期実行 (収集役など) は従わない。本人が始めた作業を伴うセッションでは、着手・方針の確定・Pending への移動・本人の確認か判断を待ってセッションを終えるとき・完了の要所で、そのタスクの Personal Task Board のカードを更新する。カードが無ければ着手時に積む
 - 手順は `~/.agents/references/task-board.md` の「Claude Code セッションの更新」に従う
+- Personal Task Board の Artifact に届いたコメントは、`task-board.md` の「レビューコメントに応える」に従う
 
 ### Agent の呼び出し
 
