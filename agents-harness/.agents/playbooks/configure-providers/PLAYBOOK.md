@@ -50,4 +50,4 @@ provider は次の 5 つ。
    ```
 
    `state/providers.json` はマシン固有なのでコミットしない。
-4. `~/.agents/scripts/agent-core.ts models list` を実行し、成功して、使える provider の候補だけが出ることを確かめる。候補がすべて外れた種類は「候補なし」と出る。それは正常で、その種類は親と同じモデルの SubAgent で動かす。
+4. `~/.agents/scripts/agent-core.ts models list` を実行し、成功して、使える provider の候補だけが出ることを確かめる。候補がすべて外れた種類は「候補なし」と出る。それは正常で、その種類の呼び出し方は AGENTS.md の「Agent の呼び出し」の、どの候補も呼べない場合に従う。

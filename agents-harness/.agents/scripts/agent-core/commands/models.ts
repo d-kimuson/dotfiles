@@ -121,7 +121,7 @@ function renderKind(kind: ModelKind): string {
   }
   lines.push('')
   if (kind.candidates.length === 0) {
-    lines.push(`  候補なし (この環境で使える provider の候補がありません。親と同じモデルの SubAgent で代わりに動かす)`)
+    lines.push(`  候補なし (この環境で使える provider の候補がありません。呼び出し方は AGENTS.md の「Agent の呼び出し」の、どの候補も呼べない場合に従う)`)
     return `${lines.join('\n')}\n`
   }
   const table = formatTable(

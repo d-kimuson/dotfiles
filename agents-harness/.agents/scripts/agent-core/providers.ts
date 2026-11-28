@@ -80,7 +80,7 @@ export function providerOfCandidate(candidate: Pick<ModelCandidate, 'runtime' | 
 
 /**
  * 許可された provider の候補だけを、優先順を保って残す。
- * 候補がすべて外れた種類も残す (呼び出し側は親のモデルで代替する)。provider が決まらない候補は残さない。
+ * 候補がすべて外れた種類も残す (候補が無いときの呼び出し方は AGENTS.md の「Agent の呼び出し」に従う)。provider が決まらない候補は残さない。
  */
 export function filterKindsByProviders(kinds: ModelKind[], allowed: readonly Provider[]): ModelKind[] {
   return kinds.map((kind) => ({

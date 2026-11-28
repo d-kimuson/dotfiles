@@ -10,6 +10,8 @@ Advisor (Frontier モデル) の知識で方針を決め、Worker (自分) が�
 
 Advisor には `arbiter` のモデルを使い、AGENTS.md の「Agent の呼び出し」に従って呼ぶ。Advisor にはファイルを変更させない。
 
+`arbiter` の候補をどれも呼べないとき (`models list arbiter` が「候補なし」を返したときを含む) は、作業を止めて依頼元 (coordinator、いなければユーザー) にエスカレーションする。自分と同じモデルの Agent や、`arbiter` 以外の種類の候補で Advisor を代用しない。AGENTS.md の「どの候補も呼べない場合は、自分と同一モデルの Agent で代用する」は Advisor に適用しない。
+
 ## 手順
 
 1. **Advise**: [references/advice-request.md](./references/advice-request.md) の形で依頼し、回答を handoff ディレクトリの `advice.md` に保存する。
@@ -26,3 +28,8 @@ Advisor には `arbiter` のモデルを使い、AGENTS.md の「Agent の呼び
 - 指標と形式検証ごとの結果。実行したコマンドと出力を貼る
 - Review の結論と、未解決の指摘
 - `advice.md` の方針から外れた判断と、その理由
+
+Advisor を呼べずに止めたときは、上の 4 点の代わりに次を伝える。
+
+- 試した候補 (`<runtime>:<model>:<effort>`) と、候補ごとに実行したコマンドとエラー
+- 止めた時点 (Advise の前、Work の途中、Review の前) と、その時点までに変更したファイル

@@ -58,11 +58,12 @@ agent-core CLI (`~/.agents/scripts/agent-core.ts`) と Playbook のプロンプ�
 
 - 使うモデルは、作業の種類を 1 つ選び、次の手順で決める
   1. `~/.agents/scripts/agent-core.ts models list worker|judge|arbiter|scout|writer` で利用すべきモデルのリストを取得
-  2. 上から有効なものを選択し、失敗した場合に下位のモデルにフォールバックする
+  2. 上から有効なものを選択し、失敗した場合に下位の候補にフォールバックする
+- 候補は runtime・model・effort の組で 1 つ。リストにある組だけを呼び、model だけを取り出して別の runtime から呼ばない
 - 別系統のセカンドオピニオンがほしいときは、1 番目とは runtime やモデル系統の違う候補を使う
-- 選んだ候補の runtime がこのセッションと同じ場合は、組み込みの手段 (サブエージェント呼び出しなど) で呼ぶ
+- 選んだ候補の runtime がこのセッションと同じ場合に限り、組み込みの手段 (サブエージェント呼び出しなど) で呼ぶ。組み込みの手段に、別の runtime の候補の model を指定しない (例: command-code のセッションが、組み込みの agent tool で `claude-fable-5-2` を呼ばない)
 - 選んだ候補の runtime がこのセッションと違う場合は、`~/.agents/references/agent-call-over-cli.md` の手順で CLI を介して呼ぶ
-- どの候補も呼べない場合は、自分と同一モデルの Agent で代用する
+- どの候補も呼べない場合は、自分と同一モデルの Agent で代用する。Playbook が代用を禁じている役割 (worker-advisor の Advisor) は、代用せずにその Playbook に従う
 
 ### Other CLI Usage
 

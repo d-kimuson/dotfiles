@@ -742,6 +742,7 @@ test('models list は候補がすべて外れた種類を「候補なし」と�
     assert.ok(text.indexOf('worker') < text.indexOf('arbiter'))
     assert.match(text, /重要な判断だけ/)
     assert.match(text, /候補なし/)
+    assert.match(text, /どの候補も呼べない場合/)
     assert.doesNotMatch(text, /gpt-6-astra/)
   } finally {
     fixture.cleanup()
