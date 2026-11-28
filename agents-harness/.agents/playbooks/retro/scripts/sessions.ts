@@ -10,6 +10,13 @@ import { zstdDecompressSync } from "node:zlib"
 export type Agent = "claude" | "codex" | "pi" | "commandcode"
 export type Session = { agent: Agent; path: string; cwd?: string; messages: { at: string; text: string }[] }
 
+// Task Board のカードに付けるセッションの参照 (`<provider> <id>`)。id はログのファイル名の末尾の UUID。
+const PROVIDERS: Record<Agent, string> = { claude: "claude-code", codex: "codex", pi: "pi", commandcode: "command-code" }
+export const sessionRef = (agent: Agent, path: string): string | undefined => {
+  const id = path.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.jsonl(\.zst)?$/)?.[1]
+  return id === undefined ? undefined : `${PROVIDERS[agent]} ${id}`
+}
+
 const DEFAULT_DAYS = 14
 
 const textsOf = (content: unknown): string[] => {
@@ -86,7 +93,7 @@ const walk = (dir: string): string[] => {
 export const renderMarkdown = (sessions: Session[], since: string, maxChars: number): string => {
   const out = [`# Session log since ${since}`, ""]
   for (const s of sessions) {
-    out.push(`## ${s.agent} · ${s.cwd ?? "?"} · ${s.messages[0]?.at ?? ""}`, "", `log: ${s.path}`, "")
+    out.push(`## ${s.agent} · ${s.cwd ?? "?"} · ${s.messages[0]?.at ?? ""}`, "", `log: ${s.path}`, ...(sessionRef(s.agent, s.path) === undefined ? [] : [`session: ${sessionRef(s.agent, s.path)}`]), "")
     for (const m of s.messages) {
       const text = m.text.replace(/\s+/g, " ")
       out.push(`- [${m.at}] ${text.length > maxChars ? `${text.slice(0, maxChars)}…` : text}`)

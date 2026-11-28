@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { normalize, parseSession } from "./sessions.ts"
+import { normalize, parseSession, sessionRef } from "./sessions.ts"
 
 const lines = (...records: unknown[]): string[] => records.map((r) => JSON.stringify(r))
 
@@ -52,4 +52,17 @@ test("pi と commandcode: message の user role を読む", () => {
   )
   assert.equal(s.cwd, "/w")
   assert.deepEqual(s.messages, [{ at: "t1", text: "依頼" }])
+})
+
+test("sessionRef: ログのファイル名の末尾の UUID と provider を返す", () => {
+  assert.equal(
+    sessionRef("codex", "/h/.codex/sessions/2026/11/28/rollout-2026-11-28T06-09-39-01a220c6-0a18-7180-a57a-f0b95856f558.jsonl"),
+    "codex 01a220c6-0a18-7180-a57a-f0b95856f558",
+  )
+  assert.equal(
+    sessionRef("pi", "/h/.pi/agent/sessions/x/2026-11-27T16-35-56-777Z_01a21ddd-10e7-70b3-9193-ea19028e9175.jsonl.zst"),
+    "pi 01a21ddd-10e7-70b3-9193-ea19028e9175",
+  )
+  assert.equal(sessionRef("commandcode", "/h/.commandcode/projects/p/146dec4c-a3e6-4a93-ae63-8756cd37f470.jsonl"), "command-code 146dec4c-a3e6-4a93-ae63-8756cd37f470")
+  assert.equal(sessionRef("claude", "/h/.claude/projects/p/notes.jsonl"), undefined)
 })

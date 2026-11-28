@@ -9,20 +9,157 @@
     display: block;
     height: 100%;
   }
+  .ptb-summary {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    max-height: 32vh;
+    overflow: auto;
+    box-sizing: border-box;
+    padding: 12px 16px;
+    border-top: 1px solid var(--dpk-rule);
+    background: var(--dpk-paper-sunken);
+    color: var(--dpk-ink);
+  }
+  .ptb-panel[hidden] {
+    display: none;
+  }
+  .ptb-panel {
+    background: var(--dpk-paper-raised);
+    overflow: auto;
+    border: 1px solid var(--dpk-rule);
+    border-radius: var(--dpk-radius);
+    padding: 12px 14px;
+    min-width: 0;
+  }
+  .ptb-panel h3 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--dpk-ink-soft);
+  }
+  .ptb-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ptb-counts li {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--dpk-ink-soft);
+  }
+  .ptb-counts strong {
+    font-size: 20px;
+    font-variant-numeric: tabular-nums;
+    color: var(--dpk-ink);
+  }
+  .ptb-counts li[data-column="blocked"] strong {
+    color: var(--dpk-danger);
+  }
+  .ptb-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+  }
+  .ptb-list li {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+  .ptb-list .ptb-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ptb-list .ptb-key {
+    font-family: var(--dpk-mono);
+    color: var(--dpk-ink-faint);
+    margin-right: 6px;
+  }
+  .ptb-list .ptb-sub {
+    color: var(--dpk-ink-soft);
+    font-size: 12px;
+  }
+  .ptb-empty {
+    color: var(--dpk-ink-faint);
+    font-size: 13px;
+    margin: 0;
+  }
+  .ptb-archive {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--dpk-ink-faint);
+  }
+  .ptb-archive button {
+    font: inherit;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: var(--dpk-radius-sm);
+    border: 1px solid var(--dpk-rule-strong);
+    background: var(--dpk-paper);
+    color: var(--dpk-ink);
+    cursor: pointer;
+  }
+  .ptb-archive button:disabled {
+    cursor: default;
+    color: var(--dpk-ink-faint);
+  }
 </style>
 
 <dpk-app lang="ja" storage-key="personal-task-board">
   <script type="application/json">{ "title": "Personal Task Board" }</script>
-  <dpk-page name="board" label="Personal Task Board">
-    <dpk-board-kanban id="personal-task-board" heading="Personal Task Board">
+  <div slot="main" class="ptb-summary">
+    <section class="ptb-panel">
+      <h3>列ごとの枚数</h3>
+      <ul class="ptb-counts"></ul>
+      <div class="ptb-archive"><button type="button" disabled>Done をアーカイブ</button><span></span></div>
+    </section>
+    <section class="ptb-panel" data-panel="blocked">
+      <h3>ブロック中</h3>
+      <ul class="ptb-list" data-list="blocked"></ul>
+    </section>
+    <section class="ptb-panel">
+      <h3>最近動いたカード</h3>
+      <ul class="ptb-list" data-list="recent"></ul>
+    </section>
+  </div>
+  <dpk-page name="board" label="タスク">
+    <dpk-board-kanban id="personal-task-board" heading="タスク">
       <script type="application/json">
         {
           "columns": [
-            { "id": "todo", "label": "ToDo", "color": "gray", "cards": [] },
-            { "id": "doing", "label": "作業中", "color": "blue", "cards": [] },
-            { "id": "blocked", "label": "ブロック中", "color": "red", "cards": [] },
-            { "id": "done", "label": "完了", "color": "green", "cards": [] },
-            { "id": "learning-backlog", "label": "学習バックログ", "color": "violet", "cards": [] }
+            { "id": "todo", "label": "Todo", "color": "gray", "cards": [] },
+            { "id": "today", "label": "今日やる", "color": "amber", "cards": [] },
+            { "id": "doing", "label": "進行中", "color": "blue", "cards": [] },
+            { "id": "blocked", "label": "ブロック", "color": "red", "cards": [] },
+            { "id": "done", "label": "Done", "color": "green", "cards": [] },
+            { "id": "archived", "label": "アーカイブ", "color": "gray", "cards": [] }
+          ]
+        }
+      </script>
+    </dpk-board-kanban>
+  </dpk-page>
+  <dpk-page name="learning" label="学習バックログ">
+    <dpk-board-kanban id="personal-learning" heading="学習バックログ">
+      <script type="application/json">
+        {
+          "columns": [
+            { "id": "backlog", "label": "バックログ", "color": "violet", "cards": [] },
+            { "id": "done", "label": "Done", "color": "green", "cards": [] },
+            { "id": "archived", "label": "アーカイブ", "color": "gray", "cards": [] }
           ]
         }
       </script>
@@ -35,8 +172,78 @@
 
   const KIT = "https://cdn.jsdelivr.net/npm/dev-process-kit@0.4.2/dist/boards.js";
   const ACTIONS = "actions";
+  const ARCHIVED = "archived";
+  const BLOCKED_HEADING = "## ブロック理由";
+  // 列は各 Kanban の base JSON から読む。
+  const BOARDS = Object.fromEntries(
+    [...document.querySelectorAll("dpk-page > dpk-board-kanban")].map((el) => [
+      el.id,
+      {
+        page: el.parentElement.getAttribute("name"),
+        label: el.parentElement.getAttribute("label"),
+        columns: JSON.parse(el.querySelector(":scope > script[type='application/json']").textContent).columns,
+      },
+    ]),
+  );
 
   const order = (a, b) => (a.createdAt === b.createdAt ? (a.id < b.id ? -1 : 1) : a.createdAt < b.createdAt ? -1 : 1);
+  const parseTarget = (t) => {
+    const id = t?.id ?? "";
+    for (const [board, { page }] of Object.entries(BOARDS)) {
+      if (id.startsWith(`${board}/`) && id.endsWith(`@${page}`)) return { board, path: id.slice(board.length + 1, -page.length - 1) };
+    }
+    return undefined;
+  };
+  const actionCard = (a) => {
+    const t = parseTarget(a.target);
+    if (t === undefined) return undefined;
+    if (a.type === "ADD_CARD") return { board: t.board, card: a.payload?.id };
+    return t.path.startsWith("card/") ? { board: t.board, card: t.path.slice(5) } : undefined;
+  };
+
+  let actions = [];
+  let pending = 0;
+  let renderLater = () => {};
+
+  // board.ts の fold と同じ規則で、db の action から 1 つの盤面の列とカードを出す (Kanban の api.state は盤面を返さない)。
+  const columnsOf = (board) => {
+    const columns = BOARDS[board].columns.map((c) => ({ id: c.id, label: c.label, cards: [] }));
+    const locate = (id) => {
+      for (const column of columns) {
+        const index = column.cards.findIndex((c) => c.id === id);
+        if (index !== -1) return { column, index, card: column.cards[index] };
+      }
+      return undefined;
+    };
+    const numbers = () => columns.flatMap((c) => c.cards.map((x) => x.number));
+    for (const a of actions) {
+      const t = parseTarget(a.target);
+      if (t === undefined || t.board !== board) continue;
+      const p = a.payload ?? {};
+      if (a.type === "ADD_CARD") {
+        const column = columns.find((c) => `column/${c.id}` === t.path);
+        const number = typeof p.number === "number" ? p.number : Math.max(0, ...numbers()) + 1;
+        const title = String(p.title ?? "").trim();
+        if (column && title !== "" && !locate(p.id) && !numbers().includes(number))
+          column.cards.push({ id: p.id, number, title, description: null, tags: [], links: [] });
+        continue;
+      }
+      const found = t.path.startsWith("card/") ? locate(t.path.slice(5)) : undefined;
+      if (found === undefined) continue;
+      const { card } = found;
+      if (a.type === "MOVE_CARD") {
+        const to = columns.find((c) => c.id === p.column);
+        const before = p.before ?? null;
+        if (!to || before === card.id || (before !== null && !to.cards.some((c) => c.id === before))) continue;
+        found.column.cards.splice(found.index, 1);
+        const at = before === null ? -1 : to.cards.findIndex((c) => c.id === before);
+        if (at === -1) to.cards.push(card);
+        else to.cards.splice(at, 0, card);
+      } else if (a.type === "SET_CARD_TITLE" && String(p.title ?? "").trim() !== "") card.title = String(p.title).trim();
+      else if (a.type === "SET_CARD_DESCRIPTION") card.description = p.description ? String(p.description) : null;
+    }
+    return columns;
+  };
 
   const localWriter = () => {
     try {
@@ -51,34 +258,157 @@
   };
 
   // 消してよいのは、このページを開いてから自分で足した action とコメントだけ。Clear all と古い action の Delete・Undo は db に反映せず、盤面を db の内容に戻す。
+  // ページの追加・削除・改名は db に入れない。ページは board.html が決める。
+  const PAGE_ACTIONS = ["ADD_PAGE", "REMOVE_PAGE", "RENAME_PAGE"];
   const dbTransport = (db, self) => {
     const collection = db.collection(ACTIONS);
     const mine = new Set();
-    let latest = [];
     let emit = () => {};
     let seq = 0;
+    const write = async (ops) => {
+      let ignored = false;
+      for (const op of ops) {
+        if (op.kind === "append" && !PAGE_ACTIONS.includes(op.action.type)) {
+          await collection.doc(op.action.id).set({ ...op.action, author: self });
+          mine.add(op.action.id);
+        } else if (op.kind === "remove" && (mine.has(op.id) || actions.some((a) => a.id === op.id && a.type === "comment"))) {
+          await collection.doc(op.id).delete();
+          mine.delete(op.id);
+        } else ignored = true;
+      }
+      if (ignored) setTimeout(emit, 0);
+    };
     return {
       listen(_cursor, onUpdate, onError) {
-        emit = () => onUpdate({ kind: "snapshot", cursor: String(++seq), actions: latest });
+        emit = () => onUpdate({ kind: "snapshot", cursor: String(++seq), actions });
         return collection.onSnapshot((snap) => {
-          latest = snap.docs.map((doc) => ({ ...doc.data() })).sort(order);
+          actions = snap.docs.map((doc) => ({ ...doc.data() })).sort(order);
           emit();
+          renderLater();
         }, onError);
       },
       async push(ops) {
-        let ignored = false;
-        for (const op of ops) {
-          if (op.kind === "append") {
-            await collection.doc(op.action.id).set({ ...op.action, author: self });
-            mine.add(op.action.id);
-          } else if (op.kind === "remove" && (mine.has(op.id) || latest.some((a) => a.id === op.id && a.type === "comment"))) {
-            await collection.doc(op.id).delete();
-            mine.delete(op.id);
-          } else ignored = true;
+        pending++;
+        renderLater();
+        try {
+          await write(ops);
+        } finally {
+          pending--;
+          renderLater();
         }
-        if (ignored) setTimeout(emit, 0);
       },
     };
+  };
+
+  // アーカイブは Done のカードを隠した列へ移すだけ (board.ts archive と同じ action)。
+  const archiveDone = (board) => {
+    const el = document.getElementById(board);
+    for (const card of columnsOf(board).find((c) => c.id === "done")?.cards ?? [])
+      el.dispatchElementAction("MOVE_CARD", ["card", card.id], { column: ARCHIVED, before: null });
+  };
+
+  const item = (key, title, sub) => {
+    const li = document.createElement("li");
+    const head = document.createElement("span");
+    head.className = "ptb-title";
+    const k = document.createElement("span");
+    k.className = "ptb-key";
+    k.textContent = key;
+    head.append(k, title);
+    li.append(head);
+    if (sub) {
+      const s = document.createElement("span");
+      s.className = "ptb-sub";
+      s.textContent = sub;
+      li.append(s);
+    }
+    return li;
+  };
+  const empty = (text) => {
+    const p = document.createElement("li");
+    p.className = "ptb-empty";
+    p.textContent = text;
+    return p;
+  };
+  const blockedReason = (description) => {
+    const lines = (description ?? "").split("\n");
+    const start = lines.findIndex((l) => l.trim() === BLOCKED_HEADING);
+    if (start === -1) return "";
+    const rest = lines.slice(start + 1);
+    const end = rest.findIndex((l) => /^#{1,6} /.test(l.trim()));
+    return (end === -1 ? rest : rest.slice(0, end)).join(" ").trim();
+  };
+  const when = (iso) => {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("ja-JP", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+
+  // 下の欄は、いま表示しているページの盤面を要約する。
+  const render = (writable) => {
+    const app = document.querySelector("dpk-app");
+    const page = app.api?.navigation?.page;
+    const board = Object.keys(BOARDS).find((id) => BOARDS[id].page === page) ?? Object.keys(BOARDS)[0];
+    const root = document.querySelector(".ptb-summary");
+    const all = columnsOf(board);
+    const columns = all.filter((c) => c.id !== ARCHIVED);
+    const cards = new Map(columns.flatMap((c) => c.cards.map((card) => [card.id, { card, column: c }])));
+    root.querySelector(".ptb-counts").replaceChildren(
+      ...columns.map((c) => {
+        const li = document.createElement("li");
+        li.dataset.column = c.id;
+        const n = document.createElement("strong");
+        n.textContent = String(c.cards.length);
+        li.append(c.label, n);
+        return li;
+      }),
+    );
+    const blocked = root.querySelector('[data-list="blocked"]');
+    const blockedColumn = columns.find((c) => c.id === "blocked");
+    root.querySelector('[data-panel="blocked"]').hidden = blockedColumn === undefined;
+    if (blockedColumn) {
+      const list = blockedColumn.cards;
+      blocked.replaceChildren(...(list.length === 0 ? [empty("なし")] : list.map((c) => item(`TASK-${c.number}`, c.title, blockedReason(c.description) || "理由が書かれていない"))));
+    }
+    const recent = root.querySelector('[data-list="recent"]');
+    const seen = new Set();
+    const moves = [];
+    for (const a of [...actions].reverse()) {
+      if (a.type !== "MOVE_CARD" && a.type !== "ADD_CARD") continue;
+      const ref = actionCard(a);
+      const hit = ref && ref.board === board && cards.get(ref.card);
+      if (!hit || seen.has(ref.card)) continue;
+      seen.add(ref.card);
+      moves.push(item(`TASK-${hit.card.number}`, hit.card.title, `${when(a.createdAt)} ${a.type === "ADD_CARD" ? "追加" : "移動"} → ${hit.column.label}`));
+      if (moves.length === 5) break;
+    }
+    recent.replaceChildren(...(moves.length === 0 ? [empty("なし")] : moves));
+    const done = columns.find((c) => c.id === "done")?.cards.length ?? 0;
+    const button = root.querySelector(".ptb-archive button");
+    // 書き込み中は db の盤面がページの表示より古いので押させない。
+    button.disabled = !writable || done === 0 || pending > 0;
+    button.textContent = done === 0 ? "Done をアーカイブ" : `Done の ${done} 枚をアーカイブ`;
+    const kept = all.find((c) => c.id === ARCHIVED)?.cards.length ?? 0;
+    root.querySelector(".ptb-archive span").textContent = kept === 0 ? "" : `アーカイブ済み ${kept} 枚`;
+    button.onclick = () => {
+      if (!confirm(`${BOARDS[board].label} の Done の ${done} 枚をアーカイブする`)) return;
+      archiveDone(board);
+      render(writable);
+    };
+  };
+
+  // カード詳細の Status と Assignee、カード上の担当者、アーカイブの列、全列の枚数を隠す。列の移動はドラッグで行い、担当者は使わない。
+  const hideFields = (el) => {
+    if (!el.shadowRoot || el.dataset.ptbStyled === "1") return;
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(
+      [
+        ".kanban-detail-field:has(> .kanban-statuses), .kanban-detail-field:has(> dpk-inline-edit:not([multiline])), .kanban-assignee",
+        `.kanban-column[data-column="${ARCHIVED}"]`,
+        ".diagram-stats",
+      ].join(", ") + " { display: none !important; }",
+    );
+    el.shadowRoot.adoptedStyleSheets = [...el.shadowRoot.adoptedStyleSheets, sheet];
+    el.dataset.ptbStyled = "1";
   };
 
   const db = (await window.claude?.use("db")) ?? null;
@@ -88,4 +418,17 @@
     serveDraftSync({ self, transport: () => dbTransport(db, self) });
   }
   await import(KIT);
+  let frame = 0;
+  renderLater = () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => render(db !== null));
+  };
+  for (const board of Object.keys(BOARDS)) {
+    const el = document.getElementById(board);
+    await el.api.ready;
+    hideFields(el);
+  }
+  document.addEventListener("dpk-change", renderLater);
+  document.addEventListener("dpk-navigate", renderLater);
+  renderLater();
 </script>
