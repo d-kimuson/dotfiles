@@ -558,7 +558,6 @@
     .kanban-column-head::after { margin-left: 6px; font-size: 11px; color: var(--dpk-ink-faint); }
   `);
 
-  // 詳細では、kit の担当者 (assignee) とステータスの欄を出さない。担い手は Agent のタグ、列の移動は盤面で行う。
   const detailSheet = new CSSStyleSheet();
   detailSheet.replaceSync(`
     .kanban-detail-field:has(> dpk-inline-edit:not([multiline])),
